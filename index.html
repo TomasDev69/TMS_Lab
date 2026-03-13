@@ -1759,7 +1759,7 @@
                 try {
                     submitBtn.textContent = '🔄 Ottimizzazione Immagine...';
                     devLog(`[IDEA] Compressione immagine in locale per velocizzare l'upload...`, "info");
-                    const compressedImg = await compressImage(selectedThumbFile, 1280, 0.7);
+                    const compressedImg = await compressImage(selectedThumbFile, 1920, 0.95);
                     devLog(`[IDEA] Immagine compressa con successo! Peso ridotto drasticamente.`, "success");
 
                     submitBtn.textContent = '📁 Creazione Cartella Drive...';
@@ -1793,7 +1793,7 @@
 
             if (!thumbnailUrl && selectedThumbFile) {
                 devLog(`[IDEA WARNING] Salvataggio offline attivato. Il file Drive non è stato generato.`, "warning");
-                const compressedImg = await compressImage(selectedThumbFile, 800, 0.6);
+                const compressedImg = await compressImage(selectedThumbFile, 1920, 0.95);
                 thumbnailUrl = compressedImg.dataUrl;
             }
 
@@ -2413,3 +2413,4 @@
     </script>
 </body>
 </html>
+
