@@ -184,7 +184,7 @@
             </div>
 
             <div id="channelList" class="flex flex-col gap-0.5 overflow-y-auto flex-1 px-2 pb-2 border-b border-[#303030] mb-2">
-                <!-- Canali renderizzati qui -->
+                <!-- Canali renderizzati qui. Drag & drop supportato -->
             </div>
 
             <!-- Developer Tools & Console -->
@@ -1006,9 +1006,9 @@
             
             if (seconds < 60) return "pochi secondi fa";
             let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " anno fa" : " anni fa");
+            if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " anno fa" : " anni fa");
             interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " mese fa" : " mesi fa");
+            if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " mese fa" : " mesi fa");
             interval = seconds / 604800;
             if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " settimana fa" : " settimane fa");
             interval = seconds / 86400;
@@ -1194,6 +1194,10 @@
         let folderStatusCache = {};
         let randomIdeaOrder = []; // Array di appoggio per mantenere l'ordine randomico fisso tra un refresh e l'altro
         
+        // AUDIO PLAYER GLOBALE PER ANTEPRIMA EH
+        let globalAudioPlayer = new Audio();
+        let currentlyPlayingEHId = null;
+        
         const TEAM_MEMBERS = ["DG", "Tomas", "Pierò", "GFS", "Noemi", "Alex", "Davide", "Rog", "Camel", "Gatti"];
         let downloadedEHFiles = JSON.parse(localStorage.getItem('creatorhub_eh_downloads') || '[]');
         const CHANNEL_COLORS = ['#3ea6ff','#ff4e4e','#4ade80','#facc15','#f97316','#a855f7','#ec4899','#14b8a6','#f59e0b','#6366f1','#84cc16','#06b6d4'];
@@ -1272,6 +1276,12 @@
             document.getElementById('viewStatsWrapper').classList.add('hidden');
             document.getElementById('viewDatabaseWrapper').classList.add('hidden');
             
+            // Ferma l'audio se si cambia pagina
+            if(!globalAudioPlayer.paused) {
+                globalAudioPlayer.pause();
+                currentlyPlayingEHId = null;
+            }
+
             if (view === 'idee') {
                 document.getElementById('navIdee').classList.add('active');
                 document.getElementById('viewIdeeWrapper').classList.remove('hidden');
@@ -1285,7 +1295,7 @@
                 document.getElementById('navStrumenti').classList.add('active');
                 document.getElementById('viewStrumentiWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Strumenti & Risorse';
-                pageSubtitle.textContent = 'Tutti i tool utili al tuo flusso di lavoro.';
+                pageSubtitle.textContent = 'Tutti i tool utili al tuo flusso di lavoro (Trascina le card per riordinarle).';
                 mainActionText.textContent = 'Aggiungi Strumento';
                 mainActionBtn.onclick = () => { document.getElementById('addToolModal').classList.remove('hidden'); document.getElementById('addToolModal').classList.add('flex'); };
                 renderTools();
@@ -1294,7 +1304,7 @@
                 document.getElementById('navFormazione').classList.add('active');
                 document.getElementById('viewFormazioneWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Video Formazione';
-                pageSubtitle.textContent = 'Lezioni e tutorial da studiare.';
+                pageSubtitle.textContent = 'Lezioni e tutorial da studiare (Trascina le card per riordinarle).';
                 mainActionText.textContent = 'Aggiungi Video';
                 mainActionBtn.onclick = () => { document.getElementById('addTrainingModal').classList.remove('hidden'); document.getElementById('addTrainingModal').classList.add('flex'); };
                 renderTraining();
@@ -1389,7 +1399,7 @@
                 });
             }
             
-            // Randomizza l'ordine solo se siamo su "Tutte le idee" senza ricerche attive
+            // Randomizza l'ordine solo se siamo su "Tutte le idee" senza ricerche attive o filtri extra
             if (activeChannelId === null && !term && activeStatusFilter === 'all') {
                 filtered.sort((a, b) => {
                     let indexA = randomIdeaOrder.indexOf(a.id);
@@ -1522,7 +1532,7 @@
         }
 
         // =============================================
-        //  RENDER CANALI (SIDEBAR & ADMIN)
+        //  RENDER CANALI (SIDEBAR DRAG & DROP)
         // =============================================
         function setActiveFilter(channelId) {
             if (currentView !== 'idee') switchView('idee');
@@ -1560,6 +1570,39 @@
                 const el = document.createElement('div');
                 el.className = `channel-item channel-sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${activeChannelId === ch.id ? 'active' : ''}`;
                 el.dataset.id = ch.id;
+                
+                // --- DRAG AND DROP CANALI ---
+                el.draggable = true;
+                el.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', ch.id);
+                    el.style.opacity = '0.5';
+                });
+                el.addEventListener('dragend', () => { el.style.opacity = '1'; });
+                el.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    el.classList.add('border-t-2', 'border-blue-500');
+                });
+                el.addEventListener('dragleave', () => {
+                    el.classList.remove('border-t-2', 'border-blue-500');
+                });
+                el.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    el.classList.remove('border-t-2', 'border-blue-500');
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    if (draggedId && draggedId !== ch.id) {
+                        const draggedIdx = channels.findIndex(c => c.id === draggedId);
+                        const targetIdx = channels.findIndex(c => c.id === ch.id);
+                        if(draggedIdx > -1 && targetIdx > -1) {
+                            const [draggedItem] = channels.splice(draggedIdx, 1);
+                            channels.splice(targetIdx, 0, draggedItem);
+                            devLog(`[UI] Ordine Canali aggiornato. Salvataggio in corso...`, "info");
+                            renderChannelList();
+                            autoSaveToCloud();
+                        }
+                    }
+                });
+                // -----------------------------
+
                 el.innerHTML = `
                     <div class="shrink-0">${avatarHTML}</div>
                     <span class="sidebar-label text-sm text-gray-200 flex-1 truncate whitespace-nowrap">${ch.name}</span>
@@ -2043,7 +2086,6 @@
                 try {
                     submitBtn.textContent = '🔄 Preparazione File...';
                     
-                    // Lanciamo in parallelo le operazioni:
                     // 1. Estraiamo il file ORIGINALE IN HD senza comprimerlo
                     const getOrigBase64 = new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedThumbFile); });
                     
@@ -2074,7 +2116,6 @@
                         });
                         
                         if (resI.fileId) {
-                            // Chiediamo a Drive una versione "LowRes" a 800px che non sgrana ma carica in un attimo sul sito
                             thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
                         }
                     }
@@ -2107,7 +2148,7 @@
         });
 
         // =============================================
-        //  RENDER STRUMENTI & TOOLS
+        //  RENDER STRUMENTI & TOOLS (OTTIMIZZATI CON DRAG & DROP E UPLOAD DRIVE)
         // =============================================
         const noToolsResults = document.getElementById('noToolsResults');
 
@@ -2123,8 +2164,35 @@
 
             filteredTools.forEach(tool => {
                 const card = document.createElement('div');
-                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-[#555] transition-colors flex flex-col group relative';
+                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-blue-500 transition-all flex flex-col group relative cursor-move';
                 
+                // --- DRAG AND DROP TOOLS ---
+                card.draggable = true;
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('toolId', tool.id);
+                    card.classList.add('opacity-50');
+                });
+                card.addEventListener('dragend', () => { card.classList.remove('opacity-50'); });
+                card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('ring-2', 'ring-blue-500'); });
+                card.addEventListener('dragleave', () => { card.classList.remove('ring-2', 'ring-blue-500'); });
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('ring-2', 'ring-blue-500');
+                    const draggedId = e.dataTransfer.getData('toolId');
+                    if(draggedId && draggedId !== tool.id) {
+                        const draggedIdx = toolsData.findIndex(t => t.id === draggedId);
+                        const targetIdx = toolsData.findIndex(t => t.id === tool.id);
+                        if(draggedIdx > -1 && targetIdx > -1) {
+                            const [draggedItem] = toolsData.splice(draggedIdx, 1);
+                            toolsData.splice(targetIdx, 0, draggedItem);
+                            devLog(`[UI] Ordine Strumenti aggiornato.`, "info");
+                            renderTools();
+                            autoSaveToCloud();
+                        }
+                    }
+                });
+                // ---------------------------
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
                 deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center shadow-lg transform hover:scale-110';
@@ -2138,7 +2206,7 @@
                 };
 
                 card.innerHTML = `
-                    <img src="${tool.image}" class="w-full h-32 object-cover bg-[#111]">
+                    <img src="${tool.image}" class="w-full h-32 object-cover bg-[#111] pointer-events-none">
                     <div class="p-4 flex-1 flex flex-col">
                         <h3 class="font-bold text-white text-lg">${tool.title}</h3>
                         <p class="text-sm text-gray-400 mt-1 line-clamp-3 flex-1">${tool.description}</p>
@@ -2177,16 +2245,43 @@
             const description = document.getElementById('inputToolDesc').value.trim();
             const link = document.getElementById('inputToolLink').value.trim();
 
-            const compressedImg = await compressImage(selectedToolFile, 300, 0.6, 'image/webp');
-            
-             if(compressedImg.sizeKB > 500) {
-                     submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
-                     return;
-             }
+            let finalImageUrl = "";
+            const ext = selectedToolFile.name.split('.').pop().toLowerCase();
+            const compressedImg = await compressImage(selectedToolFile, 400, 0.8, 'image/jpeg');
+
+            // MEGA FIX PER LA LENTEZZA: Inviamo il logo al Drive (usa la cartella EH come ripostiglio rapido) invece di salvarlo nel DB!
+            if (SCRIPT_URL) {
+                try {
+                    submitBtn.textContent = '🚀 Upload Logo su Drive...';
+                    const res = await callScriptAction({ 
+                        action: 'uploadEHFile', 
+                        base64: compressedImg.base64, 
+                        mimeType: 'image/jpeg', 
+                        fileName: `tool_logo_${Date.now()}.${ext}` 
+                    });
+                    if(res.fileId) {
+                        finalImageUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w400`;
+                        devLog(`[TOOL] Logo caricato su Drive, il database rimarrà leggerissimo!`, "success");
+                    }
+                } catch(e) {
+                    devLog(`[TOOL] Errore upload Drive. Fallback al database locale.`, "warning");
+                }
+            }
+
+            // Fallback estremo se Drive non va
+            if(!finalImageUrl) {
+                 const ultraCompressed = await compressImage(selectedToolFile, 250, 0.5, 'image/webp');
+                 if(ultraCompressed.sizeKB > 300) {
+                         submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
+                         alert("L'immagine è troppo pesante per il salvataggio offline.");
+                         return;
+                 }
+                 finalImageUrl = ultraCompressed.dataUrl;
+            }
 
             const newTool = {
                 id: Date.now().toString(),
-                title, description, link, image: compressedImg.dataUrl
+                title, description, link, image: finalImageUrl
             };
 
             toolsData.push(newTool);
@@ -2200,7 +2295,7 @@
         });
 
         // =============================================
-        //  RENDER FORMAZIONE
+        //  RENDER FORMAZIONE (CON DRAG E DROP)
         // =============================================
         const noTrainingResults = document.getElementById('noTrainingResults');
 
@@ -2222,9 +2317,35 @@
 
             filteredTraining.forEach(training => {
                 const card = document.createElement('div');
-                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-[#3ea6ff] transition-colors flex flex-col group relative cursor-pointer';
-                card.onclick = () => window.open(training.link, '_blank');
+                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-purple-500 transition-colors flex flex-col group relative cursor-move';
                 
+                // --- DRAG AND DROP FORMAZIONE ---
+                card.draggable = true;
+                card.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('trainingId', training.id);
+                    card.classList.add('opacity-50');
+                });
+                card.addEventListener('dragend', () => { card.classList.remove('opacity-50'); });
+                card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('ring-2', 'ring-purple-500'); });
+                card.addEventListener('dragleave', () => { card.classList.remove('ring-2', 'ring-purple-500'); });
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('ring-2', 'ring-purple-500');
+                    const draggedId = e.dataTransfer.getData('trainingId');
+                    if(draggedId && draggedId !== training.id) {
+                        const draggedIdx = trainingData.findIndex(t => t.id === draggedId);
+                        const targetIdx = trainingData.findIndex(t => t.id === training.id);
+                        if(draggedIdx > -1 && targetIdx > -1) {
+                            const [draggedItem] = trainingData.splice(draggedIdx, 1);
+                            trainingData.splice(targetIdx, 0, draggedItem);
+                            devLog(`[UI] Ordine Formazione aggiornato.`, "info");
+                            renderTraining();
+                            autoSaveToCloud();
+                        }
+                    }
+                });
+                // --------------------------------
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
                 deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center shadow-lg transform hover:scale-110';
@@ -2238,14 +2359,14 @@
                 };
 
                 card.innerHTML = `
-                    <div class="relative aspect-video bg-[#111]">
-                        <img src="https://img.youtube.com/vi/${training.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${training.ytId}/hqdefault.jpg'" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="relative aspect-video bg-[#111]" onclick="window.open('${training.link}', '_blank')">
+                        <img src="https://img.youtube.com/vi/${training.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${training.ytId}/hqdefault.jpg'" class="w-full h-full object-cover pointer-events-none">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <span class="text-5xl drop-shadow-lg">▶️</span>
                         </div>
                     </div>
-                    <div class="p-4">
-                        <h3 class="font-bold text-white text-sm line-clamp-2 leading-tight group-hover:text-[#3ea6ff] transition-colors">${training.title}</h3>
+                    <div class="p-4 flex-1 flex flex-col justify-center">
+                        <h3 class="font-bold text-white text-sm line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">${training.title}</h3>
                     </div>
                 `;
                 card.appendChild(deleteBtn);
@@ -2277,7 +2398,7 @@
         });
 
         // =============================================
-        //  RENDER EDITORS HUB (SFX & MUSIC)
+        //  RENDER EDITORS HUB (SFX & MUSIC + AUDIO PLAYER)
         // =============================================
         const noEHResults = document.getElementById('noEHResults');
         let selectedEHFile = null;
@@ -2309,6 +2430,14 @@
             return originalLink;
         }
 
+        // Evento di completamento audio
+        globalAudioPlayer.addEventListener('ended', () => {
+            currentlyPlayingEHId = null;
+            document.querySelectorAll('.eh-play-icon').forEach(icon => icon.textContent = '▶️');
+            document.querySelectorAll('.eh-icon-main').forEach(icon => icon.classList.remove('hidden'));
+            document.querySelectorAll('.eh-play-icon').forEach(icon => icon.classList.add('hidden'));
+        });
+
         function renderEditorsHub() {
             ehGrid.innerHTML = '';
             const term = searchInput.value.toLowerCase();
@@ -2337,6 +2466,7 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare il file "${item.title}" dall'Editors Hub?`, async () => {
                         editorsHubData = editorsHubData.filter(t => t.id !== item.id);
+                        if(currentlyPlayingEHId === item.id) globalAudioPlayer.pause();
                         renderEditorsHub();
                         await autoSaveToCloud();
                     });
@@ -2354,7 +2484,7 @@
                                     📁 Apri cartella
                                 </button>
                                 <button class="text-[11px] text-[#3ea6ff] hover:text-[#65b8ff] flex items-center gap-1 transition-colors font-bold download-eh-btn">
-                                    ⬇️ Scarica di nuovo
+                                    ⬇️ Di nuovo
                                 </button>
                             </div>
                         </div>
@@ -2367,12 +2497,16 @@
                     `;
                 }
 
+                // Determiniamo lo stato di riproduzione visivo corrente
+                const isPlaying = currentlyPlayingEHId === item.id && !globalAudioPlayer.paused;
+
                 card.innerHTML = `
                     <div class="flex items-start gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040]">
-                            ${icon}
+                        <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" title="Clicca per ascoltare l'anteprima">
+                            <span class="eh-icon-main ${isPlaying ? 'hidden' : 'group-hover/audio:hidden'}">${icon}</span>
+                            <span class="eh-play-icon ${isPlaying ? 'block' : 'hidden group-hover/audio:block'} text-[#3ea6ff] text-sm">${isPlaying ? '⏸️' : '▶️'}</span>
                         </div>
-                        <div class="flex flex-col pr-6">
+                        <div class="flex flex-col pr-6 flex-1">
                             <h3 class="font-bold text-white text-sm leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
                             <span class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">${item.category === 'sfx' ? 'Sound Effect' : 'Audio Track'}</span>
                         </div>
@@ -2381,6 +2515,27 @@
                         ${actionHtml}
                     </div>
                 `;
+                
+                // Evento Play/Pause Anteprima Audio
+                const playTrigger = card.querySelector('.eh-play-trigger');
+                playTrigger.onclick = (e) => {
+                    e.stopPropagation();
+                    const audioUrl = getDirectDownloadLink(item.fileId, item.link);
+                    
+                    if (currentlyPlayingEHId === item.id) {
+                        if (globalAudioPlayer.paused) {
+                            globalAudioPlayer.play();
+                        } else {
+                            globalAudioPlayer.pause();
+                        }
+                    } else {
+                        globalAudioPlayer.src = audioUrl;
+                        globalAudioPlayer.play();
+                        currentlyPlayingEHId = item.id;
+                    }
+                    renderEditorsHub(); // Ricarica veloce per aggiornare le icone
+                };
+
                 card.appendChild(deleteBtn);
                 
                 const btn = card.querySelector('.download-eh-btn');
@@ -2458,7 +2613,7 @@
             switchEHTab(category);
             closeModal('addEHModal', 'ehForm');
             submitBtn.disabled = false; submitBtn.textContent = 'Salva File';
-            await autoSaveToCloud();
+            autoSaveToCloud();
         });
         
         // =============================================
@@ -2535,7 +2690,6 @@
             const timelineContainer = document.getElementById('timelineContainer');
             timelineContainer.innerHTML = '';
             
-            // Ordina per le vere novità e non l'ordine randomico!
             const recentIdeas = [...videoIdeas].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 15);
             if(recentIdeas.length === 0) {
                 timelineContainer.innerHTML = '<p class="text-sm text-gray-500 mt-4 ml-4">Nessuna attività recente da mostrare.</p>';
