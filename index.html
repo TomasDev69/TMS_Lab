@@ -60,6 +60,9 @@
         /* Editors Hub Tabs */
         .eh-tab { transition: all 0.2s; border-bottom: 2px solid transparent; }
         .eh-tab.active { border-bottom-color: #3ea6ff; color: #3ea6ff; }
+        
+        /* Progress Bar Animata */
+        .progress-bar-fill { transition: width 0.5s ease-in-out; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -160,6 +163,10 @@
             <div id="navStats" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('stats')">
                 <span class="text-xl">📊</span>
                 <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
+            </div>
+            <div id="navDatabase" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('database')">
+                <span class="text-xl">💾</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Database</span>
             </div>
 
             <div class="mx-4 border-t border-[#303030] my-2"></div>
@@ -347,6 +354,78 @@
                         </div>
 
                     </div>
+                </div>
+            </div>
+            
+            <!-- VISTA: DATABASE ANALYZER -->
+            <div id="viewDatabaseWrapper" class="hidden">
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- Overview Database -->
+                    <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl p-6 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                        <h2 class="text-2xl font-black text-white mb-1 relative z-10">Stato Database JSON</h2>
+                        <p class="text-sm text-gray-400 mb-6 relative z-10">Monitora lo spazio occupato. Meno Base64 usi, più veloce sarà il caricamento.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                            <div class="bg-[#222] border border-[#404040] p-4 rounded-lg flex flex-col justify-center">
+                                <span class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Peso Totale Stimato</span>
+                                <div class="flex items-end gap-2">
+                                    <span class="text-4xl font-black text-blue-400" id="dbTotalSize">0</span>
+                                    <span class="text-lg text-gray-400 mb-1" id="dbTotalUnit">KB</span>
+                                </div>
+                            </div>
+                            
+                            <div class="md:col-span-2 bg-[#222] border border-[#404040] p-5 rounded-lg flex flex-col justify-center">
+                                <span class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Distribuzione Spazio</span>
+                                <!-- Barra di progresso divisa -->
+                                <div class="w-full h-4 bg-[#111] rounded-full overflow-hidden flex shadow-inner">
+                                    <div id="dbBarIdeas" class="h-full bg-[#3ea6ff] progress-bar-fill" style="width: 0%" title="Idee"></div>
+                                    <div id="dbBarTools" class="h-full bg-[#a855f7] progress-bar-fill" style="width: 0%" title="Strumenti"></div>
+                                    <div id="dbBarChannels" class="h-full bg-[#facc15] progress-bar-fill" style="width: 0%" title="Canali"></div>
+                                    <div id="dbBarOther" class="h-full bg-[#4ade80] progress-bar-fill" style="width: 0%" title="Altro (Formazione, EH)"></div>
+                                </div>
+                                <div class="flex flex-wrap gap-4 mt-3 text-[11px] font-bold text-gray-400">
+                                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#3ea6ff]"></span> Idee: <span id="dbSizeIdeas" class="text-gray-200">0 KB</span></div>
+                                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#a855f7]"></span> Strumenti: <span id="dbSizeTools" class="text-gray-200">0 KB</span></div>
+                                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#facc15]"></span> Canali: <span id="dbSizeChannels" class="text-gray-200">0 KB</span></div>
+                                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#4ade80]"></span> Altro: <span id="dbSizeOther" class="text-gray-200">0 KB</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rilevatore Mattoni Base64 -->
+                    <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
+                        <div class="p-5 border-b border-[#303030] bg-red-900/10 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-lg font-bold text-red-400 flex items-center gap-2">⚠️ Rilevatore Elementi Pesanti (Base64)</h2>
+                                <p class="text-xs text-gray-400 mt-1">Questi elementi contengono immagini salvate direttamente nel testo del database. Cerca di eliminarli o sostituirli con URL normali per velocizzare il sito.</p>
+                            </div>
+                            <button onclick="renderDatabaseStats()" class="px-4 py-2 bg-[#303030] hover:bg-[#404040] text-white rounded text-sm transition-colors">Aggiorna Analisi</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-gray-300">
+                                <thead class="text-xs uppercase bg-[#111] text-gray-500">
+                                    <tr>
+                                        <th class="px-5 py-3">Tipo</th>
+                                        <th class="px-5 py-3">Nome / Titolo</th>
+                                        <th class="px-5 py-3">Peso Immagine</th>
+                                        <th class="px-5 py-3 text-right">Azione Ràpida</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]">
+                                    <!-- Populated dynamically via JS -->
+                                </tbody>
+                            </table>
+                            <div id="dbNoHeavyItems" class="text-center py-10 text-gray-500 hidden">
+                                <span class="text-3xl block mb-2">🎉</span>
+                                <p class="font-bold text-green-400">Nessun elemento pesante rilevato!</p>
+                                <p class="text-sm mt-1">Il tuo database è pulito e ottimizzato.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
 
@@ -847,11 +926,17 @@
         let SCRIPT_URL = localStorage.getItem('creatorhub_script_url') || "";
 
         // =============================================
-        //  FUNZIONI DI SUPPORTO TROUBLESHOOTING
+        //  FUNZIONI DI SUPPORTO TROUBLESHOOTING E CALCOLO DB
         // =============================================
         function getBase64SizeInKB(base64Str) {
             if(!base64Str) return 0;
             return ((base64Str.length * 3 / 4) / 1024).toFixed(2);
+        }
+        
+        // Calcola in modo preciso i byte effettivi di una stringa/JSON
+        function getStringSizeInKB(str) {
+            if(!str) return 0;
+            return (new Blob([str]).size / 1024).toFixed(2);
         }
 
         const consoleOutput = document.getElementById('consoleOutput');
@@ -1094,6 +1179,7 @@
             document.getElementById('navFormazione').classList.remove('active');
             document.getElementById('navEditorsHub').classList.remove('active');
             document.getElementById('navStats').classList.remove('active');
+            document.getElementById('navDatabase').classList.remove('active');
             
             // Sections visibility
             document.getElementById('viewIdeeWrapper').classList.add('hidden');
@@ -1101,6 +1187,7 @@
             document.getElementById('viewFormazioneWrapper').classList.add('hidden');
             document.getElementById('viewEditorsHubWrapper').classList.add('hidden');
             document.getElementById('viewStatsWrapper').classList.add('hidden');
+            document.getElementById('viewDatabaseWrapper').classList.add('hidden');
             
             if (view === 'idee') {
                 document.getElementById('navIdee').classList.add('active');
@@ -1146,6 +1233,15 @@
                 mainActionText.textContent = 'Crea Idea'; // Fallback
                 mainActionBtn.onclick = () => { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); };
                 renderStats();
+            }
+            else if (view === 'database') {
+                document.getElementById('navDatabase').classList.add('active');
+                document.getElementById('viewDatabaseWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Analisi Database';
+                pageSubtitle.textContent = 'Monitora e pulisci il database per mantenere i salvataggi veloci.';
+                mainActionText.textContent = 'Pulisci Sistema'; 
+                mainActionBtn.onclick = () => { alert("Consiglio: elimina manualmente gli elementi pesanti listati qui sotto per velocizzare i salvataggi."); };
+                renderDatabaseStats();
             }
         }
         
@@ -1336,9 +1432,9 @@
                 editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
                 
                 // Controlliamo il peso dei dati in cache per avvisare l'utente se ha DB enormi
-                const totalCacheSize = (JSON.stringify(raw).length / 1024).toFixed(2);
+                const totalCacheSize = getStringSizeInKB(JSON.stringify(raw));
                 if (totalCacheSize > 2000) {
-                     devLog(`[DB WARNING] ⚠️ Il tuo database pesa ${totalCacheSize} KB (Più di 2 MB!). Controlla se hai vecchie immagini offline salvate nei Tool o nelle Idee, rallentano i salvataggi.`, "warning");
+                     devLog(`[DB WARNING] ⚠️ Il tuo database pesa ${totalCacheSize} KB (Più di 2 MB!). Vai nella nuova scheda 'Analisi Database' per pulirlo.`, "warning");
                 }
                 
                 updateStatus("🟢 Sincronizzato con Drive", "success");
@@ -1363,7 +1459,7 @@
             
             const payload = { ideas: videoIdeas, channels: channels, tools: toolsData, training: trainingData, editorsHub: editorsHubData };
             const payloadStr = JSON.stringify(payload);
-            const sizeKB = (payloadStr.length / 1024).toFixed(2);
+            const sizeKB = getStringSizeInKB(payloadStr);
             
             devLog(`[DB SAVE] 📤 Inizio salvataggio... Peso totale del Database da sovrascrivere: ${sizeKB} KB`, "info");
             
@@ -2383,6 +2479,116 @@
                         <time class="block mb-1 text-xs font-normal text-gray-500 mt-0.5">${subText}</time>
                     `;
                     timelineContainer.appendChild(dot);
+                });
+            }
+        }
+
+        // =============================================
+        //  RENDER DATABASE ANALYZER (NUOVA SEZIONE)
+        // =============================================
+        function renderDatabaseStats() {
+            // Calcolo Pesi
+            const sizeIdeas = parseFloat(getStringSizeInKB(JSON.stringify(videoIdeas)));
+            const sizeTools = parseFloat(getStringSizeInKB(JSON.stringify(toolsData)));
+            const sizeChannels = parseFloat(getStringSizeInKB(JSON.stringify(channels)));
+            const sizeOther = parseFloat(getStringSizeInKB(JSON.stringify(trainingData))) + parseFloat(getStringSizeInKB(JSON.stringify(editorsHubData)));
+            
+            const totalKB = sizeIdeas + sizeTools + sizeChannels + sizeOther;
+            const totalMB = (totalKB / 1024).toFixed(2);
+            
+            // Update UI testuale
+            if (totalKB > 1024) {
+                document.getElementById('dbTotalSize').textContent = totalMB;
+                document.getElementById('dbTotalUnit').textContent = 'MB';
+            } else {
+                document.getElementById('dbTotalSize').textContent = totalKB.toFixed(1);
+                document.getElementById('dbTotalUnit').textContent = 'KB';
+            }
+            
+            document.getElementById('dbSizeIdeas').textContent = sizeIdeas.toFixed(1) + ' KB';
+            document.getElementById('dbSizeTools').textContent = sizeTools.toFixed(1) + ' KB';
+            document.getElementById('dbSizeChannels').textContent = sizeChannels.toFixed(1) + ' KB';
+            document.getElementById('dbSizeOther').textContent = sizeOther.toFixed(1) + ' KB';
+
+            // Update UI Barra
+            if (totalKB > 0) {
+                document.getElementById('dbBarIdeas').style.width = `${(sizeIdeas / totalKB) * 100}%`;
+                document.getElementById('dbBarTools').style.width = `${(sizeTools / totalKB) * 100}%`;
+                document.getElementById('dbBarChannels').style.width = `${(sizeChannels / totalKB) * 100}%`;
+                document.getElementById('dbBarOther').style.width = `${(sizeOther / totalKB) * 100}%`;
+            }
+
+            // Ricerca Elementi Pesanti (Base64)
+            const heavyItems = [];
+            const threshold = 1000; // Se una stringa è più lunga di 1000 caratteri, è sicuramente Base64 e non un URL Drive
+            
+            videoIdeas.forEach(i => {
+                if (i.thumbnail && i.thumbnail.length > threshold) {
+                    heavyItems.push({ type: 'Idea', id: i.id, title: i.title, size: getStringSizeInKB(i.thumbnail), ref: i, arrayRef: videoIdeas });
+                }
+            });
+            toolsData.forEach(t => {
+                if (t.image && t.image.length > threshold) {
+                    heavyItems.push({ type: 'Tool', id: t.id, title: t.title, size: getStringSizeInKB(t.image), ref: t, arrayRef: toolsData });
+                }
+            });
+            channels.forEach(c => {
+                if (c.profilePicUrl && c.profilePicUrl.length > threshold) {
+                    heavyItems.push({ type: 'Canale', id: c.id, title: c.name, size: getStringSizeInKB(c.profilePicUrl), ref: c, arrayRef: channels });
+                }
+            });
+
+            // Ordina per peso decrescente
+            heavyItems.sort((a, b) => parseFloat(b.size) - parseFloat(a.size));
+
+            const tableBody = document.getElementById('dbHeavyItemsBody');
+            const noHeavyMsg = document.getElementById('dbNoHeavyItems');
+            tableBody.innerHTML = '';
+
+            if (heavyItems.length === 0) {
+                tableBody.parentElement.classList.add('hidden');
+                noHeavyMsg.classList.remove('hidden');
+            } else {
+                tableBody.parentElement.classList.remove('hidden');
+                noHeavyMsg.classList.add('hidden');
+
+                heavyItems.forEach(item => {
+                    const tr = document.createElement('tr');
+                    
+                    let badgeClass = 'bg-blue-900/30 text-blue-400 border-blue-500/30';
+                    if (item.type === 'Tool') badgeClass = 'bg-purple-900/30 text-purple-400 border-purple-500/30';
+                    if (item.type === 'Canale') badgeClass = 'bg-yellow-900/30 text-yellow-400 border-yellow-500/30';
+
+                    let sizeClass = 'text-yellow-400 font-bold';
+                    if (parseFloat(item.size) > 500) sizeClass = 'text-red-500 font-black';
+
+                    tr.innerHTML = `
+                        <td class="px-5 py-3">
+                            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border tracking-wider ${badgeClass}">${item.type}</span>
+                        </td>
+                        <td class="px-5 py-3 font-semibold text-white">${item.title}</td>
+                        <td class="px-5 py-3 ${sizeClass}">${item.size} KB</td>
+                        <td class="px-5 py-3 text-right">
+                            <button class="delete-heavy-btn text-xs bg-red-900/40 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded transition-colors font-bold">
+                                Elimina Elemento
+                            </button>
+                        </td>
+                    `;
+                    
+                    tr.querySelector('.delete-heavy-btn').addEventListener('click', () => {
+                        requirePin(`Vuoi davvero eliminare "${item.title}" per liberare spazio?`, async () => {
+                            // Rimuove l'elemento dall'array corrispondente
+                            const index = item.arrayRef.findIndex(x => x.id === item.id);
+                            if (index > -1) {
+                                item.arrayRef.splice(index, 1);
+                                devLog(`[DB MANAGER] Rimosso elemento pesante: ${item.title} liberando ${item.size} KB`, "success");
+                                renderDatabaseStats(); // Ricarica questa vista
+                                await autoSaveToCloud(); // Salva le modifiche sul cloud
+                            }
+                        });
+                    });
+                    
+                    tableBody.appendChild(tr);
                 });
             }
         }
