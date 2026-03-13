@@ -1038,9 +1038,9 @@
         let currentlyOpenIdeaId = null;
 
         // =============================================
-        //  COMPRESSIONE IMMAGINI (RIDUCE TEMPI DI UPLOAD DEL 90%)
+        //  COMPRESSIONE IMMAGINI (MEGA OTTIMIZZAZIONE TEMPI E SPAZIO DB)
         // =============================================
-        function compressImage(file, maxWidth = 1280) {
+        function compressImage(file, maxWidth = 1280, quality = 0.7) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -1058,9 +1058,9 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
                         
-                        // Comprime in JPEG al 80% di qualità
-                        const base64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-                        resolve({ base64, mimeType: 'image/jpeg', ext: 'jpg' });
+                        const base64Full = canvas.toDataURL('image/jpeg', quality);
+                        const base64 = base64Full.split(',')[1];
+                        resolve({ base64, mimeType: 'image/jpeg', ext: 'jpg', dataUrl: base64Full });
                     };
                 };
             });
@@ -1440,7 +1440,7 @@
                 if(selectedEditChannelAvatarFile && channels[chIndex].driveFolderId && SCRIPT_URL) {
                     try {
                         btn.textContent = '🔄 Ottimizzazione...';
-                        const compressedImg = await compressImage(selectedEditChannelAvatarFile, 400);
+                        const compressedImg = await compressImage(selectedEditChannelAvatarFile, 400, 0.7);
 
                         btn.textContent = '🖼️ Upload...';
                         const resI = await callScriptAction({ 
@@ -1683,7 +1683,7 @@
         });
 
         // =============================================
-        //  MODAL CREAZIONE IDEA
+        //  MODAL CREAZIONE IDEA (OTTIMIZZATA PER VECCHIO CODE.GS)
         // =============================================
         let selectedThumbFile = null;
 
@@ -1715,33 +1715,35 @@
             
             if (ch && ch.driveFolderId && SCRIPT_URL) {
                 try {
-                    submitBtn.textContent = '🔄 Ottimizzazione Immagine...';
-                    const compressedImg = await compressImage(selectedThumbFile);
-
-                    submitBtn.textContent = '🚀 Creazione su Drive...';
-                    const res = await callScriptAction({ 
-                        action: 'createIdeaWithThumbnail', 
-                        folderName: title, 
-                        channelFolderId: ch.driveFolderId,
-                        base64: compressedImg.base64,
-                        mimeType: compressedImg.mimeType,
-                        ext: compressedImg.ext
-                    });
+                    submitBtn.textContent = '🔄 Creazione in corso...';
                     
-                    if (res.folderId) {
-                        ideaFolderId = res.folderId;
+                    // Lancio la compressione dell'immagine IN PARALLELO alla creazione della cartella per risparmiare tempo
+                    const [compressedImg, resF] = await Promise.all([
+                        compressImage(selectedThumbFile, 1280, 0.7),
+                        callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId })
+                    ]);
+
+                    ideaFolderId = resF.folderId || '';
+                    if (ideaFolderId) {
                         ideaFolderLink = `https://drive.google.com/drive/folders/${ideaFolderId}`;
-                    }
-                    if (res.fileId) {
-                        thumbnailUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w800`;
+                        
+                        submitBtn.textContent = '🚀 Upload Copertina (veloce)...';
+                        const resI = await callScriptAction({ 
+                            action: 'uploadThumbnail', 
+                            folderId: ideaFolderId, 
+                            base64: compressedImg.base64, 
+                            mimeType: compressedImg.mimeType, 
+                            ext: compressedImg.ext 
+                        });
+                        if (resI.fileId) thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
                     }
                 } catch(err) { devLog(`Errore creazione Drive: ${err.message}`, "error"); }
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                // Fallback locale istantaneo grazie alla compressione
-                const compressedImg = await compressImage(selectedThumbFile);
-                thumbnailUrl = 'data:image/jpeg;base64,' + compressedImg.base64;
+                // Fallback locale rapido con compressione
+                const compressedImg = await compressImage(selectedThumbFile, 800, 0.6);
+                thumbnailUrl = compressedImg.dataUrl;
             }
 
             const newIdea = {
@@ -1760,7 +1762,7 @@
         });
 
         // =============================================
-        //  RENDER STRUMENTI & TOOLS
+        //  RENDER STRUMENTI & TOOLS (OTTIMIZZATI)
         // =============================================
         const noToolsResults = document.getElementById('noToolsResults');
 
@@ -1822,17 +1824,18 @@
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type=submit]');
             if (!selectedToolFile) { alert('Carica un logo o un\'immagine per lo strumento.'); return; }
-            submitBtn.disabled = true; submitBtn.textContent = 'Salvataggio...';
+            submitBtn.disabled = true; submitBtn.textContent = '🔄 Ottimizzazione...';
 
             const title = document.getElementById('inputToolTitle').value.trim();
             const description = document.getElementById('inputToolDesc').value.trim();
             const link = document.getElementById('inputToolLink').value.trim();
 
-            const imageUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result); fr.readAsDataURL(selectedToolFile); });
+            // Comprimi sempre prima di salvare nel DB per evitare database enormi
+            const compressedImg = await compressImage(selectedToolFile, 400, 0.6);
 
             const newTool = {
                 id: Date.now().toString(),
-                title, description, link, image: imageUrl
+                title, description, link, image: compressedImg.dataUrl
             };
 
             toolsData.push(newTool);
@@ -2308,14 +2311,15 @@
 
             let driveFolderId = '', profilePicUrl = '';
             try {
-                btn.textContent = '📁 Creazione...';
-                const resF = await callScriptAction({ action: 'createChannelFolder', name }); driveFolderId = resF.folderId || '';
+                btn.textContent = '📁 Creazione Cartella...';
+                // Esegue creazione cartella e compressione in parallelo
+                const compressionPromise = selectedChannelAvatarFile ? compressImage(selectedChannelAvatarFile, 400, 0.7) : null;
+                const folderRes = await callScriptAction({ action: 'createChannelFolder', name }); 
+                driveFolderId = folderRes.folderId || '';
                 
                 if(selectedChannelAvatarFile && driveFolderId) {
-                    btn.textContent = '🖼️ Ottimizzazione...';
-                    const compressedImg = await compressImage(selectedChannelAvatarFile, 400); // 400px bastano per un avatar
-                    
-                    btn.textContent = '🚀 Upload...';
+                    const compressedImg = await compressionPromise;
+                    btn.textContent = '🚀 Upload Logo...';
                     const resI = await callScriptAction({ 
                         action: 'uploadProfilePicture', 
                         folderId: driveFolderId, 
