@@ -256,6 +256,7 @@
 
             <!-- VISTA: EDITORS HUB -->
             <div id="viewEditorsHubWrapper" class="hidden">
+                <!-- SFX / Music Tabs -->
                 <div class="flex gap-6 border-b border-[#303030] mb-6">
                     <button class="eh-tab active pb-2 font-bold text-gray-400" data-ehtab="sfx" onclick="switchEHTab('sfx')">🔊 Sound Effects (SFX)</button>
                     <button class="eh-tab pb-2 font-bold text-gray-400" data-ehtab="music" onclick="switchEHTab('music')">🎵 Musica</button>
@@ -317,6 +318,8 @@
             <!-- VISTA: STATISTICHE E TIMELINE -->
             <div id="viewStatsWrapper" class="hidden">
                 <div class="flex flex-col gap-6">
+                    
+                    <!-- Top Cards -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
                             <div>
@@ -348,12 +351,21 @@
                         </div>
                     </div>
 
+                    <!-- Layout: Insight & Performance / Timeline -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Left Column: Insights & Team -->
                         <div class="lg:col-span-2 flex flex-col gap-6">
+                            
+                            <!-- Insights Box -->
                             <div class="bg-gradient-to-br from-[#1a1a1a] to-[#222] border border-[#303030] p-6 rounded-xl">
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-4">🧠 Analisi & Consigli</h2>
-                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300"></ul>
+                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300">
+                                    <!-- Populated dynamically -->
+                                </ul>
                             </div>
+
+                            <!-- Team Performance -->
                             <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
                                 <div class="p-4 border-b border-[#303030] bg-[#222]">
                                     <h2 class="text-lg font-bold text-white flex items-center gap-2">👥 Performance del Team</h2>
@@ -368,20 +380,26 @@
                                                 <th class="px-4 py-3">Totale Prese in Carico</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]"></tbody>
+                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Right Column: Timeline -->
                         <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden flex flex-col h-[500px]">
                             <div class="p-4 border-b border-[#303030] bg-[#222] shrink-0">
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2">⏱️ Timeline Recente</h2>
                             </div>
                             <div class="p-4 overflow-y-auto flex-1">
-                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer"></div>
+                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer">
+                                    <!-- Populated dynamically -->
+                                </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -389,6 +407,8 @@
             <!-- VISTA: DATABASE ANALYZER -->
             <div id="viewDatabaseWrapper" class="hidden">
                 <div class="flex flex-col gap-6">
+                    
+                    <!-- Overview Database -->
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
                         <h2 class="text-2xl font-black text-white mb-1 relative z-10">Stato Database JSON</h2>
@@ -405,6 +425,7 @@
                             
                             <div class="md:col-span-2 bg-[#222] border border-[#404040] p-5 rounded-lg flex flex-col justify-center">
                                 <span class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Distribuzione Spazio</span>
+                                <!-- Barra di progresso divisa -->
                                 <div class="w-full h-4 bg-[#111] rounded-full overflow-hidden flex shadow-inner">
                                     <div id="dbBarIdeas" class="h-full bg-[#3ea6ff] progress-bar-fill" style="width: 0%" title="Idee"></div>
                                     <div id="dbBarTools" class="h-full bg-[#a855f7] progress-bar-fill" style="width: 0%" title="Strumenti"></div>
@@ -421,6 +442,7 @@
                         </div>
                     </div>
                     
+                    <!-- Rilevatore Mattoni Base64 -->
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
                         <div class="p-5 border-b border-[#303030] bg-red-900/10 flex justify-between items-center">
                             <div>
@@ -439,7 +461,9 @@
                                         <th class="px-5 py-3 text-right">Azione Ràpida</th>
                                     </tr>
                                 </thead>
-                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]"></tbody>
+                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]">
+                                    <!-- Populated dynamically via JS -->
+                                </tbody>
                             </table>
                             <div id="dbNoHeavyItems" class="text-center py-10 text-gray-500 hidden">
                                 <span class="text-3xl block mb-2">🎉</span>
@@ -1028,6 +1052,43 @@
                 location.reload(); 
             }
         });
+
+        // =============================================
+        //  SCRIPT ANALYZER TOOL
+        // =============================================
+        const scriptInput = document.getElementById('scriptInput');
+
+        if (scriptInput) {
+            scriptInput.addEventListener('input', () => {
+                const text = scriptInput.value;
+                const chars = text.length;
+                const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+                const sentences = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim().length > 0).length : 0;
+
+                const totalSeconds = Math.ceil(words / 3);
+                const mins = Math.floor(totalSeconds / 60);
+                const secs = totalSeconds % 60;
+                const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+                document.getElementById('statChars').textContent = chars;
+                document.getElementById('statWords').textContent = words;
+                document.getElementById('statSentences').textContent = sentences;
+                document.getElementById('statTime').textContent = timeString;
+
+                const ratingEl = document.getElementById('statRating');
+                if (words === 0) {
+                    ratingEl.innerHTML = '<span class="text-gray-500 italic">Inizia a scrivere per l\'analisi...</span>';
+                } else if (totalSeconds <= 60) {
+                    ratingEl.innerHTML = '<span class="text-purple-400 font-bold">⚡ Perfetto per uno Short!</span><br><span class="text-gray-400 text-xs mt-1 block">Ritmo serrato, ideale per TikTok, Reels e YouTube Shorts.</span>';
+                } else if (totalSeconds <= 300) { 
+                    ratingEl.innerHTML = '<span class="text-green-400 font-bold">🚀 Lunghezza Ideale</span><br><span class="text-gray-400 text-xs mt-1 block">Veloce, dritto al punto. Ottimo per mantenere alta la retention.</span>';
+                } else if (totalSeconds <= 900) { 
+                    ratingEl.innerHTML = '<span class="text-blue-400 font-bold">📺 Formato Standard YouTube</span><br><span class="text-gray-400 text-xs mt-1 block">Lunghezza perfetta per la monetizzazione e per trattare bene un argomento.</span>';
+                } else { 
+                    ratingEl.innerHTML = '<span class="text-yellow-400 font-bold">🔥 Video Lungo</span><br><span class="text-gray-400 text-xs mt-1 block">Fai attenzione alla ritenzione: usa bene b-roll, cambi scena e mantieni alto il ritmo!</span>';
+                }
+            });
+        }
 
         // =============================================
         //  SECURITY PIN SYSTEM
@@ -2302,7 +2363,7 @@
         });
         
         // =============================================
-        //  RENDER INSPIRATIONS & COMPETITORS (NUOVA SEZIONE)
+        //  RENDER INSPIRATIONS & COMPETITORS
         // =============================================
         function switchInspTab(tabName) {
             currentInspTab = tabName;
@@ -2410,7 +2471,6 @@
             if (filtered.length === 0) { empty.classList.remove('hidden'); return; }
             empty.classList.add('hidden');
             
-            // Popoliamo la select per aggiungere video
             const selectCh = document.getElementById('inputInspVideoChannel');
             selectCh.innerHTML = '<option value="">— Seleziona Canale —</option>';
             inspirationChannels.forEach(c => selectCh.innerHTML += `<option value="${c.name}">${c.name}</option>`);
@@ -2446,7 +2506,6 @@
             });
         }
         
-        // Aggiunta Canale Inspiration
         let selectedInspAvatar = null;
         document.getElementById('inputInspFile').addEventListener('change', (e) => selectedInspAvatar = e.target.files[0]);
         
@@ -2487,7 +2546,6 @@
             autoSaveToCloud();
         });
         
-        // Aggiunta Video Inspiration Feed
         document.getElementById('inspVideoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type=submit]');
@@ -2506,7 +2564,7 @@
         });
 
         // =============================================
-        //  RENDER EDITORS HUB (SFX & MUSIC + AUDIO IFRAME PLAYER)
+        //  RENDER EDITORS HUB (SFX E MUSIC)
         // =============================================
         const noEHResults = document.getElementById('noEHResults');
 
@@ -2522,10 +2580,6 @@
                 }
             });
             renderEditorsHub();
-        }
-
-        function simulateOpenLocalFolder() {
-            alert("Il file si trova nella cartella 'Download' o 'Musica' del tuo PC.\n\nNota: i browser web non possono aprire direttamente l'Esplora Risorse (Windows) o il Finder (Mac) per motivi di sicurezza.");
         }
         
         function getDirectDownloadLink(fileId, originalLink) {
@@ -2578,11 +2632,8 @@
                                 ✅ Già Scaricato
                             </div>
                             <div class="flex items-center justify-between mt-2 px-1">
-                                <button onclick="simulateOpenLocalFolder()" class="text-[11px] text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
-                                    📁 Apri cartella
-                                </button>
-                                <button class="text-[11px] text-[#3ea6ff] hover:text-[#65b8ff] flex items-center gap-1 transition-colors font-bold download-eh-btn">
-                                    ⬇️ Di nuovo
+                                <button class="text-[11px] text-[#3ea6ff] hover:text-[#65b8ff] flex items-center gap-1 transition-colors font-bold download-eh-btn mx-auto">
+                                    ⬇️ Scarica di nuovo
                                 </button>
                             </div>
                         </div>
@@ -2607,36 +2658,32 @@
                         </div>
                     </div>
                     
-                    <div class="eh-iframe-container hidden w-full h-12 mt-1 mb-3 rounded overflow-hidden"></div>
+                    <div class="eh-iframe-container hidden w-full h-14 mt-1 mb-2 rounded overflow-hidden"></div>
                     
                     <div class="mt-auto pt-2 flex w-full border-t border-[#303030]">
                         ${actionHtml}
                     </div>
                 `;
                 
-                // AUDIO IFRAME PLAYER BYPASS (100% Affidabile)
+                // IFRAME PLAYER BYPASS
                 const playTrigger = card.querySelector('.eh-play-trigger');
                 const iframeContainer = card.querySelector('.eh-iframe-container');
                 
                 playTrigger.onclick = (e) => {
                     e.stopPropagation();
-                    
                     if (iframeContainer.classList.contains('hidden')) {
-                        // Chiudi tutti gli altri
                         document.querySelectorAll('.eh-iframe-container').forEach(c => { c.classList.add('hidden'); c.innerHTML = ''; });
                         document.querySelectorAll('.eh-play-icon').forEach(i => i.textContent = '▶️');
                         document.querySelectorAll('.eh-icon-main').forEach(i => i.classList.remove('hidden'));
                         
-                        // Apri questo
                         iframeContainer.classList.remove('hidden');
                         card.querySelector('.eh-icon-main').classList.add('hidden');
                         card.querySelector('.eh-play-icon').classList.remove('hidden');
-                        card.querySelector('.eh-play-icon').textContent = '⏹️'; // Quadratino stop
+                        card.querySelector('.eh-play-icon').textContent = '⏹️';
                         
-                        // Bypass: iframe diretto a Drive
-                        iframeContainer.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.fileId}/preview" width="100%" height="50" style="border:none; margin-top:-10px;"></iframe>`;
+                        // Genera l'iframe in tempo reale solo quando richiesto per risparmiare ram
+                        iframeContainer.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.fileId}/preview" width="100%" height="60" style="border:none; margin-top:-5px;"></iframe>`;
                     } else {
-                        // Chiudi
                         iframeContainer.classList.add('hidden');
                         iframeContainer.innerHTML = '';
                         card.querySelector('.eh-icon-main').classList.remove('hidden');
@@ -2902,7 +2949,7 @@
                         <td class="px-5 py-3 ${sizeClass}">${item.size} KB</td>
                         <td class="px-5 py-3 text-right">
                             <button class="delete-heavy-btn text-xs bg-red-900/40 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded transition-colors font-bold">
-                                Elimina
+                                Elimina Elemento
                             </button>
                         </td>
                     `;
@@ -2927,6 +2974,7 @@
         // =============================================
         //  ADMIN PANEL & IMPOSTAZIONI
         // =============================================
+        
         document.getElementById('settingsBtn').addEventListener('click', () => {
             document.getElementById('scriptUrlInput').value = SCRIPT_URL;
             document.getElementById('settingsModal').classList.remove('hidden'); 
@@ -2941,6 +2989,7 @@
         document.getElementById('saveSettingsBtn').addEventListener('click', () => {
             SCRIPT_URL = document.getElementById('scriptUrlInput').value.trim(); 
             localStorage.setItem('creatorhub_script_url', SCRIPT_URL);
+
             document.getElementById('settingsModal').classList.add('hidden'); 
             document.getElementById('settingsModal').classList.remove('flex');
             loadDataFromCloud(); 
