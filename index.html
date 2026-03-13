@@ -1753,47 +1753,49 @@
 
             let ideaFolderId = ''; let ideaFolderLink = ''; let thumbnailUrl = '';
             
-            devLog(`[IDEA] Avvio creazione nuova idea: "${title}"`, "info");
+            devLog(`[IDEA] Inizio processo di salvataggio per: "${title}"`, "info");
 
             if (ch && ch.driveFolderId && SCRIPT_URL) {
                 try {
-                    submitBtn.textContent = '🔄 Ottimizzazione Immagine...';
-                    devLog(`[IDEA] Compressione immagine in locale per velocizzare l'upload...`, "info");
-                    const compressedImg = await compressImage(selectedThumbFile, 1920, 0.95);
-                    devLog(`[IDEA] Immagine compressa con successo! Peso ridotto drasticamente.`, "success");
+                    submitBtn.textContent = '🔄 Preparazione HighRes...';
+                    devLog(`[IMAGE] Compressione immagine a 1920x1080 in corso...`, "info");
+                    // Comprime a 1920x1080, perfetto per YT (caricamento veloce, qualità alta)
+                    const compressedImg = await compressImage(selectedThumbFile, 1920, 0.90);
+                    devLog(`[IMAGE] Immagine pronta. Inizio comunicazione con Google Drive...`, "success");
 
-                    submitBtn.textContent = '📁 Creazione Cartella Drive...';
-                    devLog(`[IDEA] Creazione della cartella "${title}" su Google Drive...`, "info");
+                    submitBtn.textContent = '📁 Creazione Cartella...';
                     const resF = await callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId });
                     
                     ideaFolderId = resF.folderId || '';
                     if (ideaFolderId) {
                         ideaFolderLink = `https://drive.google.com/drive/folders/${ideaFolderId}`;
-                        devLog(`[IDEA] Cartella creata con ID: ${ideaFolderId}`, "success");
+                        devLog(`[DRIVE] Cartella creata correttamente (ID: ${ideaFolderId})`, "success");
                         
-                        submitBtn.textContent = '🚀 Upload Copertina (veloce)...';
-                        devLog(`[IDEA] Invio della copertina compressa a Google Drive...`, "info");
+                        submitBtn.textContent = '🚀 Upload Thumbnail...';
                         const resI = await callScriptAction({ 
                             action: 'uploadThumbnail', 
                             folderId: ideaFolderId, 
                             base64: compressedImg.base64, 
                             mimeType: compressedImg.mimeType, 
-                            ext: compressedImg.ext 
+                            ext: compressedImg.ext,
+                            fileName: `thumbnail_HighRes.${compressedImg.ext}` // Passiamo il nome HighRes!
                         });
                         
                         if (resI.fileId) {
-                            thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
-                            devLog(`[IDEA] Copertina salvata con successo. Generazione link anteprima completata.`, "success");
+                            // sz=w400 chiede a Drive la versione super-leggera per la UI!
+                            thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
+                            devLog(`[DRIVE] Immagine HighRes salvata con successo. Link UI generato.`, "success");
                         }
                     }
                 } catch(err) { 
-                    devLog(`[IDEA ERROR] ❌ Procedura interrotta: ${err.message}`, "error"); 
+                    devLog(`[ERRORE DRIVE] ❌ Qualcosa è andato storto: ${err.message}`, "error"); 
                 }
+            } else {
+                devLog(`[OFFLINE] Nessun Drive collegato. Salvataggio locale in corso.`, "warning");
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                devLog(`[IDEA WARNING] Salvataggio offline attivato. Il file Drive non è stato generato.`, "warning");
-                const compressedImg = await compressImage(selectedThumbFile, 1920, 0.95);
+                const compressedImg = await compressImage(selectedThumbFile, 800, 0.6);
                 thumbnailUrl = compressedImg.dataUrl;
             }
 
@@ -1806,14 +1808,11 @@
             };
 
             videoIdeas.unshift(newIdea);
-            renderChannelList(); 
-            renderVideos(getFilteredIdeas()); 
+            renderChannelList(); renderVideos(getFilteredIdeas()); 
             closeModal('addModal', 'ideaForm');
+            submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
             
-            submitBtn.disabled = false; 
-            submitBtn.textContent = 'Aggiungi e Salva ⚡';
-            
-            devLog(`[IDEA] Salvataggio della bacheca in corso...`, "info");
+            devLog(`[DB] Sincronizzazione dati generali in corso...`, "info");
             await autoSaveToCloud();
         });
 
@@ -2413,4 +2412,5 @@
     </script>
 </body>
 </html>
+
 
