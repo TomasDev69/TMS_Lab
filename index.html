@@ -242,9 +242,14 @@
             <!-- VISTA: INSPIRATIONS -->
             <div id="viewInspirationsWrapper" class="hidden">
                 <!-- Tabs -->
-                <div class="flex gap-6 border-b border-[#303030] mb-6">
+                <div class="flex gap-6 border-b border-[#303030] mb-6 relative">
                     <button class="insp-tab active pb-2 font-bold text-gray-400" data-insptab="channels" onclick="switchInspTab('channels')">📊 Dashboard Canali</button>
-                    <button class="insp-tab pb-2 font-bold text-gray-400" data-insptab="feed" onclick="switchInspTab('feed')">📺 Feed Video</button>
+                    <button class="insp-tab pb-2 font-bold text-gray-400" data-insptab="feed" onclick="switchInspTab('feed')">📺 Feed Video Autogenerato</button>
+                    
+                    <!-- Bottone per forzare l'aggiornamento feed -->
+                    <button id="btnRefreshFeed" class="absolute right-0 top-0 hidden bg-[#272727] hover:bg-[#333] text-gray-300 px-3 py-1 rounded text-xs font-bold transition-colors border border-[#404040]">
+                        🔄 Ricarica Feed
+                    </button>
                 </div>
 
                 <!-- Sotto-vista: Dashboard Canali -->
@@ -269,17 +274,17 @@
                         </div>
                         <div id="noInspChannels" class="text-center py-16 text-gray-500 hidden">
                             <span class="text-4xl mb-3 block">📊</span>
-                            <p>Nessun canale monitorato. Aggiungine uno per iniziare.</p>
+                            <p>Nessun canale monitorato. Aggiungine uno per iniziare a generare il feed.</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sotto-vista: Feed Video -->
                 <div id="inspFeedView" class="hidden">
-                    <div id="inspFeedGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-8"></div>
+                    <div id="inspFeedGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8"></div>
                     <div id="noInspFeed" class="text-center py-16 text-gray-500 hidden">
-                        <span class="text-4xl mb-3 block">📺</span>
-                        <p>Il feed è vuoto. Aggiungi i video d'ispirazione dei canali che segui.</p>
+                        <span class="text-4xl mb-3 block">📡</span>
+                        <p>Nessun canale tracciato. Aggiungi canali alla Dashboard per generare il feed automatico.</p>
                     </div>
                 </div>
             </div>
@@ -747,101 +752,28 @@
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL -->
+    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL (COMPLETAMENTE AUTOMATIZZATA) -->
     <div id="addInspChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
-                <h2 class="text-lg font-bold">Monitora Nuovo Canale</h2>
-                <button onclick="closeModal('addInspChannelModal', 'inspChannelForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+                <h2 class="text-lg font-bold">Aggiungi Canale d'Ispirazione</h2>
+                <button onclick="closeModal('addInspChannelModal')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
             </div>
-            <div class="p-4 overflow-y-auto flex-1">
-                
-                <!-- BOX MAGICO AI -->
-                <div class="mb-6 p-4 bg-gradient-to-br from-blue-900/10 to-purple-900/10 border border-blue-500/30 rounded-xl relative overflow-hidden">
-                    <div class="absolute -right-4 -top-4 text-6xl opacity-10 pointer-events-none">✨</div>
-                    <label class="block text-sm font-bold text-blue-400 mb-2 flex items-center gap-1 relative z-10">
-                        <span>✨</span> Compilazione Magica (AI)
-                    </label>
-                    <p class="text-[11px] text-gray-400 mb-3 relative z-10">Incolla il link del canale o il nome, ci penserà l'intelligenza artificiale a scovare le statistiche aggiornate per te dal web.</p>
-                    <div class="flex gap-2 relative z-10">
-                        <input type="text" id="inputInspAiUrl" placeholder="Es: youtube.com/@MrBeast" class="flex-1 bg-[#0f0f0f] border border-[#303030] rounded-lg p-2.5 text-white focus:outline-none focus:border-blue-500 text-sm">
-                        <button type="button" id="btnInspAiAnalyze" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-lg text-sm transition-colors whitespace-nowrap shadow-lg shadow-blue-900/20 flex items-center gap-2">
-                            🔍 Cerca
-                        </button>
-                    </div>
-                    <p id="inspAiStatus" class="text-[11px] mt-2 hidden relative z-10"></p>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Link del Canale YouTube</label>
+                    <input type="url" id="inputSyncChannelUrl" placeholder="es: https://youtube.com/@MrBeast" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <p class="text-[11px] text-gray-500 mt-2">
+                        Il sistema analizzerà automaticamente il canale estraendo statistiche reali (Avatar, Iscritti, Media Views e Frequenza). Potrebbe richiedere qualche secondo.
+                    </p>
                 </div>
-
-                <hr class="border-[#303030] mb-6">
-
-                <form id="inspChannelForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Nome Canale Competitor/Modello</label>
-                        <input type="text" id="inputInspChName" required placeholder="Es: MrBeast, Yotobi..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Numero Iscritti (Es. 1.5M)</label>
-                        <input type="text" id="inputInspChSubs" required placeholder="1.5M" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Views Medie (Es. 500k)</label>
-                        <input type="text" id="inputInspChViews" required placeholder="500k" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Frequenza Pubblicazione</label>
-                        <input type="text" id="inputInspChFreq" required placeholder="Es: 1 a settimana" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Trend Attuale</label>
-                        <select id="inputInspChTrend" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none">
-                            <option value="🔥 In Crescita">🔥 In Crescita</option>
-                            <option value="➡️ Stabile">➡️ Stabile</option>
-                            <option value="📉 In Calo">📉 In Calo</option>
-                        </select>
-                    </div>
-                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
-                        <button type="button" onclick="closeModal('addInspChannelModal', 'inspChannelForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
-                        <button type="submit" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded text-sm font-bold transition-colors">
-                            Salva Canale
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL AGGIUNGI INSPIRATION VIDEO -->
-    <div id="addInspVideoModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
-        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
-            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
-                <h2 class="text-lg font-bold">Aggiungi Video al Feed</h2>
-                <button onclick="closeModal('addInspVideoModal', 'inspVideoForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
-            </div>
-            <div class="p-4 overflow-y-auto flex-1">
-                <form id="inspVideoForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Link Video YouTube</label>
-                        <input type="url" id="inputInspVidLink" required placeholder="https://youtube.com/watch?v=..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                        <p class="text-[11px] text-gray-500 mt-1">Copertina estratta in automatico.</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Titolo (Opzionale)</label>
-                        <input type="text" id="inputInspVidTitle" placeholder="Inserisci un titolo per ricordarlo..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Canale Riferimento (Opzionale)</label>
-                        <select id="inputInspVidChannel" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none">
-                            <option value="">Nessuno in particolare</option>
-                            <!-- popolato via JS con inspChannels -->
-                        </select>
-                    </div>
-                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
-                        <button type="button" onclick="closeModal('addInspVideoModal', 'inspVideoForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
-                        <button type="submit" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded text-sm font-bold transition-colors">
-                            Aggiungi al Feed
-                        </button>
-                    </div>
-                </form>
+                
+                <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-6">
+                    <button type="button" onclick="closeModal('addInspChannelModal')" class="px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[#303030] transition-colors text-gray-300">Annulla</button>
+                    <button type="button" id="btnSyncChannel" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                        ⚡ Sincronizza Canale
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1120,6 +1052,7 @@
     </div>
 
     <script>
+        
         // =============================================
         //  NESSUN DATO SENSIBILE HARDCODED
         // =============================================
@@ -1277,7 +1210,6 @@
         let trainingData = [];
         let editorsHubData = []; 
         let inspChannels = []; // Riferimenti canali esterni (Inspirations)
-        let inspVideos = []; // Feed video (Inspirations)
         
         let activeChannelId = null; 
         let activeStatusFilter = 'all'; 
@@ -1384,6 +1316,7 @@
                 document.getElementById('viewIdeeWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Le tue Idee Video';
                 pageSubtitle.textContent = 'Sviluppa e traccia i tuoi prossimi contenuti.';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Crea Idea';
                 mainActionBtn.onclick = () => { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); };
                 renderVideos(getFilteredIdeas());
@@ -1395,13 +1328,13 @@
                 pageSubtitle.textContent = 'Studia e analizza i canali dei competitor per prendere spunto.';
                 
                 if (currentInspTab === 'channels') {
+                    mainActionBtn.classList.remove('hidden');
                     mainActionText.textContent = 'Aggiungi Canale';
                     mainActionBtn.onclick = () => { document.getElementById('addInspChannelModal').classList.remove('hidden'); document.getElementById('addInspChannelModal').classList.add('flex'); };
                     renderInspChannels();
                 } else {
-                    mainActionText.textContent = 'Aggiungi Video';
-                    mainActionBtn.onclick = () => { document.getElementById('addInspVideoModal').classList.remove('hidden'); document.getElementById('addInspVideoModal').classList.add('flex'); populateInspChannelSelect(); };
-                    renderInspFeed();
+                    mainActionBtn.classList.add('hidden');
+                    loadInspFeed();
                 }
             }
             else if (view === 'strumenti') {
@@ -1409,6 +1342,7 @@
                 document.getElementById('viewStrumentiWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Strumenti & Risorse';
                 pageSubtitle.textContent = 'Tutti i tool utili al tuo flusso di lavoro (Trascina le card per riordinarle).';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Aggiungi Strumento';
                 mainActionBtn.onclick = () => { document.getElementById('addToolModal').classList.remove('hidden'); document.getElementById('addToolModal').classList.add('flex'); };
                 renderTools();
@@ -1418,6 +1352,7 @@
                 document.getElementById('viewFormazioneWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Video Formazione';
                 pageSubtitle.textContent = 'Lezioni e tutorial da studiare (Trascina le card per riordinarle).';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Aggiungi Video';
                 mainActionBtn.onclick = () => { document.getElementById('addTrainingModal').classList.remove('hidden'); document.getElementById('addTrainingModal').classList.add('flex'); };
                 renderTraining();
@@ -1427,6 +1362,7 @@
                 document.getElementById('viewEditorsHubWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Editors Hub';
                 pageSubtitle.textContent = 'Libreria centralizzata per Effetti Sonori e Musica.';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Aggiungi File';
                 mainActionBtn.onclick = () => { document.getElementById('addEHModal').classList.remove('hidden'); document.getElementById('addEHModal').classList.add('flex'); };
                 renderEditorsHub();
@@ -1436,6 +1372,7 @@
                 document.getElementById('viewScriptWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Analisi Script Video';
                 pageSubtitle.textContent = 'Scrivi o incolla il tuo script per ottenere stime sui tempi e suggerimenti reali.';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Svuota Testo';
                 mainActionBtn.onclick = () => { 
                     const t = document.getElementById('scriptInput');
@@ -1448,6 +1385,7 @@
                 document.getElementById('viewStatsWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Dashboard & Statistiche';
                 pageSubtitle.textContent = 'Analisi delle performance e andamento del canale.';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Crea Idea'; 
                 mainActionBtn.onclick = () => { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); };
                 renderStats();
@@ -1457,6 +1395,7 @@
                 document.getElementById('viewDatabaseWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Analisi Database';
                 pageSubtitle.textContent = 'Monitora e pulisci il database per mantenere i salvataggi veloci.';
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Pulisci Sistema'; 
                 mainActionBtn.onclick = () => { alert("Consiglio: elimina manualmente gli elementi pesanti listati qui sotto per velocizzare i salvataggi."); };
                 renderDatabaseStats();
@@ -1627,7 +1566,6 @@
                 trainingData = Array.isArray(raw.training) ? raw.training : [];
                 editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
                 inspChannels = Array.isArray(raw.inspChannels) ? raw.inspChannels : [];
-                inspVideos = Array.isArray(raw.inspVideos) ? raw.inspVideos : [];
                 
                 updateStatus("🟢 Sincronizzato con Drive", "success");
                 
@@ -1650,8 +1588,7 @@
                 tools: toolsData, 
                 training: trainingData, 
                 editorsHub: editorsHubData,
-                inspChannels: inspChannels,
-                inspVideos: inspVideos
+                inspChannels: inspChannels
             };
             try {
                 callScriptAction({ action: 'saveDB', data: payload }).then(() => {
@@ -1683,17 +1620,21 @@
             if(tabName === 'channels') {
                 document.getElementById('inspChannelsView').classList.remove('hidden');
                 document.getElementById('inspFeedView').classList.add('hidden');
+                document.getElementById('btnRefreshFeed').classList.add('hidden');
+                mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Aggiungi Canale';
                 mainActionBtn.onclick = () => { document.getElementById('addInspChannelModal').classList.remove('hidden'); document.getElementById('addInspChannelModal').classList.add('flex'); };
                 renderInspChannels();
             } else {
                 document.getElementById('inspChannelsView').classList.add('hidden');
                 document.getElementById('inspFeedView').classList.remove('hidden');
-                mainActionText.textContent = 'Aggiungi Video';
-                mainActionBtn.onclick = () => { document.getElementById('addInspVideoModal').classList.remove('hidden'); document.getElementById('addInspVideoModal').classList.add('flex'); populateInspChannelSelect(); };
-                renderInspFeed();
+                document.getElementById('btnRefreshFeed').classList.remove('hidden');
+                mainActionBtn.classList.add('hidden');
+                loadInspFeed();
             }
         }
+
+        document.getElementById('btnRefreshFeed').addEventListener('click', loadInspFeed);
 
         function renderInspChannels() {
             const tbody = document.getElementById('inspChannelListBody');
@@ -1713,10 +1654,17 @@
                 filtered.forEach(ch => {
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-[#272727] transition-colors';
+                    
+                    let avatarHtml = ch.avatar 
+                        ? `<img src="${ch.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-[#404040]">`
+                        : `<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold border border-[#444]">${ch.name.charAt(0).toUpperCase()}</div>`;
+
                     tr.innerHTML = `
                         <td class="px-5 py-4 font-bold text-white flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs border border-[#444]">${ch.name.charAt(0).toUpperCase()}</div>
-                            ${ch.name}
+                            <a href="${ch.url}" target="_blank" class="flex items-center gap-3 hover:text-blue-400 transition-colors">
+                                ${avatarHtml}
+                                ${ch.name}
+                            </a>
                         </td>
                         <td class="px-5 py-4 text-gray-300">${ch.subs}</td>
                         <td class="px-5 py-4 text-gray-300">${ch.views}</td>
@@ -1731,8 +1679,6 @@
                         e.stopPropagation();
                         requirePin(`Vuoi eliminare il canale d'ispirazione "${ch.name}"?`, async () => {
                             inspChannels = inspChannels.filter(c => c.id !== ch.id);
-                            // Rimuovo anche i video associati
-                            inspVideos = inspVideos.filter(v => v.channelId !== ch.id);
                             renderInspChannels();
                             await autoSaveToCloud();
                         });
@@ -1743,208 +1689,205 @@
             }
         }
 
-        function populateInspChannelSelect() {
-            const select = document.getElementById('inputInspVidChannel');
-            select.innerHTML = '<option value="">Nessuno in particolare</option>';
-            inspChannels.forEach(ch => {
-                select.innerHTML += `<option value="${ch.id}">${ch.name}</option>`;
-            });
-        }
-
-        function renderInspFeed() {
-            inspFeedGrid.innerHTML = '';
+        async function loadInspFeed() {
+            const grid = document.getElementById('inspFeedGrid');
             const noRes = document.getElementById('noInspFeed');
-            
-            const term = searchInput.value.toLowerCase();
-            const filtered = term ? inspVideos.filter(v => v.title.toLowerCase().includes(term) || (v.channelName && v.channelName.toLowerCase().includes(term))) : inspVideos;
 
-            if (filtered.length === 0) {
+            if(inspChannels.length === 0) {
+                grid.innerHTML = '';
                 noRes.classList.remove('hidden');
-                inspFeedGrid.classList.add('hidden');
-            } else {
-                noRes.classList.add('hidden');
-                inspFeedGrid.classList.remove('hidden');
-                
-                filtered.forEach(video => {
-                    const card = document.createElement('div');
-                    card.className = 'flex flex-col gap-2 cursor-pointer group relative';
-                    card.onclick = () => window.open(video.link, '_blank');
-
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.innerHTML = '🗑️';
-                    deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center shadow-lg';
-                    deleteBtn.title = 'Rimuovi dal feed';
-                    deleteBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        requirePin(`Vuoi rimuovere questo video dal feed?`, async () => {
-                            inspVideos = inspVideos.filter(v => v.id !== video.id);
-                            renderInspFeed();
-                            await autoSaveToCloud();
-                        });
-                    };
-
-                    card.innerHTML = `
-                        <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#272727] border border-transparent group-hover:border-[#444] transition-colors">
-                            <img src="https://img.youtube.com/vi/${video.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${video.ytId}/hqdefault.jpg'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                            <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                <span class="text-4xl drop-shadow-lg">🔗</span>
-                            </div>
-                        </div>
-                        <div class="flex flex-col pr-2">
-                            <h3 class="text-[15px] font-semibold text-[#f1f1f1] line-clamp-2 leading-tight group-hover:text-blue-400 transition-colors">${video.title || 'Video YouTube'}</h3>
-                            <div class="text-[12px] text-[#aaaaaa] mt-1 font-bold">
-                                ${video.channelName || 'Canale Sconosciuto'}
-                            </div>
-                        </div>
-                    `;
-                    card.appendChild(deleteBtn);
-                    inspFeedGrid.appendChild(card);
-                });
-            }
-        }
-
-        // =============================================
-        //  AI INSPIRATION CHANNEL ANALYZER
-        // =============================================
-        document.getElementById('btnInspAiAnalyze').addEventListener('click', async () => {
-            const query = document.getElementById('inputInspAiUrl').value.trim();
-            if(!query) {
-                alert("Inserisci il link del canale o il nome prima di cercare.");
                 return;
             }
 
-            const btn = document.getElementById('btnInspAiAnalyze');
-            const statusText = document.getElementById('inspAiStatus');
-            
-            btn.disabled = true;
-            btn.innerHTML = '⏳ Ricerca AI...';
-            statusText.classList.remove('hidden');
-            statusText.textContent = "Ricerca dei dati più recenti sul web in corso. Attendi qualche secondo...";
-            statusText.className = "text-[11px] text-blue-400 mt-2 font-bold animate-pulse";
+            noRes.classList.add('hidden');
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-20 flex flex-col items-center gap-4"><span class="text-4xl animate-spin">⏳</span><p class="font-bold tracking-widest uppercase text-xs text-gray-500">Generazione Feed dai canali in corso...</p></div>';
+            grid.classList.remove('hidden');
 
-            const apiKey = "";
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
-            const prompt = `Agisci come un esperto analista di YouTube. L'utente vuole analizzare questo canale o link: "${query}".
-Usa Google Search per estrarre le statistiche più recenti possibili dal web. Se non trovi il dato esatto (come frequenza o stima views medie), fai una stima estremamente realistica e plausibile per quel tipo di canale. NON restituire campi vuoti.`;
+            let allVideos = [];
 
-            const payload = {
-                contents: [{ parts: [{ text: prompt }] }],
-                tools: [{ google_search: {} }],
-                generationConfig: { 
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "OBJECT",
-                        properties: {
-                            name: { type: "STRING", description: "Nome esatto del canale" },
-                            subs: { type: "STRING", description: "Numero di iscritti formattato breve (es. 1.5M, 800k)" },
-                            views: { type: "STRING", description: "Stima visualizzazioni medie per video formattato breve (es. 500k, 2M)" },
-                            frequency: { type: "STRING", description: "Frequenza di pubblicazione (es. 1 a settimana, 2 al mese, Quotidiano)" },
-                            trend: { type: "STRING", description: "Scegli esattamente uno tra i valori ammessi", enum: ["🔥 In Crescita", "➡️ Stabile", "📉 In Calo"] }
-                        },
-                        required: ["name", "subs", "views", "frequency", "trend"]
-                    }
-                }
-            };
-
-            try {
-                let delays = [1000, 2000, 4000, 8000, 16000];
-                let result = null;
-                
-                for (let i = 0; i < delays.length; i++) {
-                    try {
-                        const response = await fetch(endpoint, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
+            const promises = inspChannels.map(async (ch) => {
+                if (!ch.ytId) return;
+                try {
+                    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${ch.ytId}`;
+                    // rss2json is a free proxy to bypass CORS and parse XML
+                    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
+                    const data = await res.json();
+                    if (data.items) {
+                        data.items.forEach(item => {
+                            allVideos.push({
+                                title: item.title,
+                                link: item.link,
+                                pubDate: new Date(item.pubDate).getTime(),
+                                thumbnail: item.thumbnail,
+                                channelName: ch.name,
+                                avatar: ch.avatar
+                            });
                         });
-                        if (!response.ok) throw new Error(`HTTP error!`);
-                        result = await response.json();
-                        break; 
-                    } catch (error) {
-                        if (i === delays.length - 1) throw error;
-                        await new Promise(resolve => setTimeout(resolve, delays[i]));
                     }
+                } catch(e) {
+                    devLog(`[INSPIRATIONS FEED] Fallito caricamento per: ${ch.name}`, "error");
                 }
+            });
 
-                if(!result || !result.candidates) throw new Error("Nessuna risposta valida");
+            await Promise.all(promises);
 
-                const textResp = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                if(!textResp) throw new Error("Risposta vuota");
+            allVideos.sort((a, b) => b.pubDate - a.pubDate);
 
-                const data = JSON.parse(textResp);
+            grid.innerHTML = '';
+            if(allVideos.length === 0) {
+                 grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Nessun video recente trovato.</div>';
+                 return;
+            }
 
-                document.getElementById('inputInspChName').value = data.name || query;
-                document.getElementById('inputInspChSubs').value = data.subs || "N/A";
-                document.getElementById('inputInspChViews').value = data.views || "N/A";
-                document.getElementById('inputInspChFreq').value = data.frequency || "N/A";
+            allVideos.slice(0, 40).forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'flex flex-col gap-2 cursor-pointer group relative';
+                card.onclick = () => window.open(video.link, '_blank');
+
+                const timeStr = timeSince(video.pubDate);
+
+                let avatarHtml = video.avatar
+                    ? `<img src="${video.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-[#404040]">`
+                    : `<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold border border-[#404040] shrink-0">${video.channelName.charAt(0).toUpperCase()}</div>`;
+
+                card.innerHTML = `
+                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#272727] border border-transparent group-hover:border-[#444] transition-colors shadow-lg">
+                        <img src="${video.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <span class="text-4xl drop-shadow-lg">▶️</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 pr-2 mt-1">
+                        ${avatarHtml}
+                        <div class="flex flex-col">
+                            <h3 class="text-[14px] font-semibold text-[#f1f1f1] line-clamp-2 leading-tight group-hover:text-blue-400 transition-colors">${video.title}</h3>
+                            <div class="text-[12px] text-[#aaaaaa] mt-1 font-medium">
+                                ${video.channelName} • ${timeStr}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            devLog(`[INSPIRATIONS FEED] Feed aggiornato con ${allVideos.length} video.`, "success");
+        }
+
+        // =============================================
+        //  AUTOMATIC INSPIRATION CHANNEL ANALYZER (NO AI)
+        // =============================================
+        document.getElementById('btnSyncChannel').addEventListener('click', async () => {
+            const url = document.getElementById('inputSyncChannelUrl').value.trim();
+            if(!url) {
+                alert("Inserisci un link YouTube valido (es. https://youtube.com/@MrBeast).");
+                return;
+            }
+
+            const btn = document.getElementById('btnSyncChannel');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Sincronizzazione in corso...';
+            
+            try {
+                devLog(`[INSPIRATIONS] Connessione alle API YouTube per: ${url}`, "info");
                 
-                const trendSelect = document.getElementById('inputInspChTrend');
-                if (data.trend && [...trendSelect.options].map(o=>o.value).includes(data.trend)) {
-                    trendSelect.value = data.trend;
+                // 1. Estrazione rapida dell'handle o dell'ID dal link incollato
+                const handleMatch = url.match(/@([\w\-\.]+)/);
+                const idMatch = url.match(/channel\/(UC[\w-]+)/);
+
+                let apiUrl = '';
+                if (handleMatch) {
+                    apiUrl = `https://yt.lemnoslife.com/channels?handle=@${handleMatch[1]}`;
+                } else if (idMatch) {
+                    apiUrl = `https://yt.lemnoslife.com/channels?part=snippet,statistics&id=${idMatch[1]}`;
                 } else {
-                    trendSelect.value = "➡️ Stabile";
+                    throw new Error("Formato link non riconosciuto. Usa il formato con @handle o /channel/UC...");
                 }
 
-                statusText.textContent = "✅ Analisi completata! Modifica i dati se necessario, poi salva.";
-                statusText.className = "text-[11px] text-green-400 mt-2 font-bold";
+                // 2. Chiamata ad API pubblica (LemnosLife) che ci dà dati esatti senza scrape HTML
+                const res = await fetch(apiUrl);
+                if (!res.ok) throw new Error("Errore API di ricerca YouTube.");
+                const data = await res.json();
+
+                if (!data.items || data.items.length === 0) {
+                    throw new Error("Canale non trovato. Assicurati che il link sia corretto.");
+                }
+
+                const channel = data.items[0];
+                const ytId = channel.id;
+                const name = channel.snippet.title || "Canale YouTube";
+                const avatar = channel.snippet.thumbnails?.high?.url || channel.snippet.thumbnails?.default?.url || '';
+
+                // Statistiche esatte fornite dalle API
+                const subsRaw = parseInt(channel.statistics.subscriberCount || 0);
+                const viewsRaw = parseInt(channel.statistics.viewCount || 0);
+                const videoCountRaw = parseInt(channel.statistics.videoCount || 1);
+
+                // Formattatore rapido (es. 1.5M, 800k)
+                function formatNum(num) {
+                    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+                    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+                    return num.toString();
+                }
+
+                const subs = formatNum(subsRaw);
+                // Stimiamo le views medie dividendo total views per total videos (metodo matematico base)
+                const avgViewsRaw = Math.floor(viewsRaw / videoCountRaw);
+                const views = formatNum(avgViewsRaw);
+
+                let frequency = "Variabile";
+                let trend = "➡️ Stabile";
+
+                // 3. (Extra) Guardiamo il Feed RSS del canale per capire la frequenza recente e trend base
+                try {
+                    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${ytId}`;
+                    const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
+                    const rssData = await rssRes.json();
+                    
+                    if (rssData.items && rssData.items.length > 1) {
+                        const firstDate = new Date(rssData.items[0].pubDate).getTime();
+                        const lastDate = new Date(rssData.items[rssData.items.length - 1].pubDate).getTime();
+                        const diffDays = (firstDate - lastDate) / (1000 * 60 * 60 * 24);
+                        const avgDays = diffDays / rssData.items.length;
+
+                        if (avgDays <= 1.5) frequency = "Quotidiano";
+                        else if (avgDays <= 4) frequency = "2-3 a settimana";
+                        else if (avgDays <= 8) frequency = "1 a settimana";
+                        else if (avgDays <= 16) frequency = "2 al mese";
+                        else frequency = "Raro";
+                        
+                        // Piccolo "giochetto" per il trend: se ha pubblicato negli ultimi 3 giorni = Crescita, altrimenti Stabile
+                        const daysSinceLastVideo = (Date.now() - firstDate) / (1000 * 60 * 60 * 24);
+                        if (daysSinceLastVideo <= 3) trend = "🔥 In Crescita";
+                        else if (daysSinceLastVideo > 30) trend = "📉 In Calo";
+                    }
+                } catch (rssErr) {
+                    devLog(`[INSPIRATIONS] Fallito fetch feed RSS per stima frequenza.`, "warning");
+                }
+
+                // 4. Salvataggio definitivo
+                const newCh = {
+                    id: Date.now().toString(),
+                    ytId, name, avatar, url,
+                    subs: subs || "N/A",
+                    views: views || "N/A",
+                    frequency: frequency,
+                    trend: trend
+                };
+
+                inspChannels.push(newCh);
+                renderInspChannels();
+                autoSaveToCloud();
+                
+                devLog(`[INSPIRATIONS] Canale sincronizzato: ${name} (${ytId})`, "success");
+                closeModal('addInspChannelModal');
+                document.getElementById('inputSyncChannelUrl').value = '';
 
             } catch(err) {
-                statusText.textContent = "❌ Errore nella ricerca AI. Puoi comunque compilare i campi manualmente.";
-                statusText.className = "text-[11px] text-red-400 mt-2 font-bold";
+                devLog(`[ERRORE INSPIRATIONS] ${err.message}`, "error");
+                alert(`Errore: ${err.message}`);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '🔍 Cerca';
+                btn.innerHTML = '⚡ Sincronizza Canale';
             }
-        });
-
-        document.getElementById('inspChannelForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.disabled = true;
-
-            const name = document.getElementById('inputInspChName').value.trim();
-            const subs = document.getElementById('inputInspChSubs').value.trim();
-            const views = document.getElementById('inputInspChViews').value.trim();
-            const frequency = document.getElementById('inputInspChFreq').value.trim();
-            const trend = document.getElementById('inputInspChTrend').value;
-
-            const newCh = { id: Date.now().toString(), name, subs, views, frequency, trend };
-            inspChannels.push(newCh);
-            
-            renderInspChannels();
-            closeModal('addInspChannelModal', 'inspChannelForm');
-            document.getElementById('inspAiStatus').classList.add('hidden');
-            document.getElementById('inputInspAiUrl').value = '';
-            btn.disabled = false;
-            autoSaveToCloud();
-        });
-
-        document.getElementById('inspVideoForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            
-            const link = document.getElementById('inputInspVidLink').value.trim();
-            const ytId = getYouTubeID(link);
-            if (!ytId) { alert("Link YouTube non valido."); return; }
-            
-            btn.disabled = true;
-
-            const title = document.getElementById('inputInspVidTitle').value.trim();
-            const channelId = document.getElementById('inputInspVidChannel').value;
-            let channelName = '';
-            if (channelId) {
-                const ch = inspChannels.find(c => c.id === channelId);
-                if (ch) channelName = ch.name;
-            }
-
-            const newVid = { id: Date.now().toString(), ytId, link, title, channelId, channelName };
-            inspVideos.unshift(newVid);
-            
-            renderInspFeed();
-            closeModal('addInspVideoModal', 'inspVideoForm');
-            btn.disabled = false;
-            autoSaveToCloud();
         });
 
 
@@ -2459,7 +2402,7 @@ Usa Google Search per estrarre le statistiche più recenti possibili dal web. Se
             if (currentView === 'idee') renderVideos(getFilteredIdeas());
             if (currentView === 'inspirations') {
                 if(currentInspTab === 'channels') renderInspChannels();
-                else renderInspFeed();
+                else renderInspFeed(); // Aggiorna feed visivamente se il search input cambia
             }
             if (currentView === 'strumenti') renderTools();
             if (currentView === 'formazione') renderTraining();
@@ -3176,7 +3119,7 @@ Usa Google Search per estrarre le statistiche più recenti possibili dal web. Se
             const sizeIdeas = parseFloat(getStringSizeInKB(JSON.stringify(videoIdeas)));
             const sizeTools = parseFloat(getStringSizeInKB(JSON.stringify(toolsData)));
             const sizeChannels = parseFloat(getStringSizeInKB(JSON.stringify(channels)));
-            const sizeOther = parseFloat(getStringSizeInKB(JSON.stringify(trainingData))) + parseFloat(getStringSizeInKB(JSON.stringify(editorsHubData))) + parseFloat(getStringSizeInKB(JSON.stringify(inspChannels))) + parseFloat(getStringSizeInKB(JSON.stringify(inspVideos)));
+            const sizeOther = parseFloat(getStringSizeInKB(JSON.stringify(trainingData))) + parseFloat(getStringSizeInKB(JSON.stringify(editorsHubData))) + parseFloat(getStringSizeInKB(JSON.stringify(inspChannels)));
             
             const totalKB = sizeIdeas + sizeTools + sizeChannels + sizeOther;
             const totalMB = (totalKB / 1024).toFixed(2);
