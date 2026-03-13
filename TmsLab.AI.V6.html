@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMS Lab - Bacheca Idee Video</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #0f0f0f;
+            color: #f1f1f1;
+        }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .channel-item { transition: background 0.15s ease; }
+        .channel-item.active { background: #272727; border-left: 3px solid #3ea6ff; padding-left: 13px; }
+        .channel-item:not(.active) { border-left: 3px solid transparent; padding-left: 13px; }
+        .channel-item:hover { background: #1e1e1e; }
+        .channel-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .sidebar-expanded { width: 240px; }
+        .sidebar-collapsed { width: 72px; }
+        
+        /* Console Sviluppatore & Script Tool scrollbar */
+        #consoleOutput::-webkit-scrollbar, #scriptInput::-webkit-scrollbar { width: 4px; }
+        #consoleOutput::-webkit-scrollbar-thumb, #scriptInput::-webkit-scrollbar-thumb { background: #555; }
+
+        /* Status Filters */
+        .status-filter { transition: all 0.2s; }
+        .status-filter.active { background-color: #f1f1f1; color: #0f0f0f; font-weight: bold; }
+        .status-filter:not(.active):hover { background-color: #272727; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox:checked + div {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        .custom-checkbox:checked + div svg {
+            display: block;
+        }
+        
+        /* Editors Hub Tabs */
+        .eh-tab { transition: all 0.2s; border-bottom: 2px solid transparent; }
+        .eh-tab.active { border-bottom-color: #3ea6ff; color: #3ea6ff; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- HEADER -->
+    <header class="flex items-center justify-between px-4 h-14 bg-[#0f0f0f] shrink-0 sticky top-0 z-50 border-b border-[#303030]">
+        <div class="flex items-center gap-4">
+            <button id="sidebarToggle" class="text-2xl p-2 hover:bg-[#272727] rounded-full w-10 h-10 flex items-center justify-center transition-colors">
+                &#9776;
+            </button>
+            <div class="flex items-center gap-1 cursor-pointer">
+                <span class="text-red-600 text-2xl font-bold">&#9654;</span>
+                <span class="text-xl font-bold tracking-tighter">TMS Lab</span>
+            </div>
+        </div>
+
+        <div class="hidden sm:flex items-center flex-1 max-w-[500px] mx-8">
+            <div class="flex w-full border border-[#303030] rounded-l-full bg-[#121212] overflow-hidden focus-within:border-[#1c62b9]">
+                <input type="text" id="searchInput" placeholder="Cerca..." class="w-full bg-transparent text-white px-4 py-2 outline-none">
+            </div>
+            <button class="bg-[#222222] border border-l-0 border-[#303030] rounded-r-full px-5 py-2 hover:bg-[#303030] transition-colors">&#128269;</button>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-4">
+            <button id="mainActionBtn" class="flex items-center gap-2 bg-[#f1f1f1] text-black hover:bg-[#d0d0d0] px-3 py-1.5 rounded-full text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <span class="text-lg leading-none">&#10133;</span> <span id="mainActionText">Crea Idea</span>
+            </button>
+            <button id="adminBtn" class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold cursor-pointer ml-1 text-sm hover:bg-blue-500 transition-colors shadow-lg" title="Pannello Amministratore">TU</button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="sidebar-expanded bg-[#0f0f0f] hidden sm:flex flex-col overflow-hidden transition-all duration-300 pt-3 border-r border-[#303030] shrink-0">
+            
+            <!-- MAIN NAVIGATION -->
+            <div class="px-4 mb-2">
+                <span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500">Navigazione</span>
+            </div>
+            <div id="navIdee" class="channel-item active flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('idee')">
+                <span class="text-xl">💡</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Idee Video</span>
+            </div>
+            <div id="navStrumenti" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('strumenti')">
+                <span class="text-xl">🛠️</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Risorse & Tools</span>
+            </div>
+            <div id="navFormazione" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('formazione')">
+                <span class="text-xl">🎓</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Formazione</span>
+            </div>
+            <div id="navEditorsHub" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('editorshub')">
+                <span class="text-xl">🎛️</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Editors Hub</span>
+            </div>
+            <div id="navStats" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('stats')">
+                <span class="text-xl">📊</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
+            </div>
+
+            <div class="mx-4 border-t border-[#303030] my-2"></div>
+
+            <!-- FILTRO TUTTE IDEE -->
+            <div id="filterAll" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="setActiveFilter(null)">
+                <span class="text-xl">&#127968;</span>
+                <span class="sidebar-label text-sm font-semibold text-blue-400 whitespace-nowrap overflow-hidden">Tutte le idee</span>
+            </div>
+
+            <!-- Sezione CANALI -->
+            <div class="flex items-center justify-between px-4 mb-2 mt-2">
+                <span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500 whitespace-nowrap">Canali</span>
+                <button id="addChannelBtn" class="sidebar-label text-gray-400 hover:text-white w-6 h-6 flex items-center justify-center rounded hover:bg-[#303030] transition-colors text-lg leading-none" title="Aggiungi canale">+</button>
+            </div>
+
+            <div id="channelList" class="flex flex-col gap-0.5 overflow-y-auto flex-1 px-2 pb-2 border-b border-[#303030] mb-2">
+                <!-- Canali renderizzati qui -->
+            </div>
+
+            <!-- Developer Tools & Console -->
+            <div class="mt-auto mb-2 px-2 flex flex-col gap-1">
+                <button id="openScriptToolBtn" class="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-[#272727] transition-colors group">
+                    <span class="text-gray-400 group-hover:text-blue-400 transition-colors">📝</span>
+                    <span class="sidebar-label text-xs font-semibold text-gray-400 group-hover:text-blue-400 transition-colors">Analisi Script</span>
+                </button>
+                
+                <button id="openConsoleBtn" class="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-[#272727] transition-colors group">
+                    <span class="text-gray-400 group-hover:text-green-400 transition-colors">👨‍💻</span>
+                    <span class="sidebar-label text-xs font-mono text-gray-400 group-hover:text-green-400 transition-colors">Apri Console Dev</span>
+                </button>
+                <div class="px-2 sidebar-label mt-1">
+                    <p class="text-[11px] text-gray-600">💡 Dati sincronizzati su Drive.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto bg-[#0f0f0f] p-4 sm:p-6 relative">
+
+            <!-- HEADER DINAMICO -->
+            <div class="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div>
+                    <h1 class="text-xl font-bold flex items-center gap-2">
+                        <span id="pageTitle">Le tue Idee Video</span>
+                        <span id="dbStatusBadge" class="text-xs bg-red-900/40 text-red-400 px-2 py-0.5 rounded border border-red-500/30">Disconnesso</span>
+                    </h1>
+                    <p class="text-sm text-gray-400 mt-1" id="pageSubtitle">Clicca sul pulsante 'TU' per collegare il tuo Google Drive.</p>
+                </div>
+            </div>
+
+            <!-- VISTA: IDEE VIDEO -->
+            <div id="viewIdeeWrapper" class="block">
+                <!-- STATUS FILTERS -->
+                <div class="flex gap-2 overflow-x-auto pb-4 mb-2 border-b border-[#303030] scrollbar-hide text-sm">
+                    <button class="status-filter active px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap" data-status="all">Tutte le idee</button>
+                    <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="new"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Nuove Idee (<span id="countNew">0</span>)</button>
+                    <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="available"><span class="w-2 h-2 rounded-full bg-yellow-500"></span> Disponibili (<span id="countAvailable">0</span>)</button>
+                    <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="progress"><span class="w-2 h-2 rounded-full bg-purple-500"></span> In Progress (<span id="countProgress">0</span>)</button>
+                    <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="completed"><span class="w-2 h-2 rounded-full bg-green-500"></span> Completed (<span id="countCompleted">0</span>)</button>
+                </div>
+
+                <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8 hidden mt-6"></div>
+                <div id="noResults" class="text-center py-20 text-gray-400 flex flex-col items-center hidden">
+                    <span class="text-4xl mb-3">☁️</span>
+                    <p>Nessuna idea in questa categoria.</p>
+                </div>
+            </div>
+
+            <!-- VISTA: STRUMENTI -->
+            <div id="viewStrumentiWrapper" class="hidden">
+                <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                <div id="noToolsResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
+                    <span class="text-4xl mb-3">🛠️</span>
+                    <p>Nessuno strumento salvato. Aggiungine uno!</p>
+                </div>
+            </div>
+
+            <!-- VISTA: FORMAZIONE -->
+            <div id="viewFormazioneWrapper" class="hidden">
+                <div id="trainingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                <div id="noTrainingResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
+                    <span class="text-4xl mb-3">🎓</span>
+                    <p>Nessun video di formazione salvato. Aggiungine uno!</p>
+                </div>
+            </div>
+
+            <!-- VISTA: EDITORS HUB -->
+            <div id="viewEditorsHubWrapper" class="hidden">
+                <!-- SFX / Music Tabs -->
+                <div class="flex gap-6 border-b border-[#303030] mb-6">
+                    <button class="eh-tab active pb-2 font-bold text-gray-400" data-ehtab="sfx" onclick="switchEHTab('sfx')">🔊 Sound Effects (SFX)</button>
+                    <button class="eh-tab pb-2 font-bold text-gray-400" data-ehtab="music" onclick="switchEHTab('music')">🎵 Musica</button>
+                </div>
+                <div id="ehGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+                <div id="noEHResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
+                    <span class="text-4xl mb-3">🎛️</span>
+                    <p>Nessun file presente in questa libreria.</p>
+                </div>
+            </div>
+
+            <!-- VISTA: STATISTICHE E TIMELINE -->
+            <div id="viewStatsWrapper" class="hidden">
+                <div class="flex flex-col gap-6">
+                    
+                    <!-- Top Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Idee Totali</p>
+                                <h3 class="text-3xl font-black text-white mt-1" id="statTotalIdeas">0</h3>
+                            </div>
+                            <div class="text-4xl">💡</div>
+                        </div>
+                        <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Nuove (48h)</p>
+                                <h3 class="text-3xl font-black text-blue-400 mt-1" id="statNewIdeas">0</h3>
+                            </div>
+                            <div class="text-4xl">✨</div>
+                        </div>
+                        <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">In Lavorazione</p>
+                                <h3 class="text-3xl font-black text-purple-400 mt-1" id="statProgressIdeas">0</h3>
+                            </div>
+                            <div class="text-4xl">🛠️</div>
+                        </div>
+                        <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Video Prodotti</p>
+                                <h3 class="text-3xl font-black text-green-400 mt-1" id="statCompletedIdeas">0</h3>
+                            </div>
+                            <div class="text-4xl">🚀</div>
+                        </div>
+                    </div>
+
+                    <!-- Layout: Insight & Performance / Timeline -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Left Column: Insights & Team -->
+                        <div class="lg:col-span-2 flex flex-col gap-6">
+                            
+                            <!-- Insights Box -->
+                            <div class="bg-gradient-to-br from-[#1a1a1a] to-[#222] border border-[#303030] p-6 rounded-xl">
+                                <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-4">🧠 Analisi & Consigli</h2>
+                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300">
+                                    <!-- Populated dynamically -->
+                                </ul>
+                            </div>
+
+                            <!-- Team Performance -->
+                            <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
+                                <div class="p-4 border-b border-[#303030] bg-[#222]">
+                                    <h2 class="text-lg font-bold text-white flex items-center gap-2">👥 Performance del Team</h2>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm text-gray-300">
+                                        <thead class="text-xs uppercase bg-[#111] text-gray-500">
+                                            <tr>
+                                                <th class="px-4 py-3">Membro</th>
+                                                <th class="px-4 py-3">Video in Corso</th>
+                                                <th class="px-4 py-3">Video Completati</th>
+                                                <th class="px-4 py-3">Totale Prese in Carico</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Timeline -->
+                        <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden flex flex-col h-[500px]">
+                            <div class="p-4 border-b border-[#303030] bg-[#222] shrink-0">
+                                <h2 class="text-lg font-bold text-white flex items-center gap-2">⏱️ Timeline Recente</h2>
+                            </div>
+                            <div class="p-4 overflow-y-auto flex-1">
+                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SCRIPT ANALYZER MODAL -->
+    <div id="scriptToolModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[250] px-4 backdrop-blur-sm">
+        <div class="bg-[#1e1e1e] rounded-xl w-full max-w-5xl shadow-2xl overflow-hidden border border-[#444] flex flex-col h-[85vh]">
+            <div class="flex justify-between items-center p-4 border-b border-[#444] bg-[#2d2d2d] shrink-0">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    📝 Analizzatore Script Video
+                </h2>
+                <button id="closeScriptToolBtn" class="text-gray-400 hover:text-white text-3xl leading-none px-2">&times;</button>
+            </div>
+            
+            <div class="flex flex-1 overflow-hidden flex-col md:flex-row">
+                <div class="flex-1 p-6 flex flex-col bg-[#121212]">
+                    <textarea id="scriptInput" class="w-full flex-1 bg-transparent text-gray-200 resize-none outline-none text-lg leading-relaxed placeholder-gray-600" placeholder="Incolla o scrivi qui il tuo script per analizzarlo in tempo reale..."></textarea>
+                </div>
+                
+                <div class="w-full md:w-80 bg-[#1a1a1a] border-t md:border-t-0 md:border-l border-[#444] p-6 flex flex-col gap-6 shrink-0 overflow-y-auto">
+                    <div>
+                        <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Statistiche Testo</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                <div class="text-2xl font-black text-white" id="statChars">0</div>
+                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Caratteri</div>
+                            </div>
+                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                <div class="text-2xl font-black text-blue-400" id="statWords">0</div>
+                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Parole</div>
+                            </div>
+                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                <div class="text-2xl font-black text-purple-400" id="statSentences">0</div>
+                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Frasi</div>
+                            </div>
+                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                <div class="text-2xl font-black text-green-400" id="statTime">0s</div>
+                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Stima Video</div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="border-[#444]">
+                    <div>
+                        <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">Rating in Tempo Reale</h3>
+                        <div id="statRating" class="bg-[#272727] p-4 rounded-lg border border-[#333] text-sm leading-relaxed">
+                            <span class="text-gray-500 italic">Inizia a scrivere per l'analisi...</span>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-4">
+                        <p class="text-[11px] text-gray-500 leading-tight">
+                            *La stima del video è calcolata su una velocità di lettura media di circa 180 parole al minuto (3 parole al secondo).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DASHBOARD IDEA -->
+    <div id="ideaDashboardModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[150] px-4 backdrop-blur-sm">
+        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden border border-[#303030] flex flex-col max-h-[90vh]">
+            <div class="relative h-40 shrink-0 bg-[#272727]">
+                <img id="dashThumb" src="" alt="Copertina" class="w-full h-full object-cover opacity-60">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent"></div>
+                <button id="closeDashBtn" class="absolute top-3 right-4 bg-black/50 text-white hover:text-red-400 hover:bg-black/80 w-8 h-8 flex items-center justify-center rounded-full text-xl leading-none transition-all">&times;</button>
+                
+                <div class="absolute bottom-4 left-6 right-6">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="dashChannelBadge" class="bg-black/60 text-xs px-2 py-0.5 rounded border border-[#404040]">Canale</span>
+                        <span id="dashStatusBadge" class="bg-blue-600/20 text-blue-400 text-xs px-2 py-0.5 rounded border border-blue-500/30">Nuova Idea</span>
+                    </div>
+                    <h2 id="dashTitle" class="text-2xl font-bold text-white line-clamp-2 leading-tight">Titolo dell'idea video</h2>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button id="dashDriveBtn" class="flex-1 flex items-center justify-center gap-2 bg-[#1c62b9] hover:bg-[#2573d4] text-white py-3 rounded-lg font-semibold transition-colors">
+                        <span class="text-xl">📁</span> Apri Repository Drive
+                    </button>
+                    <button id="dashDeleteBtn" class="px-4 py-3 bg-red-900/30 hover:bg-red-900/60 text-red-400 rounded-lg border border-red-900/50 transition-colors font-medium flex items-center gap-2">
+                        🗑️ Elimina Idea
+                    </button>
+                </div>
+                <hr class="border-[#303030]">
+
+                <div id="dashAssignSection" class="bg-[#212121] p-5 rounded-lg border border-[#404040]">
+                    <h3 class="text-lg font-bold mb-2 flex items-center gap-2">🎯 Prendi in Carico il Progetto</h3>
+                    <p class="text-sm text-gray-400 mb-4">Questa idea è disponibile. Assegnala a te stesso o a un collaboratore per iniziare i lavori.</p>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <select id="assigneeSelect" class="flex-1 bg-[#0f0f0f] border border-[#404040] rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                            <option value="">Seleziona chi prende in carico...</option>
+                            <option value="DG">DG</option>
+                            <option value="Tomas">Tomas</option>
+                            <option value="Pierò">Pierò</option>
+                            <option value="GFS">GFS</option>
+                            <option value="Noemi">Noemi</option>
+                            <option value="Alex">Alex</option>
+                            <option value="Davide">Davide</option>
+                            <option value="Rog">Rog</option>
+                            <option value="Camel">Camel</option>
+                            <option value="Gatti">Gatti</option>
+                        </select>
+                        <button id="assignConfirmBtn" class="bg-white text-black font-bold py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Conferma Assegnazione
+                        </button>
+                    </div>
+                </div>
+
+                <div id="dashProgressSection" class="bg-[#212121] p-5 rounded-lg border border-[#404040] hidden">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold flex items-center gap-2">📈 Stato Avanzamento</h3>
+                            <p id="dashAssignDateContainer" class="text-sm text-gray-400 mt-1 leading-relaxed"></p>
+                        </div>
+                        <div class="text-2xl font-black text-blue-400" id="dashProgressText">0%</div>
+                    </div>
+                    <div class="w-full bg-[#0f0f0f] rounded-full h-3 mb-6 border border-[#303030] overflow-hidden">
+                        <div id="dashProgressBar" class="bg-blue-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
+                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
+                                <input type="checkbox" id="chkScript" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
+                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Script</span>
+                                <span class="text-[11px] text-gray-500">+25% completamento</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
+                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
+                                <input type="checkbox" id="chkAudio" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
+                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Traccia Audio</span>
+                                <span class="text-[11px] text-gray-500">+25% completamento</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
+                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
+                                <input type="checkbox" id="chkVideo" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
+                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Generazione Traccia Video</span>
+                                <span class="text-[11px] text-gray-500">+25% completamento</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
+                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
+                                <input type="checkbox" id="chkFinal" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
+                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Rifinitura</span>
+                                <span class="text-[11px] text-gray-500">Finale per 100%</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI IDEA -->
+    <div id="addModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold">Aggiungi Nuova Idea Video</h2>
+                <button onclick="closeModal('addModal', 'ideaForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="ideaForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Titolo del Video</label>
+                        <input type="text" id="inputTitle" required placeholder="Es: Ho provato a sopravvivere..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Canale</label>
+                        <select id="inputChannel" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                            <option value="">— Nessun canale —</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Immagine Copertina</label>
+                        <div id="thumbDropZone" class="relative w-full aspect-video rounded-lg border-2 border-dashed border-[#404040] bg-[#0f0f0f] flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all group overflow-hidden">
+                            <img id="thumbPreview" src="" alt="" class="absolute inset-0 w-full h-full object-cover rounded-lg hidden">
+                            <div id="thumbDropHint" class="flex flex-col items-center gap-2 text-gray-500 group-hover:text-gray-300 transition-colors z-10 pointer-events-none">
+                                <span class="text-3xl">🖼️</span>
+                                <span class="text-sm font-medium">Clicca o trascina un'immagine</span>
+                            </div>
+                            <input type="file" id="inputThumbFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        </div>
+                        <p id="thumbFileName" class="text-[11px] text-gray-500 mt-1 hidden"></p>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('addModal', 'ideaForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-white text-black rounded text-sm font-bold hover:bg-gray-200 transition-colors flex items-center gap-2">
+                            Aggiungi e Salva ⚡
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI STRUMENTO -->
+    <div id="addToolModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold">Aggiungi Strumento/Risorsa</h2>
+                <button onclick="closeModal('addToolModal', 'toolForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="toolForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Nome Strumento</label>
+                        <input type="text" id="inputToolTitle" required placeholder="Es: Notion, ChatGPT, Epidemic Sound..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Descrizione breve</label>
+                        <textarea id="inputToolDesc" required rows="2" placeholder="A cosa serve questo tool?" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 resize-none"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Link URL</label>
+                        <input type="url" id="inputToolLink" required placeholder="https://..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Logo / Immagine</label>
+                        <div id="toolDropZone" class="relative w-full h-24 rounded-lg border-2 border-dashed border-[#404040] bg-[#0f0f0f] flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all group overflow-hidden">
+                            <img id="toolPreview" src="" alt="" class="absolute inset-0 w-full h-full object-cover rounded-lg hidden">
+                            <div id="toolDropHint" class="flex flex-col items-center gap-1 text-gray-500 group-hover:text-gray-300 transition-colors z-10 pointer-events-none">
+                                <span class="text-2xl">🖼️</span>
+                                <span class="text-xs font-medium">Carica Logo</span>
+                            </div>
+                            <input type="file" id="inputToolFile" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        </div>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('addToolModal', 'toolForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-500 transition-colors">
+                            Salva Strumento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI FORMAZIONE -->
+    <div id="addTrainingModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold">Aggiungi Video Formazione</h2>
+                <button onclick="closeModal('addTrainingModal', 'trainingForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="trainingForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Titolo Lezione</label>
+                        <input type="text" id="inputTrainingTitle" required placeholder="Es: Come migliorare la retention..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Link Video YouTube</label>
+                        <input type="url" id="inputTrainingLink" required placeholder="https://youtube.com/watch?v=..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                        <p class="text-[11px] text-gray-500 mt-1">La copertina verrà estratta automaticamente da YouTube.</p>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('addTrainingModal', 'trainingForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded text-sm font-bold hover:bg-purple-500 transition-colors">
+                            Salva Video
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI EDITORS HUB FILE -->
+    <div id="addEHModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold">Aggiungi File all'Editors Hub</h2>
+                <button onclick="closeModal('addEHModal', 'ehForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="ehForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Nome File</label>
+                        <input type="text" id="inputEHTitle" required placeholder="Es: Whoosh Cinematic, Background Lofi..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Categoria</label>
+                        <select id="inputEHCategory" required class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                            <option value="sfx">🔊 Sound Effects (SFX)</option>
+                            <option value="music">🎵 Musica</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">File Audio (Trascina dal PC)</label>
+                        <div id="ehDropZone" class="relative w-full h-24 rounded-lg border-2 border-dashed border-[#404040] bg-[#0f0f0f] flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all group overflow-hidden">
+                            <div id="ehDropHint" class="flex flex-col items-center gap-1 text-gray-500 group-hover:text-gray-300 transition-colors z-10 pointer-events-none">
+                                <span class="text-2xl">🎵</span>
+                                <span class="text-xs font-medium">Clicca o trascina il file audio qui</span>
+                            </div>
+                            <input type="file" id="inputEHFile" accept="audio/*,.zip,.rar" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        </div>
+                        <p id="ehFileName" class="text-[11px] text-blue-400 font-bold mt-1 hidden"></p>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('addEHModal', 'ehForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-[#3ea6ff] text-black rounded text-sm font-bold hover:bg-[#65b8ff] transition-colors">
+                            Salva File
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI CANALE -->
+    <div id="addChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#303030]">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030]">
+                <h2 class="text-lg font-bold">Nuovo Canale</h2>
+                <button id="closeChannelModalBtn" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Nome del Canale</label>
+                    <input type="text" id="inputChannelName" placeholder="Es: Gaming, Vlog, Tutorial..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Immagine Profilo Canale</label>
+                    <div class="flex items-center gap-4">
+                        <div id="channelAvatarPreview" class="w-16 h-16 rounded-full bg-[#303030] flex items-center justify-center text-2xl shrink-0 overflow-hidden border-2 border-[#404040]">📺</div>
+                        <div class="flex-1">
+                            <label for="inputChannelAvatar" class="block w-full cursor-pointer bg-[#0f0f0f] border border-dashed border-[#404040] hover:border-blue-500 rounded-lg px-3 py-2.5 text-center text-sm text-gray-400 hover:text-gray-200 transition-all">
+                                Clicca per caricare
+                                <span class="block text-[11px] text-gray-600 mt-0.5">JPG, PNG, WEBP</span>
+                            </label>
+                            <input type="file" id="inputChannelAvatar" accept="image/*" class="hidden">
+                            <p id="channelAvatarName" class="text-[11px] text-gray-500 mt-1 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button id="cancelChannelBtn" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                    <button id="saveChannelBtn" class="px-4 py-2 bg-white text-black rounded text-sm font-bold hover:bg-gray-200 transition-colors">Crea Canale</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MODIFICA CANALE -->
+    <div id="editChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[200] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#303030]">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030]">
+                <h2 class="text-lg font-bold">Modifica Canale</h2>
+                <button id="closeEditChannelBtn" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <input type="hidden" id="editChannelId">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Nome del Canale</label>
+                    <input type="text" id="editChannelName" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Aggiorna Immagine Profilo</label>
+                    <div class="flex items-center gap-4">
+                        <div id="editChannelAvatarPreview" class="w-16 h-16 rounded-full bg-[#303030] flex items-center justify-center text-2xl shrink-0 overflow-hidden border-2 border-[#404040]">📺</div>
+                        <div class="flex-1">
+                            <label for="editChannelAvatar" class="block w-full cursor-pointer bg-[#0f0f0f] border border-dashed border-[#404040] hover:border-blue-500 rounded-lg px-3 py-2.5 text-center text-sm text-gray-400 hover:text-gray-200 transition-all">
+                                Clicca per cambiare
+                                <span class="block text-[11px] text-gray-600 mt-0.5">JPG, PNG, WEBP</span>
+                            </label>
+                            <input type="file" id="editChannelAvatar" accept="image/*" class="hidden">
+                            <p id="editChannelAvatarName" class="text-[11px] text-gray-500 mt-1 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button id="cancelEditChannelBtn" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                    <button id="saveEditChannelBtn" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-500 transition-colors">Salva Modifiche</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD MODAL -->
+    <div id="adminModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[150] px-4 backdrop-blur-sm">
+        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden border border-[#444] flex flex-col max-h-[90vh]">
+            
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] bg-[#222]">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                    ⚙️ Pannello di Amministrazione
+                </h2>
+                <button onclick="closeModal('adminModal')" class="text-gray-400 hover:text-white text-3xl leading-none px-2">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-8">
+                
+                <!-- SEZIONE 1: Connessioni DB -->
+                <div class="bg-[#212121] border border-[#303030] rounded-xl p-5">
+                    <h3 class="text-lg font-bold mb-4 border-b border-[#303030] pb-2 text-blue-400">🌐 Connessione DataBase (Drive)</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Web App URL (Google Apps Script)</label>
+                            <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-[#0f0f0f] border border-[#444] rounded p-2.5 text-white focus:outline-none focus:border-blue-500 font-mono text-xs">
+                            <p class="text-[11px] text-gray-500 mt-1">Incolla qui l'URL per abilitare la sincronizzazione diretta con il Cloud.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">ID Cartella Editors Hub</label>
+                            <input type="text" id="ehFolderIdInput" placeholder="Es: 1aB2c3D4e5F6g7H8i9J0..." class="w-full bg-[#0f0f0f] border border-[#444] rounded p-2.5 text-white focus:outline-none focus:border-blue-500 font-mono text-xs">
+                            <p class="text-[11px] text-gray-500 mt-1">L'ID della cartella Google Drive dove verranno salvati gli audio e gli SFX caricati dal PC.</p>
+                        </div>
+                        <div class="pt-2 flex justify-end">
+                            <button id="saveSettingsBtn" class="px-6 py-2.5 bg-[#3ea6ff] text-black rounded text-sm font-bold hover:bg-[#65b8ff] transition-colors">Salva e Connetti al DB</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEZIONE 2: Gestione Canali Avanzata -->
+                <div class="bg-[#212121] border border-[#303030] rounded-xl p-5">
+                    <div class="flex justify-between items-center border-b border-[#303030] pb-2 mb-4">
+                        <h3 class="text-lg font-bold text-blue-400">📺 Gestione Canali YouTube</h3>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Modifica il nome, cambia l'immagine del profilo o elimina i canali esistenti. Attenzione: eliminare un canale dissocerà le idee ad esso collegate.</p>
+                    
+                    <div class="bg-[#0f0f0f] border border-[#303030] rounded-lg overflow-hidden">
+                        <ul id="adminChannelList" class="divide-y divide-[#303030]">
+                            <!-- Generato dinamicamente via JS -->
+                        </ul>
+                    </div>
+                    <div id="adminNoChannels" class="text-center py-6 text-gray-500 hidden">Nessun canale presente nel database.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PIN SECURITY MODAL -->
+    <div id="pinModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[300] px-4 backdrop-blur-sm">
+        <div class="bg-[#1e1e1e] rounded-xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#444] p-6">
+            <h3 class="text-lg font-bold mb-2 flex items-center gap-2 text-white">🔒 Autenticazione Richiesta</h3>
+            <p id="pinActionMsg" class="text-sm text-gray-400 mb-5">Inserisci il PIN per procedere con l'azione.</p>
+            <input type="password" id="pinInput" placeholder="•••••" class="w-full bg-[#0f0f0f] border border-[#444] rounded p-3 text-center text-2xl tracking-[0.5em] text-white focus:outline-none focus:border-red-500 mb-2 font-mono">
+            <p id="pinError" class="text-red-500 text-sm font-bold hidden mb-4 text-center">PIN Errato. Riprova.</p>
+            <div class="flex justify-end gap-2 mt-6">
+                <button onclick="closePinModal()" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors text-white">Annulla</button>
+                <button id="pinConfirmBtn" class="px-6 py-2 bg-red-600 text-white rounded text-sm font-bold hover:bg-red-500 transition-colors">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEVELOPER CONSOLE MODAL -->
+    <div id="devConsoleModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[200] px-4 backdrop-blur-sm">
+        <div class="bg-[#1e1e1e] rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden border border-[#444] flex flex-col h-[70vh]">
+            <div class="flex justify-between items-center p-3 border-b border-[#444] bg-[#2d2d2d] shrink-0">
+                <h2 class="text-sm font-mono font-bold text-green-400 flex items-center gap-2">
+                    <span>>_</span> Terminal - TMS Lab Logs
+                </h2>
+                <div class="flex gap-2">
+                    <button id="clearConsoleBtn" class="text-xs text-gray-300 hover:text-white px-3 py-1 rounded bg-[#444] hover:bg-[#555] transition-colors">Pulisci</button>
+                    <button id="closeConsoleBtn" class="text-gray-400 hover:text-white text-xl leading-none px-2">&times;</button>
+                </div>
+            </div>
+            <div id="consoleOutput" class="p-4 overflow-y-auto flex-1 font-mono text-[13px] bg-[#121212] flex flex-col gap-1">
+                <!-- I logs verranno generati qui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        //  CONFIGURAZIONE DEFAULT (HARDCODED PER NUOVI UTENTI)
+        // =============================================
+        /* ISTRUZIONI:
+           Se vuoi che il sito funzioni in automatico per un nuovo utente o su un PC nuovo 
+           senza dover incollare a mano il link nelle impostazioni, scrivi i tuoi link qui sotto
+           sostituendo le frasi in MAIUSCOLO tra le virgolette.
+        */
+        const DEFAULT_SCRIPT_URL = "INSERISCI_QUI_IL_TUO_URL_APP_SCRIPT";
+        const DEFAULT_EH_FOLDER_ID = "INSERISCI_QUI_ID_CARTELLA_EDITORS_HUB";
+
+
+        // =============================================
+        //  SCRIPT ANALYZER TOOL
+        // =============================================
+        const scriptToolModal = document.getElementById('scriptToolModal');
+        const scriptInput = document.getElementById('scriptInput');
+        
+        document.getElementById('openScriptToolBtn').addEventListener('click', () => {
+            scriptToolModal.classList.remove('hidden');
+            scriptToolModal.classList.add('flex');
+            scriptInput.focus();
+        });
+        
+        document.getElementById('closeScriptToolBtn').addEventListener('click', () => {
+            scriptToolModal.classList.add('hidden');
+            scriptToolModal.classList.remove('flex');
+        });
+
+        scriptInput.addEventListener('input', () => {
+            const text = scriptInput.value;
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const sentences = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim().length > 0).length : 0;
+
+            const totalSeconds = Math.ceil(words / 3);
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+            document.getElementById('statChars').textContent = chars;
+            document.getElementById('statWords').textContent = words;
+            document.getElementById('statSentences').textContent = sentences;
+            document.getElementById('statTime').textContent = timeString;
+
+            const ratingEl = document.getElementById('statRating');
+            if (words === 0) {
+                ratingEl.innerHTML = '<span class="text-gray-500 italic">Inizia a scrivere per l\'analisi...</span>';
+            } else if (totalSeconds <= 60) {
+                ratingEl.innerHTML = '<span class="text-purple-400 font-bold">⚡ Perfetto per uno Short!</span><br><span class="text-gray-400 text-xs mt-1 block">Ritmo serrato, ideale per TikTok, Reels e YouTube Shorts.</span>';
+            } else if (totalSeconds <= 300) { 
+                ratingEl.innerHTML = '<span class="text-green-400 font-bold">🚀 Lunghezza Ideale</span><br><span class="text-gray-400 text-xs mt-1 block">Veloce, dritto al punto. Ottimo per mantenere alta la retention.</span>';
+            } else if (totalSeconds <= 900) { 
+                ratingEl.innerHTML = '<span class="text-blue-400 font-bold">📺 Formato Standard YouTube</span><br><span class="text-gray-400 text-xs mt-1 block">Lunghezza perfetta per la monetizzazione e per trattare bene un argomento.</span>';
+            } else { 
+                ratingEl.innerHTML = '<span class="text-yellow-400 font-bold">🔥 Video Lungo</span><br><span class="text-gray-400 text-xs mt-1 block">Fai attenzione alla ritenzione: usa bene b-roll, cambi scena e mantieni alto il ritmo!</span>';
+            }
+        });
+
+        // =============================================
+        //  SECURITY PIN SYSTEM
+        // =============================================
+        function requirePin(actionMessage, callback) {
+            document.getElementById('pinActionMsg').textContent = actionMessage;
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinError').classList.add('hidden');
+            document.getElementById('pinModal').classList.remove('hidden');
+            document.getElementById('pinModal').classList.add('flex');
+            setTimeout(() => document.getElementById('pinInput').focus(), 100);
+            
+            const confirmBtn = document.getElementById('pinConfirmBtn');
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            
+            const handleConfirm = () => {
+                if (document.getElementById('pinInput').value === '18456') {
+                    closePinModal();
+                    callback();
+                } else {
+                    document.getElementById('pinError').classList.remove('hidden');
+                    document.getElementById('pinInput').value = '';
+                    document.getElementById('pinInput').focus();
+                }
+            };
+
+            newBtn.addEventListener('click', handleConfirm);
+            document.getElementById('pinInput').onkeydown = (e) => {
+                if(e.key === 'Enter') handleConfirm();
+            };
+        }
+
+        function closePinModal() {
+            document.getElementById('pinModal').classList.add('hidden');
+            document.getElementById('pinModal').classList.remove('flex');
+        }
+
+        // =============================================
+        //  DEVELOPER CONSOLE (LOGGING SYSTEM)
+        // =============================================
+        const consoleOutput = document.getElementById('consoleOutput');
+        function devLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('it-IT');
+            const el = document.createElement('div');
+            let colorClass = 'text-gray-300';
+            let prefix = '[INFO]';
+            if (type === 'success') { colorClass = 'text-green-400'; prefix = '[SUCCESS]'; }
+            if (type === 'warning') { colorClass = 'text-yellow-400'; prefix = '[WARN]'; }
+            if (type === 'error') { colorClass = 'text-red-500'; prefix = '[ERROR]'; }
+
+            el.className = `flex gap-2 py-0.5 border-b border-white/5 ${colorClass}`;
+            el.innerHTML = `<span class="text-gray-500 shrink-0">[${time}]</span> <span class="font-bold shrink-0">${prefix}</span> <span class="break-all">${message}</span>`;
+            
+            consoleOutput.appendChild(el);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            if(type === 'error') console.error(`${prefix} ${message}`);
+            else if(type === 'warning') console.warn(`${prefix} ${message}`);
+            else console.log(`${prefix} ${message}`);
+        }
+
+        const devConsoleModal = document.getElementById('devConsoleModal');
+        document.getElementById('openConsoleBtn').addEventListener('click', () => {
+            devConsoleModal.classList.remove('hidden'); devConsoleModal.classList.add('flex');
+        });
+        document.getElementById('closeConsoleBtn').addEventListener('click', () => {
+            devConsoleModal.classList.add('hidden'); devConsoleModal.classList.remove('flex');
+        });
+        document.getElementById('clearConsoleBtn').addEventListener('click', () => {
+            consoleOutput.innerHTML = ''; devLog('Console pulita.', 'info');
+        });
+
+        // =============================================
+        //  STATE & DATA STRUCTURE
+        // =============================================
+        let videoIdeas = [];
+        let channels = [];
+        let toolsData = [];
+        let trainingData = [];
+        let editorsHubData = []; 
+        
+        let activeChannelId = null; 
+        let activeStatusFilter = 'all'; 
+        let currentView = 'idee'; // 'idee', 'strumenti', 'formazione', 'editorshub', 'stats'
+        let currentEHTab = 'sfx'; // 'sfx', 'music'
+        
+        const TEAM_MEMBERS = ["DG", "Tomas", "Pierò", "GFS", "Noemi", "Alex", "Davide", "Rog", "Camel", "Gatti"];
+        
+        let downloadedEHFiles = JSON.parse(localStorage.getItem('creatorhub_eh_downloads') || '[]');
+        
+        // Priority to LocalStorage. If missing, fallback to Hardcoded Config.
+        let SCRIPT_URL = localStorage.getItem('creatorhub_script_url');
+        if(!SCRIPT_URL && DEFAULT_SCRIPT_URL !== "INSERISCI_QUI_IL_TUO_URL_APP_SCRIPT") SCRIPT_URL = DEFAULT_SCRIPT_URL;
+        
+        let EH_FOLDER_ID = localStorage.getItem('tmslab_eh_folder');
+        if(!EH_FOLDER_ID && DEFAULT_EH_FOLDER_ID !== "INSERISCI_QUI_ID_CARTELLA_EDITORS_HUB") EH_FOLDER_ID = DEFAULT_EH_FOLDER_ID;
+
+        const CHANNEL_COLORS = ['#3ea6ff','#ff4e4e','#4ade80','#facc15','#f97316','#a855f7','#ec4899','#14b8a6','#f59e0b','#6366f1','#84cc16','#06b6d4'];
+
+        // =============================================
+        //  DOM REFS
+        // =============================================
+        const gridElement       = document.getElementById('videoGrid');
+        const toolsGrid         = document.getElementById('toolsGrid');
+        const trainingGrid      = document.getElementById('trainingGrid');
+        const ehGrid            = document.getElementById('ehGrid');
+        const searchInput       = document.getElementById('searchInput');
+        const dbStatusBadge     = document.getElementById('dbStatusBadge');
+        const mainActionBtn     = document.getElementById('mainActionBtn');
+        const mainActionText    = document.getElementById('mainActionText');
+        const channelListEl     = document.getElementById('channelList');
+        const pageTitle         = document.getElementById('pageTitle');
+        const pageSubtitle      = document.getElementById('pageSubtitle');
+        
+        const ideaDashboardModal = document.getElementById('ideaDashboardModal');
+        const closeDashBtn = document.getElementById('closeDashBtn');
+        let currentlyOpenIdeaId = null;
+
+        // =============================================
+        //  VIEWS SWITCHER
+        // =============================================
+        function switchView(view) {
+            currentView = view;
+            
+            // Sidebar styles
+            document.getElementById('navIdee').classList.remove('active');
+            document.getElementById('navStrumenti').classList.remove('active');
+            document.getElementById('navFormazione').classList.remove('active');
+            document.getElementById('navEditorsHub').classList.remove('active');
+            document.getElementById('navStats').classList.remove('active');
+            
+            // Sections visibility
+            document.getElementById('viewIdeeWrapper').classList.add('hidden');
+            document.getElementById('viewStrumentiWrapper').classList.add('hidden');
+            document.getElementById('viewFormazioneWrapper').classList.add('hidden');
+            document.getElementById('viewEditorsHubWrapper').classList.add('hidden');
+            document.getElementById('viewStatsWrapper').classList.add('hidden');
+            
+            if (view === 'idee') {
+                document.getElementById('navIdee').classList.add('active');
+                document.getElementById('viewIdeeWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Le tue Idee Video';
+                pageSubtitle.textContent = 'Sviluppa e traccia i tuoi prossimi contenuti.';
+                mainActionText.textContent = 'Crea Idea';
+                mainActionBtn.onclick = () => { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); };
+                renderVideos(getFilteredIdeas());
+            } 
+            else if (view === 'strumenti') {
+                document.getElementById('navStrumenti').classList.add('active');
+                document.getElementById('viewStrumentiWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Strumenti & Risorse';
+                pageSubtitle.textContent = 'Tutti i tool utili al tuo flusso di lavoro.';
+                mainActionText.textContent = 'Aggiungi Strumento';
+                mainActionBtn.onclick = () => { document.getElementById('addToolModal').classList.remove('hidden'); document.getElementById('addToolModal').classList.add('flex'); };
+                renderTools();
+            } 
+            else if (view === 'formazione') {
+                document.getElementById('navFormazione').classList.add('active');
+                document.getElementById('viewFormazioneWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Video Formazione';
+                pageSubtitle.textContent = 'Lezioni e tutorial da studiare.';
+                mainActionText.textContent = 'Aggiungi Video';
+                mainActionBtn.onclick = () => { document.getElementById('addTrainingModal').classList.remove('hidden'); document.getElementById('addTrainingModal').classList.add('flex'); };
+                renderTraining();
+            }
+            else if (view === 'editorshub') {
+                document.getElementById('navEditorsHub').classList.add('active');
+                document.getElementById('viewEditorsHubWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Editors Hub';
+                pageSubtitle.textContent = 'Libreria centralizzata per Effetti Sonori e Musica.';
+                mainActionText.textContent = 'Aggiungi File';
+                mainActionBtn.onclick = () => { document.getElementById('addEHModal').classList.remove('hidden'); document.getElementById('addEHModal').classList.add('flex'); };
+                renderEditorsHub();
+            }
+            else if (view === 'stats') {
+                document.getElementById('navStats').classList.add('active');
+                document.getElementById('viewStatsWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Dashboard & Statistiche';
+                pageSubtitle.textContent = 'Analisi delle performance e andamento del canale.';
+                mainActionText.textContent = 'Crea Idea'; // Fallback
+                mainActionBtn.onclick = () => { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); };
+                renderStats();
+            }
+        }
+        
+        function closeModal(modalId, formId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.getElementById(modalId).classList.remove('flex');
+            if(formId) document.getElementById(formId).reset();
+            
+            if(modalId === 'addModal') {
+                document.getElementById('thumbPreview').classList.add('hidden');
+                document.getElementById('thumbDropHint').classList.remove('hidden');
+            }
+            if(modalId === 'addToolModal') {
+                document.getElementById('toolPreview').classList.add('hidden');
+                document.getElementById('toolDropHint').classList.remove('hidden');
+            }
+            if(modalId === 'editChannelModal') {
+                document.getElementById('editChannelAvatarPreview').innerHTML = '📺';
+                document.getElementById('editChannelAvatarName').classList.add('hidden');
+            }
+            if(modalId === 'addEHModal') {
+                document.getElementById('ehFileName').classList.add('hidden');
+                document.getElementById('ehDropHint').classList.remove('hidden');
+                selectedEHFile = null;
+            }
+        }
+
+        // =============================================
+        //  CORE LOGIC & FILTERS (IDEE)
+        // =============================================
+        function getIdeaStatus(idea) {
+            if (idea.checklist && idea.checklist.script && idea.checklist.audio && idea.checklist.video && idea.checklist.final) { return 'completed'; }
+            if (idea.assignee) { return 'progress'; }
+            const createdTime = idea.createdAt || 0; 
+            const hours48 = 48 * 60 * 60 * 1000;
+            if (Date.now() - createdTime <= hours48 && createdTime > 0) { return 'new'; }
+            return 'available';
+        }
+
+        function getFilteredIdeas() {
+            let filtered = videoIdeas;
+            if (activeChannelId !== null) filtered = filtered.filter(v => v.channelId === activeChannelId);
+            const term = searchInput.value.toLowerCase();
+            if (term) filtered = filtered.filter(v => v.title.toLowerCase().includes(term));
+            
+            updateFilterCounts(filtered);
+
+            if (activeStatusFilter !== 'all') {
+                filtered = filtered.filter(v => {
+                    const stat = getIdeaStatus(v);
+                    if (activeStatusFilter === 'available') return stat === 'available' || stat === 'new';
+                    return stat === activeStatusFilter;
+                });
+            }
+            return filtered;
+        }
+
+        function updateFilterCounts(baseArray) {
+            let n = 0, a = 0, p = 0, c = 0;
+            baseArray.forEach(v => {
+                const s = getIdeaStatus(v);
+                if(s==='new') { n++; a++; } 
+                else if(s==='available') a++;
+                else if(s==='progress') p++;
+                else if(s==='completed') c++;
+            });
+            document.getElementById('countNew').textContent = n;
+            document.getElementById('countAvailable').textContent = a;
+            document.getElementById('countProgress').textContent = p;
+            document.getElementById('countCompleted').textContent = c;
+        }
+
+        document.querySelectorAll('.status-filter').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.status-filter').forEach(b => b.classList.remove('active', 'bg-white', 'text-black'));
+                e.currentTarget.classList.add('active');
+                activeStatusFilter = e.currentTarget.dataset.status;
+                renderVideos(getFilteredIdeas());
+            });
+        });
+
+        let sidebarOpen = true;
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            sidebarOpen = !sidebarOpen;
+            document.getElementById('sidebar').classList.toggle('sidebar-expanded', sidebarOpen);
+            document.getElementById('sidebar').classList.toggle('sidebar-collapsed', !sidebarOpen);
+            document.querySelectorAll('.sidebar-label').forEach(el => el.style.display = sidebarOpen ? '' : 'none');
+        });
+
+        function updateStatus(text, type) {
+            dbStatusBadge.textContent = text;
+            dbStatusBadge.className = `text-xs px-2 py-0.5 rounded border ${type === 'success' ? 'bg-green-900/40 text-green-400 border-green-500/30' : type === 'error' ? 'bg-red-900/40 text-red-400 border-red-500/30' : 'bg-yellow-900/40 text-yellow-400 border-yellow-500/30'}`;
+            mainActionBtn.disabled = (type !== 'success');
+        }
+
+        async function callScriptAction(bodyObj) {
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(bodyObj), headers: { 'Content-Type': 'text/plain;charset=utf-8' }});
+                const data = await res.json();
+                if(data.status === 'error') throw new Error(data.message);
+                return data;
+            } catch(e) { throw e; }
+        }
+
+        async function checkAllChannelFolders() {
+            if (!SCRIPT_URL) return;
+            const ids = channels.filter(c => c.driveFolderId).map(c => c.driveFolderId);
+            if (ids.length === 0) return;
+            
+            let results = {};
+            try {
+                const res = await callScriptAction({ action: 'checkFolders', folderIds: ids });
+                results = res.results || {};
+            } catch(e) { return; } 
+
+            channels.forEach(ch => {
+                const icon = channelListEl.querySelector(`.folder-status-icon[data-chid="${ch.id}"]`);
+                if (!icon) return;
+                
+                if (!ch.driveFolderId) {
+                    icon.textContent = '❓'; icon.title = 'Nessuna cartella Drive';
+                } else if (results[ch.driveFolderId] === true) {
+                    icon.textContent = '✅'; icon.title = 'Cartella OK';
+                } else {
+                    icon.textContent = '⚠️'; icon.title = 'Cartella mancante o permessi insufficienti';
+                }
+            });
+        }
+
+        async function loadDataFromCloud() {
+            if (!SCRIPT_URL) return;
+            updateStatus("Sincronizzazione...", "warning");
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const raw = await response.json();
+                
+                videoIdeas = Array.isArray(raw.ideas) ? raw.ideas : (Array.isArray(raw) ? raw : []);
+                channels = Array.isArray(raw.channels) ? raw.channels : [];
+                toolsData = Array.isArray(raw.tools) ? raw.tools : [];
+                trainingData = Array.isArray(raw.training) ? raw.training : [];
+                editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
+                
+                updateStatus("🟢 Sincronizzato con Drive", "success");
+                renderChannelList();
+                if(document.getElementById('adminModal').classList.contains('flex')) renderAdminChannelList(); // Aggiorna modale se aperta
+                switchView(currentView); 
+            } catch (error) {
+                devLog(`Errore sync: ${error.message}`, "error");
+                updateStatus("Errore Connessione", "error");
+            }
+        }
+
+        async function autoSaveToCloud() {
+            if (!SCRIPT_URL) return;
+            updateStatus("Salvataggio...", "warning");
+            try {
+                await callScriptAction({ action: 'saveDB', data: { ideas: videoIdeas, channels: channels, tools: toolsData, training: trainingData, editorsHub: editorsHubData } });
+                updateStatus("💾 Salvato!", "success");
+                setTimeout(() => updateStatus("🟢 Sincronizzato", "success"), 2000);
+            } catch (error) {
+                devLog(`Errore auto-save: ${error.message}`, "error");
+                updateStatus("Errore Auto-Save", "error");
+            }
+        }
+
+        // =============================================
+        //  RENDER CANALI (SIDEBAR & ADMIN)
+        // =============================================
+        function setActiveFilter(channelId) {
+            if (currentView !== 'idee') switchView('idee');
+            activeChannelId = channelId;
+            document.getElementById('filterAll').classList.toggle('active', channelId === null);
+            document.querySelectorAll('.channel-sidebar-item').forEach(el => el.classList.toggle('active', el.dataset.id === channelId));
+            if (channelId === null) {
+                pageTitle.textContent = 'Le tue Idee Video'; pageSubtitle.textContent = 'Tutte le idee su tutti i canali.';
+            } else {
+                const ch = channels.find(c => c.id === channelId);
+                pageTitle.textContent = ch ? ch.name : 'Canale'; pageSubtitle.textContent = `Idee del canale "${ch ? ch.name : ''}"`;
+            }
+            renderVideos(getFilteredIdeas());
+        }
+
+        // Renderizza la Sidebar in modo pulito
+        function renderChannelList() {
+            channelListEl.innerHTML = '';
+            document.getElementById('inputChannel').innerHTML = '<option value="">— Nessun canale —</option>';
+            channels.forEach(ch => {
+                document.getElementById('inputChannel').innerHTML += `<option value="${ch.id}">${ch.name}</option>`;
+                const count = videoIdeas.filter(v => v.channelId === ch.id).length;
+                
+                let avatarHTML = ch.profilePicUrl 
+                    ? `<img src="${ch.profilePicUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-7 h-7 rounded-full bg-[#303030] items-center justify-center text-sm shrink-0 hidden border border-[#404040]">📺</div>`
+                    : `<div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-[#404040]" style="background:${ch.color || '#3ea6ff'}">${ch.name.charAt(0).toUpperCase()}</div>`;
+
+                const el = document.createElement('div');
+                el.className = `channel-item channel-sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${activeChannelId === ch.id ? 'active' : ''}`;
+                el.dataset.id = ch.id;
+                el.innerHTML = `
+                    <div class="shrink-0">${avatarHTML}</div>
+                    <span class="sidebar-label text-sm text-gray-200 flex-1 truncate whitespace-nowrap">${ch.name}</span>
+                    <span class="sidebar-label folder-status-icon text-sm" data-chid="${ch.id}" title="Verifica cartella...">⏳</span>
+                    <span class="sidebar-label text-[11px] text-gray-500 bg-[#222] px-1.5 py-0.5 rounded ml-1 transition-opacity">${count}</span>
+                `;
+                el.addEventListener('click', () => setActiveFilter(ch.id));
+                channelListEl.appendChild(el);
+            });
+            
+            checkAllChannelFolders();
+        }
+
+        // Renderizza lista canali nel Pannello Admin con opzioni modifica/elimina
+        function renderAdminChannelList() {
+            const list = document.getElementById('adminChannelList');
+            const noChText = document.getElementById('adminNoChannels');
+            list.innerHTML = '';
+            
+            if(channels.length === 0) {
+                noChText.classList.remove('hidden');
+                return;
+            }
+            noChText.classList.add('hidden');
+
+            channels.forEach(ch => {
+                const count = videoIdeas.filter(v => v.channelId === ch.id).length;
+                let avatarHTML = ch.profilePicUrl 
+                    ? `<img src="${ch.profilePicUrl}" class="w-10 h-10 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-10 h-10 rounded-full bg-[#303030] items-center justify-center text-sm shrink-0 hidden border border-[#404040]">📺</div>`
+                    : `<div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center text-sm font-bold border border-[#404040]" style="background:${ch.color || '#3ea6ff'}">${ch.name.charAt(0).toUpperCase()}</div>`;
+
+                const li = document.createElement('li');
+                li.className = "flex items-center justify-between p-3 hover:bg-[#151515] transition-colors";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        ${avatarHTML}
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-white">${ch.name}</span>
+                            <span class="text-xs text-gray-500">${count} idee collegate</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="admin-edit-ch px-3 py-1.5 bg-[#2a2a2a] hover:bg-[#3ea6ff] hover:text-black text-gray-300 rounded text-xs font-bold transition-colors">Modifica</button>
+                        <button class="admin-del-ch px-3 py-1.5 bg-[#2a2a2a] hover:bg-red-500 hover:text-white text-red-400 rounded text-xs font-bold transition-colors">Elimina</button>
+                    </div>
+                `;
+                
+                // Admin Delete Channel
+                li.querySelector('.admin-del-ch').addEventListener('click', async () => {
+                    if(confirm(`Attenzione! Vuoi eliminare DEFINITIVAMENTE il canale "${ch.name}"? Le idee collegate rimarranno orfane.`)) {
+                        videoIdeas = videoIdeas.map(v => v.channelId === ch.id ? {...v, channelId: ''} : v);
+                        channels = channels.filter(c => c.id !== ch.id);
+                        if (activeChannelId === ch.id) setActiveFilter(null);
+                        renderChannelList();
+                        renderAdminChannelList();
+                        if (currentView === 'idee') renderVideos(getFilteredIdeas()); 
+                        await autoSaveToCloud();
+                    }
+                });
+
+                // Admin Edit Channel
+                li.querySelector('.admin-edit-ch').addEventListener('click', () => {
+                    document.getElementById('editChannelId').value = ch.id;
+                    document.getElementById('editChannelName').value = ch.name;
+                    
+                    const preview = document.getElementById('editChannelAvatarPreview');
+                    if (ch.profilePicUrl) {
+                        preview.innerHTML = `<img src="${ch.profilePicUrl}" class="w-full h-full object-cover rounded-full">`;
+                    } else {
+                        preview.innerHTML = '📺';
+                    }
+                    document.getElementById('editChannelAvatar').value = '';
+                    selectedEditChannelAvatarFile = null;
+                    
+                    document.getElementById('editChannelModal').classList.remove('hidden');
+                    document.getElementById('editChannelModal').classList.add('flex');
+                });
+
+                list.appendChild(li);
+            });
+        }
+
+
+        // Edit Channel File Upload Logic
+        let selectedEditChannelAvatarFile = null;
+        document.getElementById('editChannelAvatar').addEventListener('change', (e) => {
+            selectedEditChannelAvatarFile = e.target.files[0];
+            if(selectedEditChannelAvatarFile) {
+                const reader = new FileReader(); 
+                reader.onload = ev => { 
+                    document.getElementById('editChannelAvatarPreview').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover rounded-full">`; 
+                    document.getElementById('editChannelAvatarName').textContent = '📎 ' + selectedEditChannelAvatarFile.name;
+                    document.getElementById('editChannelAvatarName').classList.remove('hidden');
+                }; 
+                reader.readAsDataURL(selectedEditChannelAvatarFile);
+            }
+        });
+
+        document.getElementById('closeEditChannelBtn').addEventListener('click', () => closeModal('editChannelModal'));
+        document.getElementById('cancelEditChannelBtn').addEventListener('click', () => closeModal('editChannelModal'));
+
+        document.getElementById('saveEditChannelBtn').addEventListener('click', async () => {
+            const chId = document.getElementById('editChannelId').value;
+            const newName = document.getElementById('editChannelName').value.trim();
+            if (!newName) return;
+            
+            const btn = document.getElementById('saveEditChannelBtn');
+            btn.disabled = true;
+            btn.textContent = 'Salvataggio...';
+
+            let chIndex = channels.findIndex(c => c.id === chId);
+            if(chIndex > -1) {
+                channels[chIndex].name = newName;
+
+                if(selectedEditChannelAvatarFile && channels[chIndex].driveFolderId && SCRIPT_URL) {
+                    try {
+                        btn.textContent = '🖼️ Upload...';
+                        const base64 = await new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedEditChannelAvatarFile); });
+                        const resI = await callScriptAction({ 
+                            action: 'uploadProfilePicture', 
+                            folderId: channels[chIndex].driveFolderId, 
+                            base64, 
+                            mimeType: selectedEditChannelAvatarFile.type || 'image/jpeg', 
+                            ext: selectedEditChannelAvatarFile.name.split('.').pop().toLowerCase() 
+                        });
+                        if(resI.fileId) {
+                            channels[chIndex].profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
+                        }
+                    } catch(e) { devLog(`Errore upload nuova PFP: ${e.message}`, "error"); }
+                }
+            }
+
+            renderChannelList(); 
+            renderAdminChannelList(); // Aggiorna lista in admin
+            if (currentView === 'idee') renderVideos(getFilteredIdeas()); 
+            closeModal('editChannelModal'); 
+            btn.disabled = false; 
+            btn.textContent = 'Salva Modifiche'; 
+            await autoSaveToCloud();
+        });
+
+
+        // =============================================
+        //  DASHBOARD IDEA (LOGICA MODALE)
+        // =============================================
+        function openIdeaDashboard(idea) {
+            currentlyOpenIdeaId = idea.id;
+            if (!idea.checklist) idea.checklist = { script: false, audio: false, video: false, final: false };
+            
+            const ch = channels.find(c => c.id === idea.channelId);
+            const statusType = getIdeaStatus(idea);
+
+            document.getElementById('dashThumb').src = idea.thumbnail || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop';
+            document.getElementById('dashTitle').textContent = idea.title;
+            document.getElementById('dashChannelBadge').textContent = ch ? ch.name : 'Nessun Canale';
+            
+            const sb = document.getElementById('dashStatusBadge');
+            if(statusType==='new') { sb.textContent='Nuova'; sb.className='bg-blue-600/20 text-blue-400 text-xs px-2 py-0.5 rounded border border-blue-500/30'; }
+            if(statusType==='available') { sb.textContent='Disponibile'; sb.className='bg-yellow-600/20 text-yellow-400 text-xs px-2 py-0.5 rounded border border-yellow-500/30'; }
+            if(statusType==='progress') { sb.textContent='In Progress'; sb.className='bg-purple-600/20 text-purple-400 text-xs px-2 py-0.5 rounded border border-purple-500/30'; }
+            if(statusType==='completed') { sb.textContent='Completata'; sb.className='bg-green-600/20 text-green-400 text-xs px-2 py-0.5 rounded border border-green-500/30'; }
+
+            document.getElementById('dashDriveBtn').onclick = () => {
+                if(idea.driveLink) window.open(idea.driveLink, '_blank');
+                else alert('Nessun link Drive associato a questa idea.');
+            };
+
+            const assignSec = document.getElementById('dashAssignSection');
+            const progSec = document.getElementById('dashProgressSection');
+            const select = document.getElementById('assigneeSelect');
+            const btnAssign = document.getElementById('assignConfirmBtn');
+
+            if (!idea.assignee) {
+                assignSec.classList.remove('hidden');
+                progSec.classList.add('hidden');
+                select.value = "";
+                btnAssign.disabled = true;
+                
+                select.onchange = () => { btnAssign.disabled = (select.value === ""); };
+                btnAssign.onclick = async () => {
+                    idea.assignee = select.value;
+                    idea.assignedAt = new Date().toLocaleDateString('it-IT');
+                    devLog(`Idea "${idea.title}" presa in carico da ${idea.assignee}`, "success");
+                    await autoSaveToCloud();
+                    renderVideos(getFilteredIdeas()); 
+                    openIdeaDashboard(idea); 
+                };
+            } else {
+                assignSec.classList.add('hidden');
+                progSec.classList.remove('hidden');
+                
+                document.getElementById('chkScript').checked = idea.checklist.script;
+                document.getElementById('chkAudio').checked = idea.checklist.audio;
+                document.getElementById('chkVideo').checked = idea.checklist.video;
+                document.getElementById('chkFinal').checked = idea.checklist.final;
+                
+                updateChecklistProgress(idea);
+            }
+
+            document.getElementById('dashDeleteBtn').onclick = () => {
+                requirePin(`Vuoi eliminare definitivamente l'idea "${idea.title}"?`, async () => {
+                    videoIdeas = videoIdeas.filter(v => v.id !== idea.id);
+                    closeDashModal();
+                    renderVideos(getFilteredIdeas());
+                    await autoSaveToCloud();
+                });
+            };
+
+            ideaDashboardModal.classList.remove('hidden');
+            ideaDashboardModal.classList.add('flex');
+        }
+
+        function closeDashModal() {
+            ideaDashboardModal.classList.add('hidden');
+            ideaDashboardModal.classList.remove('flex');
+            currentlyOpenIdeaId = null;
+        }
+        closeDashBtn.addEventListener('click', closeDashModal);
+        ideaDashboardModal.addEventListener('click', (e) => { if (e.target === ideaDashboardModal) closeDashModal(); });
+
+        ['script', 'audio', 'video', 'final'].forEach(key => {
+            const chkId = 'chk' + key.charAt(0).toUpperCase() + key.slice(1);
+            document.getElementById(chkId).addEventListener('change', async (e) => {
+                if(!currentlyOpenIdeaId) return;
+                const idea = videoIdeas.find(v => v.id === currentlyOpenIdeaId);
+                if(idea) {
+                    idea.checklist[key] = e.target.checked;
+                    updateChecklistProgress(idea);
+                    renderVideos(getFilteredIdeas());
+                    await autoSaveToCloud();
+                }
+            });
+        });
+
+        function updateChecklistProgress(idea) {
+            const total = 4;
+            const done = [idea.checklist.script, idea.checklist.audio, idea.checklist.video, idea.checklist.final].filter(Boolean).length;
+            const perc = (done / total) * 100;
+            
+            document.getElementById('dashProgressText').textContent = `${perc}%`;
+            const bar = document.getElementById('dashProgressBar');
+            bar.style.width = `${perc}%`;
+            
+            if(perc === 100) {
+                bar.classList.replace('bg-blue-500', 'bg-green-500');
+                document.getElementById('dashProgressText').classList.replace('text-blue-400', 'text-green-400');
+                if (!idea.completedAt) idea.completedAt = new Date().toLocaleDateString('it-IT');
+            } else {
+                bar.classList.replace('bg-green-500', 'bg-blue-500');
+                document.getElementById('dashProgressText').classList.replace('text-green-400', 'text-blue-400');
+                idea.completedAt = null;
+            }
+
+            let dateHtml = `Preso in carico da <span class="font-bold text-white">${idea.assignee}</span> il <span class="text-gray-300">${idea.assignedAt || ''}</span>`;
+            if (idea.completedAt) {
+                dateHtml += `<br><span class="text-green-400 font-medium text-xs">Completato il ${idea.completedAt} ✅</span>`;
+            }
+            document.getElementById('dashAssignDateContainer').innerHTML = dateHtml;
+
+            const sb = document.getElementById('dashStatusBadge');
+            if (perc === 100) {
+                sb.textContent='Completata'; sb.className='bg-green-600/20 text-green-400 text-xs px-2 py-0.5 rounded border border-green-500/30';
+            } else {
+                sb.textContent='In Progress'; sb.className='bg-purple-600/20 text-purple-400 text-xs px-2 py-0.5 rounded border border-purple-500/30';
+            }
+        }
+
+        // =============================================
+        //  RENDER GRID (CARD ESTERNE - IDEE)
+        // =============================================
+        const noResultsElement  = document.getElementById('noResults');
+        
+        function renderVideos(videosToRender) {
+            gridElement.innerHTML = '';
+            if (videosToRender.length === 0) {
+                noResultsElement.classList.remove('hidden'); gridElement.classList.add('hidden'); return;
+            }
+            noResultsElement.classList.add('hidden'); gridElement.classList.remove('hidden');
+
+            videosToRender.forEach(video => {
+                const ch = channels.find(c => c.id === video.channelId);
+                const channelName = ch ? ch.name : 'Nessun Canale';
+                const statusType = getIdeaStatus(video);
+                
+                let bColor = 'text-gray-400'; let bLabel = '';
+                if(statusType==='new') { bColor='text-blue-400'; bLabel='Nuova'; }
+                if(statusType==='available') { bColor='text-yellow-400'; bLabel='Disponibile'; }
+                if(statusType==='progress') { bColor='text-purple-400'; bLabel='In Progress'; }
+                if(statusType==='completed') { bColor='text-green-400'; bLabel='Completata'; }
+
+                let avatarHtml = `<div class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-sm font-bold border border-[#404040]" style="background:${ch ? ch.color||'#555' : '#555'}">${channelName.charAt(0).toUpperCase()}</div>`;
+                if (ch && ch.profilePicUrl) {
+                    avatarHtml = `<img src="${ch.profilePicUrl}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-[#404040]">`;
+                }
+
+                const assigneeText = video.assignee ? `<span class="text-white font-semibold">${video.assignee}</span>` : `<span class="italic">Nessuno</span>`;
+
+                const card = document.createElement('div');
+                card.className = 'flex flex-col gap-3 cursor-pointer group relative';
+                card.onclick = () => openIdeaDashboard(video);
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center shadow-lg transform hover:scale-110';
+                
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi eliminare definitivamente l'idea "${video.title}"?`, async () => {
+                        videoIdeas = videoIdeas.filter(v => v.id !== video.id);
+                        renderVideos(getFilteredIdeas());
+                        renderChannelList();
+                        await autoSaveToCloud();
+                    });
+                };
+
+                const fallbackImg = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop';
+                
+                card.innerHTML = `
+                    <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#272727] border border-transparent group-hover:border-[#303030] transition-colors">
+                        <img src="${video.thumbnail}" alt="Thumbnail" onerror="this.src='${fallbackImg}'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute bottom-1.5 right-1.5 bg-black/90 text-white text-xs font-bold tracking-wider px-2 py-1 rounded">${video.ideaFolderId ? '📁 DRIVE' : '🔗 LINK'}</div>
+                        <div class="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[11px] font-bold ${bColor} uppercase border border-[#444] shadow">${bLabel}</div>
+                    </div>
+                    <div class="flex gap-3 pr-2">
+                        ${avatarHtml}
+                        <div class="flex flex-col">
+                            <h3 class="text-[16px] font-semibold text-[#f1f1f1] line-clamp-2 leading-tight group-hover:text-[#3ea6ff] transition-colors" title="${video.title}">${video.title}</h3>
+                            <div class="text-[12px] text-[#aaaaaa] mt-1 flex flex-col">
+                                <span>${channelName} &bull; ${video.timeAgo}</span>
+                                <span class="mt-0.5">Resp: ${assigneeText}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                card.appendChild(deleteBtn);
+                gridElement.appendChild(card);
+            });
+        }
+
+        searchInput.addEventListener('input', () => {
+            if (currentView === 'idee') renderVideos(getFilteredIdeas());
+            if (currentView === 'strumenti') renderTools();
+            if (currentView === 'formazione') renderTraining();
+            if (currentView === 'editorshub') renderEditorsHub();
+        });
+
+        // =============================================
+        //  MODAL CREAZIONE IDEA
+        // =============================================
+        let selectedThumbFile = null;
+
+        document.getElementById('inputThumbFile').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            selectedThumbFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('thumbPreview').src = ev.target.result;
+                document.getElementById('thumbPreview').classList.remove('hidden');
+                document.getElementById('thumbDropHint').classList.add('hidden');
+                document.getElementById('thumbFileName').textContent = '📎 ' + file.name;
+                document.getElementById('thumbFileName').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('ideaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            if (!selectedThumbFile) { alert('Carica un\'immagine.'); return; }
+            submitBtn.disabled = true;
+
+            const title = document.getElementById('inputTitle').value.trim();
+            const channelId = document.getElementById('inputChannel').value || '';
+            const ch = channels.find(c => c.id === channelId);
+
+            let ideaFolderId = ''; let ideaFolderLink = ''; let thumbnailUrl = '';
+            
+            if (ch && ch.driveFolderId && SCRIPT_URL) {
+                try {
+                    submitBtn.textContent = '📁 Cartella...';
+                    const resF = await callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId });
+                    ideaFolderId = resF.folderId || '';
+                    if (ideaFolderId) ideaFolderLink = `https://drive.google.com/drive/folders/${ideaFolderId}`;
+
+                    submitBtn.textContent = '🖼️ Immagine...';
+                    const base64 = await new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedThumbFile); });
+                    const resI = await callScriptAction({ action: 'uploadThumbnail', folderId: ideaFolderId, base64, mimeType: selectedThumbFile.type || 'image/jpeg', ext: selectedThumbFile.name.split('.').pop().toLowerCase() });
+                    if (resI.fileId) thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
+                } catch(err) { devLog(`Errore creazione Drive: ${err.message}`, "error"); }
+            }
+
+            if (!thumbnailUrl && selectedThumbFile) {
+                thumbnailUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result); fr.readAsDataURL(selectedThumbFile); });
+            }
+
+            const newIdea = {
+                id: Date.now().toString(),
+                createdAt: Date.now(), 
+                title, thumbnail: thumbnailUrl, driveLink: ideaFolderLink, ideaFolderId, channelId, author: "Tu", timeAgo: new Date().toLocaleDateString('it-IT'),
+                assignee: null, assignedAt: null, completedAt: null,
+                checklist: { script: false, audio: false, video: false, final: false }
+            };
+
+            videoIdeas.unshift(newIdea);
+            renderChannelList(); renderVideos(getFilteredIdeas()); 
+            closeModal('addModal', 'ideaForm');
+            submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
+            await autoSaveToCloud();
+        });
+
+        // =============================================
+        //  RENDER STRUMENTI & TOOLS
+        // =============================================
+        const noToolsResults = document.getElementById('noToolsResults');
+
+        function renderTools() {
+            toolsGrid.innerHTML = '';
+            const term = searchInput.value.toLowerCase();
+            const filteredTools = term ? toolsData.filter(t => t.title.toLowerCase().includes(term) || t.description.toLowerCase().includes(term)) : toolsData;
+
+            if (filteredTools.length === 0) {
+                noToolsResults.classList.remove('hidden'); toolsGrid.classList.add('hidden'); return;
+            }
+            noToolsResults.classList.add('hidden'); toolsGrid.classList.remove('hidden');
+
+            filteredTools.forEach(tool => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-[#555] transition-colors flex flex-col group relative';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center shadow-lg transform hover:scale-110';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi eliminare lo strumento "${tool.title}"?`, async () => {
+                        toolsData = toolsData.filter(t => t.id !== tool.id);
+                        renderTools();
+                        await autoSaveToCloud();
+                    });
+                };
+
+                card.innerHTML = `
+                    <img src="${tool.image}" class="w-full h-32 object-cover bg-[#111]">
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h3 class="font-bold text-white text-lg">${tool.title}</h3>
+                        <p class="text-sm text-gray-400 mt-1 line-clamp-3 flex-1">${tool.description}</p>
+                        <button onclick="window.open('${tool.link}', '_blank')" class="mt-4 w-full py-2.5 bg-[#303030] hover:bg-[#404040] text-white rounded text-sm font-semibold transition-colors flex justify-center items-center gap-2">
+                            Apri Strumento <span class="text-[10px]">↗</span>
+                        </button>
+                    </div>
+                `;
+                card.appendChild(deleteBtn);
+                toolsGrid.appendChild(card);
+            });
+        }
+
+        let selectedToolFile = null;
+        document.getElementById('inputToolFile').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            selectedToolFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('toolPreview').src = ev.target.result;
+                document.getElementById('toolPreview').classList.remove('hidden');
+                document.getElementById('toolDropHint').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('toolForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            if (!selectedToolFile) { alert('Carica un logo o un\'immagine per lo strumento.'); return; }
+            submitBtn.disabled = true; submitBtn.textContent = 'Salvataggio...';
+
+            const title = document.getElementById('inputToolTitle').value.trim();
+            const description = document.getElementById('inputToolDesc').value.trim();
+            const link = document.getElementById('inputToolLink').value.trim();
+
+            const imageUrl = await new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result); fr.readAsDataURL(selectedToolFile); });
+
+            const newTool = {
+                id: Date.now().toString(),
+                title, description, link, image: imageUrl
+            };
+
+            toolsData.push(newTool);
+            renderTools();
+            closeModal('addToolModal', 'toolForm');
+            selectedToolFile = null;
+            submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
+            await autoSaveToCloud();
+        });
+
+
+        // =============================================
+        //  RENDER FORMAZIONE
+        // =============================================
+        const noTrainingResults = document.getElementById('noTrainingResults');
+
+        function getYouTubeID(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        function renderTraining() {
+            trainingGrid.innerHTML = '';
+            const term = searchInput.value.toLowerCase();
+            const filteredTraining = term ? trainingData.filter(t => t.title.toLowerCase().includes(term)) : trainingData;
+
+            if (filteredTraining.length === 0) {
+                noTrainingResults.classList.remove('hidden'); trainingGrid.classList.add('hidden'); return;
+            }
+            noTrainingResults.classList.add('hidden'); trainingGrid.classList.remove('hidden');
+
+            filteredTraining.forEach(training => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-[#3ea6ff] transition-colors flex flex-col group relative cursor-pointer';
+                card.onclick = () => window.open(training.link, '_blank');
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center shadow-lg transform hover:scale-110';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi eliminare il video di formazione "${training.title}"?`, async () => {
+                        trainingData = trainingData.filter(t => t.id !== training.id);
+                        renderTraining();
+                        await autoSaveToCloud();
+                    });
+                };
+
+                card.innerHTML = `
+                    <div class="relative aspect-video bg-[#111]">
+                        <img src="https://img.youtube.com/vi/${training.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${training.ytId}/hqdefault.jpg'" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span class="text-5xl drop-shadow-lg">▶️</span>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-white text-sm line-clamp-2 leading-tight group-hover:text-[#3ea6ff] transition-colors">${training.title}</h3>
+                    </div>
+                `;
+                card.appendChild(deleteBtn);
+                trainingGrid.appendChild(card);
+            });
+        }
+
+        document.getElementById('trainingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            const title = document.getElementById('inputTrainingTitle').value.trim();
+            const link = document.getElementById('inputTrainingLink').value.trim();
+            const ytId = getYouTubeID(link);
+
+            if (!ytId) { alert("Link YouTube non valido. Assicurati che sia un video pubblico."); return; }
+
+            submitBtn.disabled = true; submitBtn.textContent = 'Salvataggio...';
+
+            const newTraining = {
+                id: Date.now().toString(),
+                title, link, ytId
+            };
+
+            trainingData.push(newTraining);
+            renderTraining();
+            closeModal('addTrainingModal', 'trainingForm');
+            submitBtn.disabled = false; submitBtn.textContent = 'Salva Video';
+            await autoSaveToCloud();
+        });
+
+        // =============================================
+        //  RENDER EDITORS HUB (SFX & MUSIC)
+        // =============================================
+        const noEHResults = document.getElementById('noEHResults');
+        let selectedEHFile = null;
+
+        function switchEHTab(tabName) {
+            currentEHTab = tabName;
+            document.querySelectorAll('.eh-tab').forEach(btn => {
+                if(btn.dataset.ehtab === tabName) {
+                    btn.classList.add('active', 'border-blue-500', 'text-blue-400');
+                    btn.classList.remove('text-gray-400');
+                } else {
+                    btn.classList.remove('active', 'border-blue-500', 'text-blue-400');
+                    btn.classList.add('text-gray-400');
+                }
+            });
+            renderEditorsHub();
+        }
+
+        function simulateOpenLocalFolder() {
+            alert("Il file si trova nella cartella 'Download' o 'Musica' del tuo PC.\n\nNota: i browser web non possono aprire direttamente l'Esplora Risorse (Windows) o il Finder (Mac) per motivi di sicurezza.");
+        }
+        
+        function getDirectDownloadLink(fileId, originalLink) {
+            if (fileId) return `https://drive.google.com/uc?export=download&id=${fileId}`;
+            if (originalLink && originalLink.includes('/d/')) {
+                const match = originalLink.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match) return `https://drive.google.com/uc?export=download&id=${match[1]}`;
+            }
+            return originalLink;
+        }
+
+        function renderEditorsHub() {
+            ehGrid.innerHTML = '';
+            const term = searchInput.value.toLowerCase();
+            
+            let filteredEH = editorsHubData.filter(item => item.category === currentEHTab);
+            if (term) {
+                filteredEH = filteredEH.filter(item => item.title.toLowerCase().includes(term));
+            }
+
+            if (filteredEH.length === 0) {
+                noEHResults.classList.remove('hidden'); ehGrid.classList.add('hidden'); return;
+            }
+            noEHResults.classList.add('hidden'); ehGrid.classList.remove('hidden');
+
+            filteredEH.forEach(item => {
+                const isDownloaded = downloadedEHFiles.includes(item.id);
+                const icon = item.category === 'sfx' ? '🔊' : '🎵';
+                
+                const card = document.createElement('div');
+                card.className = 'bg-[#1a1a1a] rounded-xl p-4 border border-[#303030] hover:border-[#555] transition-colors flex flex-col relative group';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.className = 'absolute top-3 right-3 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-sm';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi eliminare il file "${item.title}" dall'Editors Hub?`, async () => {
+                        editorsHubData = editorsHubData.filter(t => t.id !== item.id);
+                        renderEditorsHub();
+                        await autoSaveToCloud();
+                    });
+                };
+
+                let actionHtml = '';
+                if (isDownloaded) {
+                    actionHtml = `
+                        <div class="flex flex-col gap-1 w-full">
+                            <div class="flex items-center justify-center gap-2 w-full py-2 bg-green-900/30 border border-green-700/50 text-green-400 rounded text-sm font-semibold cursor-default">
+                                ✅ Già Scaricato
+                            </div>
+                            <button onclick="simulateOpenLocalFolder()" class="text-xs text-gray-400 hover:text-white flex items-center justify-center gap-1 mt-1 transition-colors py-1">
+                                📁 Apri cartella (Download/Musica)
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    actionHtml = `
+                        <button class="w-full py-2 bg-[#3ea6ff] hover:bg-[#65b8ff] text-black rounded text-sm font-bold transition-colors flex justify-center items-center gap-2 download-eh-btn">
+                            ⬇️ Scarica File
+                        </button>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040]">
+                            ${icon}
+                        </div>
+                        <div class="flex flex-col pr-6">
+                            <h3 class="font-bold text-white text-sm leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
+                            <span class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">${item.category === 'sfx' ? 'Sound Effect' : 'Audio Track'}</span>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-2 flex w-full">
+                        ${actionHtml}
+                    </div>
+                `;
+                card.appendChild(deleteBtn);
+                
+                const btn = card.querySelector('.download-eh-btn');
+                if(btn) {
+                    btn.onclick = () => {
+                        const dlLink = getDirectDownloadLink(item.fileId, item.link);
+                        const a = document.createElement('a');
+                        a.href = dlLink;
+                        a.download = '';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+
+                        downloadedEHFiles.push(item.id);
+                        localStorage.setItem('creatorhub_eh_downloads', JSON.stringify(downloadedEHFiles));
+                        renderEditorsHub(); 
+                    };
+                }
+
+                ehGrid.appendChild(card);
+            });
+        }
+
+        document.getElementById('inputEHFile').addEventListener('change', (e) => {
+            const file = e.target.files[0]; 
+            if (!file) return;
+            selectedEHFile = file;
+            document.getElementById('ehDropHint').classList.add('hidden');
+            document.getElementById('ehFileName').textContent = '📎 Selezionato: ' + file.name;
+            document.getElementById('ehFileName').classList.remove('hidden');
+            devLog(`File selezionato per EH: ${file.name} (${Math.round(file.size/1024)} KB)`, "info");
+        });
+
+        document.getElementById('ehForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            
+            if (!selectedEHFile) { alert("Carica o trascina un file audio!"); return; }
+            if (!EH_FOLDER_ID) { alert("Imposta prima l'ID della cartella Editors Hub nel Pannello di Amministrazione!"); return; }
+
+            submitBtn.disabled = true; submitBtn.textContent = 'Caricamento su Drive...';
+            devLog("Avvio caricamento file su Drive...", "warning");
+
+            const title = document.getElementById('inputEHTitle').value.trim();
+            const category = document.getElementById('inputEHCategory').value;
+            
+            let uploadedFileId = null;
+            let genericLink = "";
+
+            try {
+                const base64 = await new Promise((resolve, reject) => { 
+                    const fr = new FileReader(); 
+                    fr.onload = ev => resolve(ev.target.result.split(',')[1]); 
+                    fr.onerror = reject;
+                    fr.readAsDataURL(selectedEHFile); 
+                });
+                
+                const ext = selectedEHFile.name.split('.').pop();
+                const mimeType = selectedEHFile.type || 'application/octet-stream';
+                const finalFileName = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.${ext}`;
+
+                const res = await callScriptAction({ 
+                    action: 'uploadEHFile', 
+                    folderId: EH_FOLDER_ID, 
+                    base64: base64, 
+                    mimeType: mimeType, 
+                    fileName: finalFileName 
+                });
+
+                if(res.fileId) {
+                    uploadedFileId = res.fileId;
+                    genericLink = `https://drive.google.com/file/d/${res.fileId}/view`;
+                    devLog(`File caricato con successo. ID: ${res.fileId}`, "success");
+                }
+            } catch(e) {
+                devLog(`Errore durante l'upload del file: ${e.message}`, "error");
+                submitBtn.disabled = false; submitBtn.textContent = 'Salva File';
+                return;
+            }
+
+            const newEHFile = {
+                id: Date.now().toString(),
+                title, 
+                category, 
+                link: genericLink,
+                fileId: uploadedFileId
+            };
+
+            editorsHubData.push(newEHFile);
+            switchEHTab(category);
+            closeModal('addEHModal', 'ehForm');
+            submitBtn.disabled = false; submitBtn.textContent = 'Salva File';
+            await autoSaveToCloud();
+        });
+        
+        // =============================================
+        //  RENDER STATISTICHE & TIMELINE
+        // =============================================
+        function renderStats() {
+            let total = videoIdeas.length;
+            let n = 0, p = 0, c = 0;
+            
+            const hours48 = 48 * 60 * 60 * 1000;
+            const now = Date.now();
+
+            videoIdeas.forEach(v => {
+                const stat = getIdeaStatus(v);
+                if (stat === 'new' || (now - (v.createdAt||0) <= hours48 && !v.assignee)) n++;
+                if (stat === 'progress') p++;
+                if (stat === 'completed') c++;
+            });
+
+            document.getElementById('statTotalIdeas').textContent = total;
+            document.getElementById('statNewIdeas').textContent = n;
+            document.getElementById('statProgressIdeas').textContent = p;
+            document.getElementById('statCompletedIdeas').textContent = c;
+
+            // Generate Insights
+            const insightsList = document.getElementById('statsInsightsList');
+            insightsList.innerHTML = '';
+            let insights = [];
+            
+            if(total === 0) {
+                insights.push("🚀 <strong>Inizia da zero:</strong> Non hai ancora idee. Crea la tua prima idea per iniziare!");
+            } else {
+                if(n > 3) insights.push("🔥 <strong>Nuove Idee:</strong> Hai molte idee recenti. Ottimo lavoro di brainstorming!");
+                const availableCount = total - p - c;
+                if(availableCount > p + c) insights.push("⚠️ <strong>Assegnazione necessaria:</strong> Ci sono tante idee disponibili non assegnate. Distribuisci i task per sbloccare il workflow.");
+                if(p > 5) insights.push("⏳ <strong>Collo di bottiglia?</strong> Ci sono molti video in lavorazione. Focalizzati sul chiudere i progetti aperti prima di iniziarne di nuovi.");
+                if(c > 0 && p === 0) insights.push("🎉 <strong>Tutto pulito:</strong> Nessun task in lavorazione, ottimo momento per prendere in carico nuove idee.");
+                if(total > 0 && c/total > 0.5) insights.push("🏆 <strong>Macchina da guerra:</strong> Hai completato oltre il 50% delle idee generate. Ottima costanza!");
+            }
+            
+            if(insights.length === 0) insights.push("✅ Tutto procede regolarmente senza criticità evidenti.");
+
+            insights.forEach(ins => {
+                const li = document.createElement('li');
+                li.innerHTML = `• ${ins}`;
+                insightsList.appendChild(li);
+            });
+
+            // Generate Team Performance
+            const teamBody = document.getElementById('teamPerformanceBody');
+            teamBody.innerHTML = '';
+            
+            let teamData = TEAM_MEMBERS.map(member => {
+                const assignedVideos = videoIdeas.filter(v => v.assignee === member);
+                const completed = assignedVideos.filter(v => getIdeaStatus(v) === 'completed').length;
+                const inProgress = assignedVideos.length - completed;
+                return { name: member, completed, inProgress, total: assignedVideos.length };
+            });
+
+            teamData.sort((a, b) => b.completed - a.completed || b.total - a.total);
+
+            teamData.forEach(member => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-semibold text-white">${member.name}</td>
+                    <td class="px-4 py-3"><span class="bg-purple-900/30 text-purple-400 px-2 py-0.5 rounded text-xs border border-purple-500/30">${member.inProgress} in corso</span></td>
+                    <td class="px-4 py-3"><span class="bg-green-900/30 text-green-400 px-2 py-0.5 rounded text-xs border border-green-500/30">${member.completed} finiti</span></td>
+                    <td class="px-4 py-3 text-gray-400">${member.total} task totali</td>
+                `;
+                teamBody.appendChild(tr);
+            });
+
+            // Generate Timeline
+            const timelineContainer = document.getElementById('timelineContainer');
+            timelineContainer.innerHTML = '';
+            
+            const recentIdeas = videoIdeas.slice(0, 15);
+            if(recentIdeas.length === 0) {
+                timelineContainer.innerHTML = '<p class="text-sm text-gray-500 mt-4 ml-4">Nessuna attività recente da mostrare.</p>';
+            } else {
+                recentIdeas.forEach((idea, index) => {
+                    const stat = getIdeaStatus(idea);
+                    let color = 'bg-gray-500';
+                    let text = `Idea creata: <strong>${idea.title}</strong>`;
+                    let subText = `Creata il ${idea.timeAgo}`;
+
+                    if(stat === 'completed') {
+                        color = 'bg-green-500';
+                        text = `Video completato: <strong>${idea.title}</strong>`;
+                        subText = `Finito da ${idea.assignee} il ${idea.completedAt}`;
+                    } else if (stat === 'progress') {
+                        color = 'bg-purple-500';
+                        text = `In lavorazione: <strong>${idea.title}</strong>`;
+                        subText = `Preso in carico da ${idea.assignee} il ${idea.assignedAt}`;
+                    } else if (stat === 'new') {
+                        color = 'bg-blue-500';
+                        text = `Nuova idea: <strong>${idea.title}</strong>`;
+                    }
+
+                    const dot = document.createElement('div');
+                    dot.className = "mb-6 ml-6 relative";
+                    dot.innerHTML = `
+                        <span class="absolute flex items-center justify-center w-3 h-3 ${color} rounded-full -left-[31px] top-1 ring-4 ring-[#1a1a1a]"></span>
+                        <h3 class="text-sm font-semibold text-gray-200 leading-tight">${text}</h3>
+                        <time class="block mb-1 text-xs font-normal text-gray-500 mt-0.5">${subText}</time>
+                    `;
+                    timelineContainer.appendChild(dot);
+                });
+            }
+        }
+
+
+        // =============================================
+        //  ADMIN PANEL & IMPOSTAZIONI
+        // =============================================
+        
+        // Apertura Pannello Admin con PIN
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            requirePin("Accesso al Pannello di Amministrazione di TMS Lab", () => {
+                document.getElementById('scriptUrlInput').value = SCRIPT_URL;
+                document.getElementById('ehFolderIdInput').value = EH_FOLDER_ID;
+                document.getElementById('adminModal').classList.remove('hidden'); 
+                document.getElementById('adminModal').classList.add('flex');
+                renderAdminChannelList(); // Popola la lista canali nell'admin
+            });
+        });
+        
+        // Salvataggio impostazioni DB
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            SCRIPT_URL = document.getElementById('scriptUrlInput').value.trim(); 
+            localStorage.setItem('creatorhub_script_url', SCRIPT_URL);
+            
+            EH_FOLDER_ID = document.getElementById('ehFolderIdInput').value.trim();
+            localStorage.setItem('tmslab_eh_folder', EH_FOLDER_ID);
+
+            devLog("Impostazioni database salvate.", "success");
+            loadDataFromCloud(); // Forza ricaricamento
+        });
+
+        // Boot
+        if (SCRIPT_URL) loadDataFromCloud();
+        else switchView('idee'); 
+
+        // Upload PFP Nuovo Canale
+        let selectedChannelAvatarFile = null;
+        document.getElementById('inputChannelAvatar').addEventListener('change', (e) => {
+            selectedChannelAvatarFile = e.target.files[0];
+            if(selectedChannelAvatarFile) {
+                const reader = new FileReader(); reader.onload = ev => { document.getElementById('channelAvatarPreview').innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover rounded-full">`; }; reader.readAsDataURL(selectedChannelAvatarFile);
+            }
+        });
+        
+        // Modal Nuovo Canale
+        document.getElementById('addChannelBtn').addEventListener('click', () => {
+            requirePin("Per creare un nuovo canale devi essere autorizzato.", () => {
+                document.getElementById('addChannelModal').classList.remove('hidden'); 
+                document.getElementById('addChannelModal').classList.add('flex');
+            });
+        });
+        const closeAddChannelModal = () => { document.getElementById('addChannelModal').classList.add('hidden'); document.getElementById('addChannelModal').classList.remove('flex'); };
+        document.getElementById('closeChannelModalBtn').addEventListener('click', closeAddChannelModal); document.getElementById('cancelChannelBtn').addEventListener('click', closeAddChannelModal);
+        
+        // Salvataggio Nuovo Canale
+        document.getElementById('saveChannelBtn').addEventListener('click', async () => {
+            const name = document.getElementById('inputChannelName').value.trim();
+            if (!name || !SCRIPT_URL) return;
+            const btn = document.getElementById('saveChannelBtn'); btn.disabled = true;
+
+            let driveFolderId = '', profilePicUrl = '';
+            try {
+                btn.textContent = '📁...';
+                const resF = await callScriptAction({ action: 'createChannelFolder', name }); driveFolderId = resF.folderId || '';
+                if(selectedChannelAvatarFile && driveFolderId) {
+                    btn.textContent = '🖼️...';
+                    const base64 = await new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedChannelAvatarFile); });
+                    const resI = await callScriptAction({ action: 'uploadProfilePicture', folderId: driveFolderId, base64, mimeType: selectedChannelAvatarFile.type || 'image/jpeg', ext: selectedChannelAvatarFile.name.split('.').pop().toLowerCase() });
+                    if(resI.fileId) profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
+                }
+            } catch(e) { devLog(`Errore: ${e.message}`, "error"); }
+
+            channels.push({ id: Date.now().toString(), name, color: CHANNEL_COLORS[channels.length % CHANNEL_COLORS.length], driveFolderId, profilePicUrl });
+            renderChannelList(); closeAddChannelModal(); btn.disabled = false; btn.textContent = 'Crea Canale'; await autoSaveToCloud();
+        });
+
+    </script>
+</body>
+</html>
