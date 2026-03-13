@@ -1137,9 +1137,8 @@
         let currentEHTab = 'sfx'; 
         
         let folderStatusCache = {};
-        let randomIdeaOrder = []; // Array di appoggio per mantenere l'ordine randomico fisso tra un refresh e l'altro
+        let randomIdeaOrder = []; 
         
-        // AUDIO PLAYER GLOBALE PER ANTEPRIMA EH
         let globalAudioPlayer = new Audio();
         let currentlyPlayingEHId = null;
         
@@ -1223,7 +1222,6 @@
             document.getElementById('viewStatsWrapper').classList.add('hidden');
             document.getElementById('viewDatabaseWrapper').classList.add('hidden');
             
-            // Ferma l'audio se si cambia pagina
             if(!globalAudioPlayer.paused) {
                 globalAudioPlayer.pause();
                 currentlyPlayingEHId = null;
@@ -1358,7 +1356,6 @@
                 });
             }
             
-            // Randomizza l'ordine solo se siamo su "Tutte le idee" senza ricerche attive o filtri extra
             if (activeChannelId === null && !term && activeStatusFilter === 'all') {
                 filtered.sort((a, b) => {
                     let indexA = randomIdeaOrder.indexOf(a.id);
@@ -1464,7 +1461,6 @@
                 
                 updateStatus("🟢 Sincronizzato con Drive", "success");
                 
-                // Genera un ordine random di partenza per "Tutte le idee"
                 randomIdeaOrder = shuffleArray([...videoIdeas]).map(v => v.id);
                 
                 renderChannelList();
@@ -1501,7 +1497,6 @@
             
             if (channelId === null) {
                 pageTitle.textContent = 'Le tue Idee Video'; pageSubtitle.textContent = 'Tutte le idee su tutti i canali.';
-                // Rimescola l'array ogni volta che l'utente clicca di nuovo su "Tutte le idee"
                 randomIdeaOrder = shuffleArray([...videoIdeas]).map(v => v.id);
             } else {
                 const ch = channels.find(c => c.id === channelId);
@@ -1662,9 +1657,9 @@
                 channels[chIndex].name = newName;
                 if(selectedEditChannelAvatarFile && channels[chIndex].driveFolderId && SCRIPT_URL) {
                     try {
-                        const compressedImg = await compressImage(selectedEditChannelAvatarFile, 400, 0.7);
+                        const compressedImg = await compressImage(selectedEditChannelAvatarFile, 400, 0.7, 'image/jpeg');
                         const resI = await callScriptAction({ action: 'uploadProfilePicture', folderId: channels[chIndex].driveFolderId, base64: compressedImg.base64, mimeType: compressedImg.mimeType, ext: compressedImg.ext });
-                        if(resI.fileId) channels[chIndex].profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
+                        if(resI.fileId) channels[chIndex].profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
                     } catch(e) {}
                 }
             }
@@ -1798,7 +1793,7 @@
         }
 
         // =============================================
-        //  MODIFICA IDEA (NUOVA FUNZIONALITÀ)
+        //  MODIFICA IDEA
         // =============================================
         let selectedEditIdeaThumbFile = null;
 
@@ -1807,7 +1802,6 @@
             document.getElementById('editIdeaTitle').value = idea.title;
             document.getElementById('editIdeaDriveLink').value = idea.driveLink || '';
 
-            // Assegnatario modificabile se già in progress
             const assigneeContainer = document.getElementById('editIdeaAssigneeContainer');
             if (idea.assignee) {
                 assigneeContainer.classList.remove('hidden');
@@ -1817,7 +1811,6 @@
                 document.getElementById('editIdeaAssignee').value = "";
             }
 
-            // Preview copertina attuale
             const preview = document.getElementById('editIdeaThumbPreview');
             const hint = document.getElementById('editIdeaThumbDropHint');
             if (idea.thumbnail) {
@@ -1870,7 +1863,6 @@
                     idea.assignee = assignee;
                 }
 
-                // Se l'utente ha scelto una nuova immagine
                 if (selectedEditIdeaThumbFile) {
                     if (idea.ideaFolderId && SCRIPT_URL) {
                         try {
@@ -1890,14 +1882,13 @@
                             });
                             
                             if (resI.fileId) {
-                                idea.thumbnail = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
+                                idea.thumbnail = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w1000`;
                             }
                         } catch(err) {
                             devLog(`[IDEA EDIT ERROR] Impossibile caricare la copertina su Drive.`, "error");
                         }
                     } else {
-                        // Fallback locale iper-compresso per proteggere il Database JSON
-                        const fallbackImg = await compressImage(selectedEditIdeaThumbFile, 600, 0.5, 'image/webp');
+                        const fallbackImg = await compressImage(selectedEditIdeaThumbFile, 900, 0.8, 'image/webp');
                         idea.thumbnail = fallbackImg.dataUrl;
                     }
                 }
@@ -1976,7 +1967,6 @@
 
                 const fallbackImg = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop';
                 
-                // Formatta il tempo alla YouTube
                 let timeAgoStr = video.timeAgo; 
                 if (video.createdAt) {
                     timeAgoStr = timeSince(video.createdAt);
@@ -2047,13 +2037,9 @@
                 try {
                     submitBtn.textContent = '🔄 Preparazione File...';
                     
-                    // 1. Estraiamo il file ORIGINALE IN HD senza comprimerlo
                     const getOrigBase64 = new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedThumbFile); });
+                    const compressLowRes = compressImage(selectedThumbFile, 900, 0.8, 'image/webp');
                     
-                    // 2. Creiamo una versione LowRes (800px, qualità 85%) per i salvataggi offline
-                    const compressLowRes = compressImage(selectedThumbFile, 800, 0.85, 'image/jpeg');
-                    
-                    // 3. Chiamata per creare la cartella
                     const [originalBase64, compressedImg, resF] = await Promise.all([
                         getOrigBase64,
                         compressLowRes,
@@ -2070,21 +2056,21 @@
                         const resI = await callScriptAction({ 
                             action: 'uploadThumbnail', 
                             folderId: ideaFolderId, 
-                            base64: originalBase64, // INVIAMO L'ORIGINALE PESANTE!
+                            base64: originalBase64, 
                             mimeType: selectedThumbFile.type || 'image/jpeg', 
                             ext: origExt,
-                            fileName: `thumbnail_HighRes.${origExt}` // La nominiamo HighRes
+                            fileName: `thumbnail_HighRes.${origExt}`
                         });
                         
                         if (resI.fileId) {
-                            thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
+                            thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w1000`;
                         }
                     }
                 } catch(err) {}
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                const compressedImg = await compressImage(selectedThumbFile, 800, 0.85, 'image/jpeg');
+                const compressedImg = await compressImage(selectedThumbFile, 900, 0.8, 'image/webp');
                 if(compressedImg.sizeKB > 1500) {
                      submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
                      return;
@@ -2209,7 +2195,7 @@
 
             let finalImageUrl = "";
             const ext = selectedToolFile.name.split('.').pop().toLowerCase();
-            const compressedImg = await compressImage(selectedToolFile, 400, 0.8, 'image/jpeg');
+            const compressedImg = await compressImage(selectedToolFile, 500, 0.85, 'image/webp');
 
             if (SCRIPT_URL) {
                 try {
@@ -2217,7 +2203,7 @@
                     const res = await callScriptAction({ 
                         action: 'uploadEHFile', 
                         base64: compressedImg.base64, 
-                        mimeType: 'image/jpeg', 
+                        mimeType: 'image/webp', 
                         fileName: `tool_logo_${Date.now()}.${ext}` 
                     });
                     if(res.fileId) {
@@ -2230,13 +2216,12 @@
             }
 
             if(!finalImageUrl) {
-                 const ultraCompressed = await compressImage(selectedToolFile, 250, 0.5, 'image/webp');
-                 if(ultraCompressed.sizeKB > 300) {
+                 if(compressedImg.sizeKB > 500) {
                          submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
                          alert("L'immagine è troppo pesante per il salvataggio offline.");
                          return;
                  }
-                 finalImageUrl = ultraCompressed.dataUrl;
+                 finalImageUrl = compressedImg.dataUrl;
             }
 
             const newTool = {
@@ -2904,7 +2889,7 @@
                         ext: compressedImg.ext 
                     });
                     if(resI.fileId) {
-                        profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
+                        profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
                     }
                 }
             } catch(e) {}
