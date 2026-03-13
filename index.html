@@ -160,6 +160,10 @@
                 <span class="text-xl">🎛️</span>
                 <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Editors Hub</span>
             </div>
+            <div id="navScript" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('script')">
+                <span class="text-xl">📝</span>
+                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Script</span>
+            </div>
             <div id="navStats" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('stats')">
                 <span class="text-xl">📊</span>
                 <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
@@ -189,11 +193,6 @@
 
             <!-- Developer Tools & Console -->
             <div class="mt-auto mb-2 px-2 flex flex-col gap-1">
-                <button id="openScriptToolBtn" class="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-[#272727] transition-colors group">
-                    <span class="text-gray-400 group-hover:text-blue-400 transition-colors">📝</span>
-                    <span class="sidebar-label text-xs font-semibold text-gray-400 group-hover:text-blue-400 transition-colors">Analisi Script</span>
-                </button>
-                
                 <button id="openConsoleBtn" class="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-[#272727] transition-colors group">
                     <span class="text-gray-400 group-hover:text-green-400 transition-colors">👨‍💻</span>
                     <span class="sidebar-label text-xs font-mono text-gray-400 group-hover:text-green-400 transition-colors">Apri Console Dev</span>
@@ -265,6 +264,53 @@
                 <div id="noEHResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
                     <span class="text-4xl mb-3">🎛️</span>
                     <p>Nessun file presente in questa libreria.</p>
+                </div>
+            </div>
+            
+            <!-- VISTA: ANALISI SCRIPT -->
+            <div id="viewScriptWrapper" class="hidden h-[calc(100vh-140px)]">
+                <div class="bg-[#1e1e1e] rounded-xl w-full shadow-2xl overflow-hidden border border-[#303030] flex flex-col h-full">
+                    <div class="flex flex-1 overflow-hidden flex-col md:flex-row">
+                        <div class="flex-1 p-6 flex flex-col bg-[#121212]">
+                            <textarea id="scriptInput" class="w-full flex-1 bg-transparent text-gray-200 resize-none outline-none text-lg leading-relaxed placeholder-gray-600" placeholder="Incolla o scrivi qui il tuo script per analizzarlo in tempo reale..."></textarea>
+                        </div>
+                        
+                        <div class="w-full md:w-80 bg-[#1a1a1a] border-t md:border-t-0 md:border-l border-[#303030] p-6 flex flex-col gap-6 shrink-0 overflow-y-auto">
+                            <div>
+                                <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Statistiche Testo</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                        <div class="text-2xl font-black text-white" id="statChars">0</div>
+                                        <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Caratteri</div>
+                                    </div>
+                                    <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                        <div class="text-2xl font-black text-blue-400" id="statWords">0</div>
+                                        <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Parole</div>
+                                    </div>
+                                    <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                        <div class="text-2xl font-black text-purple-400" id="statSentences">0</div>
+                                        <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Frasi</div>
+                                    </div>
+                                    <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
+                                        <div class="text-2xl font-black text-green-400" id="statTime">0s</div>
+                                        <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Stima Video</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr class="border-[#444]">
+                            <div>
+                                <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">Rating in Tempo Reale</h3>
+                                <div id="statRating" class="bg-[#272727] p-4 rounded-lg border border-[#333] text-sm leading-relaxed">
+                                    <span class="text-gray-500 italic">Inizia a scrivere per l'analisi...</span>
+                                </div>
+                            </div>
+                            <div class="mt-auto pt-4">
+                                <p class="text-[11px] text-gray-500 leading-tight">
+                                    *La stima del video è calcolata su una velocità di lettura media di circa 180 parole al minuto (3 parole al secondo).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -430,60 +476,6 @@
             </div>
 
         </main>
-    </div>
-
-    <!-- SCRIPT ANALYZER MODAL -->
-    <div id="scriptToolModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[250] px-4 backdrop-blur-sm">
-        <div class="bg-[#1e1e1e] rounded-xl w-full max-w-5xl shadow-2xl overflow-hidden border border-[#444] flex flex-col h-[85vh]">
-            <div class="flex justify-between items-center p-4 border-b border-[#444] bg-[#2d2d2d] shrink-0">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                    📝 Analizzatore Script Video
-                </h2>
-                <button id="closeScriptToolBtn" class="text-gray-400 hover:text-white text-3xl leading-none px-2">&times;</button>
-            </div>
-            
-            <div class="flex flex-1 overflow-hidden flex-col md:flex-row">
-                <div class="flex-1 p-6 flex flex-col bg-[#121212]">
-                    <textarea id="scriptInput" class="w-full flex-1 bg-transparent text-gray-200 resize-none outline-none text-lg leading-relaxed placeholder-gray-600" placeholder="Incolla o scrivi qui il tuo script per analizzarlo in tempo reale..."></textarea>
-                </div>
-                
-                <div class="w-full md:w-80 bg-[#1a1a1a] border-t md:border-t-0 md:border-l border-[#444] p-6 flex flex-col gap-6 shrink-0 overflow-y-auto">
-                    <div>
-                        <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Statistiche Testo</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
-                                <div class="text-2xl font-black text-white" id="statChars">0</div>
-                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Caratteri</div>
-                            </div>
-                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
-                                <div class="text-2xl font-black text-blue-400" id="statWords">0</div>
-                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Parole</div>
-                            </div>
-                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
-                                <div class="text-2xl font-black text-purple-400" id="statSentences">0</div>
-                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Frasi</div>
-                            </div>
-                            <div class="bg-[#272727] p-3 rounded-lg border border-[#333]">
-                                <div class="text-2xl font-black text-green-400" id="statTime">0s</div>
-                                <div class="text-[11px] text-gray-400 uppercase tracking-wide mt-1">Stima Video</div>
-                            </div>
-                        </div>
-                    </div>
-                    <hr class="border-[#444]">
-                    <div>
-                        <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-3">Rating in Tempo Reale</h3>
-                        <div id="statRating" class="bg-[#272727] p-4 rounded-lg border border-[#333] text-sm leading-relaxed">
-                            <span class="text-gray-500 italic">Inizia a scrivere per l'analisi...</span>
-                        </div>
-                    </div>
-                    <div class="mt-auto pt-4">
-                        <p class="text-[11px] text-gray-500 leading-tight">
-                            *La stima del video è calcolata su una velocità di lettura media di circa 180 parole al minuto (3 parole al secondo).
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- MODAL DASHBOARD IDEA -->
@@ -1094,53 +1086,6 @@
         });
 
         // =============================================
-        //  SCRIPT ANALYZER TOOL
-        // =============================================
-        const scriptToolModal = document.getElementById('scriptToolModal');
-        const scriptInput = document.getElementById('scriptInput');
-        
-        document.getElementById('openScriptToolBtn').addEventListener('click', () => {
-            scriptToolModal.classList.remove('hidden');
-            scriptToolModal.classList.add('flex');
-            scriptInput.focus();
-        });
-        
-        document.getElementById('closeScriptToolBtn').addEventListener('click', () => {
-            scriptToolModal.classList.add('hidden');
-            scriptToolModal.classList.remove('flex');
-        });
-
-        scriptInput.addEventListener('input', () => {
-            const text = scriptInput.value;
-            const chars = text.length;
-            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-            const sentences = text.trim() ? text.split(/[.!?]+/).filter(s => s.trim().length > 0).length : 0;
-
-            const totalSeconds = Math.ceil(words / 3);
-            const mins = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
-            const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-
-            document.getElementById('statChars').textContent = chars;
-            document.getElementById('statWords').textContent = words;
-            document.getElementById('statSentences').textContent = sentences;
-            document.getElementById('statTime').textContent = timeString;
-
-            const ratingEl = document.getElementById('statRating');
-            if (words === 0) {
-                ratingEl.innerHTML = '<span class="text-gray-500 italic">Inizia a scrivere per l\'analisi...</span>';
-            } else if (totalSeconds <= 60) {
-                ratingEl.innerHTML = '<span class="text-purple-400 font-bold">⚡ Perfetto per uno Short!</span><br><span class="text-gray-400 text-xs mt-1 block">Ritmo serrato, ideale per TikTok, Reels e YouTube Shorts.</span>';
-            } else if (totalSeconds <= 300) { 
-                ratingEl.innerHTML = '<span class="text-green-400 font-bold">🚀 Lunghezza Ideale</span><br><span class="text-gray-400 text-xs mt-1 block">Veloce, dritto al punto. Ottimo per mantenere alta la retention.</span>';
-            } else if (totalSeconds <= 900) { 
-                ratingEl.innerHTML = '<span class="text-blue-400 font-bold">📺 Formato Standard YouTube</span><br><span class="text-gray-400 text-xs mt-1 block">Lunghezza perfetta per la monetizzazione e per trattare bene un argomento.</span>';
-            } else { 
-                ratingEl.innerHTML = '<span class="text-yellow-400 font-bold">🔥 Video Lungo</span><br><span class="text-gray-400 text-xs mt-1 block">Fai attenzione alla ritenzione: usa bene b-roll, cambi scena e mantieni alto il ritmo!</span>';
-            }
-        });
-
-        // =============================================
         //  SECURITY PIN SYSTEM
         // =============================================
         function requirePin(actionMessage, callback) {
@@ -1266,6 +1211,7 @@
             document.getElementById('navStrumenti').classList.remove('active');
             document.getElementById('navFormazione').classList.remove('active');
             document.getElementById('navEditorsHub').classList.remove('active');
+            document.getElementById('navScript').classList.remove('active');
             document.getElementById('navStats').classList.remove('active');
             document.getElementById('navDatabase').classList.remove('active');
             
@@ -1273,6 +1219,7 @@
             document.getElementById('viewStrumentiWrapper').classList.add('hidden');
             document.getElementById('viewFormazioneWrapper').classList.add('hidden');
             document.getElementById('viewEditorsHubWrapper').classList.add('hidden');
+            document.getElementById('viewScriptWrapper').classList.add('hidden');
             document.getElementById('viewStatsWrapper').classList.add('hidden');
             document.getElementById('viewDatabaseWrapper').classList.add('hidden');
             
@@ -1317,6 +1264,18 @@
                 mainActionText.textContent = 'Aggiungi File';
                 mainActionBtn.onclick = () => { document.getElementById('addEHModal').classList.remove('hidden'); document.getElementById('addEHModal').classList.add('flex'); };
                 renderEditorsHub();
+            }
+            else if (view === 'script') {
+                document.getElementById('navScript').classList.add('active');
+                document.getElementById('viewScriptWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Analisi Script Video';
+                pageSubtitle.textContent = 'Scrivi o incolla il tuo script per ottenere stime sui tempi e suggerimenti reali.';
+                mainActionText.textContent = 'Svuota Testo';
+                mainActionBtn.onclick = () => { 
+                    const t = document.getElementById('scriptInput');
+                    t.value = '';
+                    t.dispatchEvent(new Event('input'));
+                };
             }
             else if (view === 'stats') {
                 document.getElementById('navStats').classList.add('active');
@@ -1916,15 +1875,17 @@
                     if (idea.ideaFolderId && SCRIPT_URL) {
                         try {
                             submitBtn.textContent = '🚀 Caricamento Copertina...';
-                            const compressedImg = await compressImage(selectedEditIdeaThumbFile, 1280, 0.95, 'image/jpeg');
+                            
+                            const getOrigBase64 = new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedEditIdeaThumbFile); });
+                            const originalBase64 = await getOrigBase64;
                             const origExt = selectedEditIdeaThumbFile.name.split('.').pop().toLowerCase();
                             
                             const resI = await callScriptAction({ 
                                 action: 'uploadThumbnail', 
                                 folderId: idea.ideaFolderId, 
-                                base64: compressedImg.base64, 
-                                mimeType: compressedImg.mimeType, 
-                                ext: compressedImg.ext,
+                                base64: originalBase64, 
+                                mimeType: selectedEditIdeaThumbFile.type || 'image/jpeg', 
+                                ext: origExt,
                                 fileName: `thumbnail_HighRes.${origExt}` 
                             });
                             
@@ -2016,7 +1977,7 @@
                 const fallbackImg = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop';
                 
                 // Formatta il tempo alla YouTube
-                let timeAgoStr = video.timeAgo; // fallback ai vecchi dati
+                let timeAgoStr = video.timeAgo; 
                 if (video.createdAt) {
                     timeAgoStr = timeSince(video.createdAt);
                 }
@@ -2200,6 +2161,7 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare lo strumento "${tool.title}"?`, async () => {
                         toolsData = toolsData.filter(t => t.id !== tool.id);
+                        devLog(`[TOOL] Strumento eliminato: ${tool.title}`, "info");
                         renderTools();
                         await autoSaveToCloud();
                     });
@@ -2249,7 +2211,6 @@
             const ext = selectedToolFile.name.split('.').pop().toLowerCase();
             const compressedImg = await compressImage(selectedToolFile, 400, 0.8, 'image/jpeg');
 
-            // MEGA FIX PER LA LENTEZZA: Inviamo il logo al Drive (usa la cartella EH come ripostiglio rapido) invece di salvarlo nel DB!
             if (SCRIPT_URL) {
                 try {
                     submitBtn.textContent = '🚀 Upload Logo su Drive...';
@@ -2268,7 +2229,6 @@
                 }
             }
 
-            // Fallback estremo se Drive non va
             if(!finalImageUrl) {
                  const ultraCompressed = await compressImage(selectedToolFile, 250, 0.5, 'image/webp');
                  if(ultraCompressed.sizeKB > 300) {
@@ -2430,13 +2390,32 @@
             return originalLink;
         }
 
-        // Evento di completamento audio
+        // Funzione helper per non ricaricare tutto l'HTML solo per un'icona
+        function updateAudioUI() {
+            document.querySelectorAll('.eh-play-trigger').forEach(trigger => {
+                const id = trigger.dataset.id;
+                const mainIcon = trigger.querySelector('.eh-icon-main');
+                const playIcon = trigger.querySelector('.eh-play-icon');
+                
+                if (id === currentlyPlayingEHId && !globalAudioPlayer.paused) {
+                    mainIcon.className = 'eh-icon-main hidden';
+                    playIcon.className = 'eh-play-icon block text-[#3ea6ff] text-sm';
+                    playIcon.textContent = '⏸️';
+                } else {
+                    mainIcon.className = 'eh-icon-main group-hover/audio:hidden';
+                    playIcon.className = 'eh-play-icon hidden group-hover/audio:block text-[#3ea6ff] text-sm';
+                    playIcon.textContent = '▶️';
+                }
+            });
+        }
+
+        // Eventi globali per la traccia audio
         globalAudioPlayer.addEventListener('ended', () => {
             currentlyPlayingEHId = null;
-            document.querySelectorAll('.eh-play-icon').forEach(icon => icon.textContent = '▶️');
-            document.querySelectorAll('.eh-icon-main').forEach(icon => icon.classList.remove('hidden'));
-            document.querySelectorAll('.eh-play-icon').forEach(icon => icon.classList.add('hidden'));
+            updateAudioUI();
         });
+        globalAudioPlayer.addEventListener('pause', updateAudioUI);
+        globalAudioPlayer.addEventListener('play', updateAudioUI);
 
         function renderEditorsHub() {
             ehGrid.innerHTML = '';
@@ -2497,14 +2476,17 @@
                     `;
                 }
 
-                // Determiniamo lo stato di riproduzione visivo corrente
+                // Determiniamo lo stato visivo basandoci sulla funzione helper
                 const isPlaying = currentlyPlayingEHId === item.id && !globalAudioPlayer.paused;
+                const mainIconClass = isPlaying ? 'hidden' : 'group-hover/audio:hidden';
+                const playIconClass = isPlaying ? 'block' : 'hidden group-hover/audio:block';
+                const playIconText = isPlaying ? '⏸️' : '▶️';
 
                 card.innerHTML = `
                     <div class="flex items-start gap-3 mb-4">
-                        <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" title="Clicca per ascoltare l'anteprima">
-                            <span class="eh-icon-main ${isPlaying ? 'hidden' : 'group-hover/audio:hidden'}">${icon}</span>
-                            <span class="eh-play-icon ${isPlaying ? 'block' : 'hidden group-hover/audio:block'} text-[#3ea6ff] text-sm">${isPlaying ? '⏸️' : '▶️'}</span>
+                        <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" data-id="${item.id}" title="Clicca per ascoltare l'anteprima">
+                            <span class="eh-icon-main ${mainIconClass}">${icon}</span>
+                            <span class="eh-play-icon ${playIconClass} text-[#3ea6ff] text-sm">${playIconText}</span>
                         </div>
                         <div class="flex flex-col pr-6 flex-1">
                             <h3 class="font-bold text-white text-sm leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
@@ -2516,24 +2498,30 @@
                     </div>
                 `;
                 
-                // Evento Play/Pause Anteprima Audio
+                // Logica Audio Perfetta (Senza ricaricare il DOM)
                 const playTrigger = card.querySelector('.eh-play-trigger');
                 playTrigger.onclick = (e) => {
                     e.stopPropagation();
-                    const audioUrl = getDirectDownloadLink(item.fileId, item.link);
                     
                     if (currentlyPlayingEHId === item.id) {
                         if (globalAudioPlayer.paused) {
-                            globalAudioPlayer.play();
+                            globalAudioPlayer.play().catch(err => devLog(`[AUDIO] Impossibile riprodurre: ${err.message}`, "error"));
                         } else {
                             globalAudioPlayer.pause();
                         }
                     } else {
+                        // Resetta eventuali player attivi
+                        if (currentlyPlayingEHId) updateAudioUI();
+                        
+                        const audioUrl = getDirectDownloadLink(item.fileId, item.link);
                         globalAudioPlayer.src = audioUrl;
-                        globalAudioPlayer.play();
+                        globalAudioPlayer.play().catch(err => {
+                            devLog(`[AUDIO ERRORE] Google Drive ha bloccato lo streaming. L'audio va scaricato per essere ascoltato.`, "error");
+                            currentlyPlayingEHId = null;
+                            updateAudioUI();
+                        });
                         currentlyPlayingEHId = item.id;
                     }
-                    renderEditorsHub(); // Ricarica veloce per aggiornare le icone
                 };
 
                 card.appendChild(deleteBtn);
@@ -2726,7 +2714,7 @@
         }
 
         // =============================================
-        //  RENDER DATABASE ANALYZER (NUOVA SEZIONE)
+        //  RENDER DATABASE ANALYZER
         // =============================================
         function renderDatabaseStats() {
             const sizeIdeas = parseFloat(getStringSizeInKB(JSON.stringify(videoIdeas)));
