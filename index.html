@@ -1930,13 +1930,19 @@
 
             if (ch && ch.driveFolderId && SCRIPT_URL) {
                 try {
-                    submitBtn.textContent = '🔄 Creazione in corso...';
-                    devLog(`[IMAGE] Elaborazione copertina (1280x720, Alta Qualità 95%)...`, "info");
+                    submitBtn.textContent = '🔄 Preparazione File...';
                     
-                    // Lancio la compressione dell'immagine IN PARALLELO alla creazione della cartella
-                    // Impostato a 1280px e qualità 0.95 (95%) per avere il file HD della massima qualità possibile
-                    const [compressedImg, resF] = await Promise.all([
-                        compressImage(selectedThumbFile, 1280, 0.95, 'image/jpeg'),
+                    // Lanciamo in parallelo le operazioni:
+                    // 1. Estraiamo il file ORIGINALE IN HD senza comprimerlo
+                    const getOrigBase64 = new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedThumbFile); });
+                    
+                    // 2. Creiamo una versione LowRes (800px, qualità 85%) per i salvataggi offline
+                    const compressLowRes = compressImage(selectedThumbFile, 800, 0.85, 'image/jpeg');
+                    
+                    // 3. Chiamata per creare la cartella
+                    const [originalBase64, compressedImg, resF] = await Promise.all([
+                        getOrigBase64,
+                        compressLowRes,
                         callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId })
                     ]);
 
@@ -1945,20 +1951,24 @@
                         ideaFolderLink = `https://drive.google.com/drive/folders/${ideaFolderId}`;
                         devLog(`[DRIVE] Cartella creata (ID: ${ideaFolderId})`, "success");
                         
-                        submitBtn.textContent = '🚀 Upload Copertina HD...';
-                        devLog(`[DRIVE] Invio copertina originale (Peso: ${compressedImg.sizeKB} KB)...`, "info");
+                        submitBtn.textContent = '🚀 Upload Originale su Drive...';
+                        const origExt = selectedThumbFile.name.split('.').pop().toLowerCase();
+                        const origSize = (selectedThumbFile.size / 1024).toFixed(2);
+                        devLog(`[DRIVE] Invio copertina ORIGINALE intatta (Peso: ${origSize} KB)...`, "info");
+                        
                         const resI = await callScriptAction({ 
                             action: 'uploadThumbnail', 
                             folderId: ideaFolderId, 
-                            base64: compressedImg.base64, 
-                            mimeType: compressedImg.mimeType, 
-                            ext: compressedImg.ext 
+                            base64: originalBase64, // INVIAMO L'ORIGINALE PESANTE!
+                            mimeType: selectedThumbFile.type || 'image/jpeg', 
+                            ext: origExt,
+                            fileName: `thumbnail_HighRes.${origExt}` // La nominiamo HighRes
                         });
                         
                         if (resI.fileId) {
-                            // sz=w400 dice a Drive di fornire al sito una "thumbnail_LowRes" istantanea, lasciando l'HD sul Drive!
-                            thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
-                            devLog(`[DRIVE] Immagine salvata. Link anteprima rapido generato.`, "success");
+                            // Chiediamo a Drive una versione "LowRes" a 800px che non sgrana ma carica in un attimo sul sito
+                            thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
+                            devLog(`[DRIVE] Immagine HighRes salvata in cloud. Link LowRes per il sito generato.`, "success");
                         }
                     }
                 } catch(err) { 
@@ -1969,12 +1979,12 @@
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                devLog(`[ATTENZIONE DATABASE] Salvando immagine offline. La converto in WEBP ultra-leggero per non bloccare il DB JSON!`, "warning");
-                // Compressione estrema per i salvataggi offline per proteggere il DB
-                const compressedImg = await compressImage(selectedThumbFile, 600, 0.5, 'image/webp');
+                devLog(`[ATTENZIONE DATABASE] Salvando immagine offline. Uso la versione LowRes creata in locale.`, "warning");
+                // Usiamo la versione 800px 85% creata prima
+                const compressedImg = await compressImage(selectedThumbFile, 800, 0.85, 'image/jpeg');
                 
-                if(compressedImg.sizeKB > 800) {
-                     devLog(`[ERRORE OFFLINE] ❌ L'immagine pesa ancora ${compressedImg.sizeKB} KB ed è troppo grande per il database. Usa immagini più semplici o collega Drive.`, "error");
+                if(compressedImg.sizeKB > 1500) {
+                     devLog(`[ERRORE OFFLINE] ❌ La versione LowRes pesa ancora ${compressedImg.sizeKB} KB. Operazione bloccata per proteggere il Database.`, "error");
                      submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
                      return;
                 }
