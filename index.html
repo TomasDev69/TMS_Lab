@@ -1787,11 +1787,12 @@
             if (ch && ch.driveFolderId && SCRIPT_URL) {
                 try {
                     submitBtn.textContent = '🔄 Creazione in corso...';
-                    devLog(`[IMAGE] Compressione immagine a 1920x1080 (HD per YT) in corso...`, "info");
+                    devLog(`[IMAGE] Elaborazione copertina (1280x720, Alta Qualità 95%)...`, "info");
                     
                     // Lancio la compressione dell'immagine IN PARALLELO alla creazione della cartella
+                    // Impostato a 1280px e qualità 0.95 (95%) per avere il file HD della massima qualità possibile
                     const [compressedImg, resF] = await Promise.all([
-                        compressImage(selectedThumbFile, 1920, 0.90),
+                        compressImage(selectedThumbFile, 1280, 0.95),
                         callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId })
                     ]);
 
@@ -1801,7 +1802,7 @@
                         devLog(`[DRIVE] Cartella creata (ID: ${ideaFolderId})`, "success");
                         
                         submitBtn.textContent = '🚀 Upload Copertina HD...';
-                        devLog(`[DRIVE] Invio copertina (Peso: ${compressedImg.sizeKB} KB)...`, "info");
+                        devLog(`[DRIVE] Invio copertina originale (Peso: ${compressedImg.sizeKB} KB)...`, "info");
                         const resI = await callScriptAction({ 
                             action: 'uploadThumbnail', 
                             folderId: ideaFolderId, 
@@ -1811,6 +1812,7 @@
                         });
                         
                         if (resI.fileId) {
+                            // sz=w400 dice a Drive di fornire al sito una "thumbnail_LowRes" istantanea, lasciando l'HD sul Drive!
                             thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
                             devLog(`[DRIVE] Immagine salvata. Link anteprima rapido generato.`, "success");
                         }
