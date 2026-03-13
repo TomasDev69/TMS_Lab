@@ -847,6 +847,45 @@
         let SCRIPT_URL = localStorage.getItem('creatorhub_script_url') || "";
 
         // =============================================
+        //  FUNZIONI DI SUPPORTO TROUBLESHOOTING
+        // =============================================
+        function getBase64SizeInKB(base64Str) {
+            if(!base64Str) return 0;
+            return ((base64Str.length * 3 / 4) / 1024).toFixed(2);
+        }
+
+        const consoleOutput = document.getElementById('consoleOutput');
+        function devLog(message, type = 'info') {
+            const time = new Date().toLocaleTimeString('it-IT');
+            const el = document.createElement('div');
+            let colorClass = 'text-gray-300';
+            let prefix = '[INFO]';
+            if (type === 'success') { colorClass = 'text-green-400'; prefix = '[SUCCESS]'; }
+            if (type === 'warning') { colorClass = 'text-yellow-400'; prefix = '[WARN]'; }
+            if (type === 'error') { colorClass = 'text-red-500'; prefix = '[ERROR]'; }
+
+            el.className = `flex gap-2 py-0.5 border-b border-white/5 ${colorClass}`;
+            el.innerHTML = `<span class="text-gray-500 shrink-0">[${time}]</span> <span class="font-bold shrink-0">${prefix}</span> <span class="break-all">${message}</span>`;
+            
+            consoleOutput.appendChild(el);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            if(type === 'error') console.error(`${prefix} ${message}`);
+            else if(type === 'warning') console.warn(`${prefix} ${message}`);
+            else console.log(`${prefix} ${message}`);
+        }
+
+        const devConsoleModal = document.getElementById('devConsoleModal');
+        document.getElementById('openConsoleBtn').addEventListener('click', () => {
+            devConsoleModal.classList.remove('hidden'); devConsoleModal.classList.add('flex');
+        });
+        document.getElementById('closeConsoleBtn').addEventListener('click', () => {
+            devConsoleModal.classList.add('hidden'); devConsoleModal.classList.remove('flex');
+        });
+        document.getElementById('clearConsoleBtn').addEventListener('click', () => {
+            consoleOutput.innerHTML = ''; devLog('[SISTEMA] Console pulita.', 'info');
+        });
+
+        // =============================================
         //  LOGIN GATE SYSTEM
         // =============================================
         document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -965,40 +1004,6 @@
         }
 
         // =============================================
-        //  DEVELOPER CONSOLE (LOGGING SYSTEM)
-        // =============================================
-        const consoleOutput = document.getElementById('consoleOutput');
-        function devLog(message, type = 'info') {
-            const time = new Date().toLocaleTimeString('it-IT');
-            const el = document.createElement('div');
-            let colorClass = 'text-gray-300';
-            let prefix = '[INFO]';
-            if (type === 'success') { colorClass = 'text-green-400'; prefix = '[SUCCESS]'; }
-            if (type === 'warning') { colorClass = 'text-yellow-400'; prefix = '[WARN]'; }
-            if (type === 'error') { colorClass = 'text-red-500'; prefix = '[ERROR]'; }
-
-            el.className = `flex gap-2 py-0.5 border-b border-white/5 ${colorClass}`;
-            el.innerHTML = `<span class="text-gray-500 shrink-0">[${time}]</span> <span class="font-bold shrink-0">${prefix}</span> <span class="break-all">${message}</span>`;
-            
-            consoleOutput.appendChild(el);
-            consoleOutput.scrollTop = consoleOutput.scrollHeight;
-            if(type === 'error') console.error(`${prefix} ${message}`);
-            else if(type === 'warning') console.warn(`${prefix} ${message}`);
-            else console.log(`${prefix} ${message}`);
-        }
-
-        const devConsoleModal = document.getElementById('devConsoleModal');
-        document.getElementById('openConsoleBtn').addEventListener('click', () => {
-            devConsoleModal.classList.remove('hidden'); devConsoleModal.classList.add('flex');
-        });
-        document.getElementById('closeConsoleBtn').addEventListener('click', () => {
-            devConsoleModal.classList.add('hidden'); devConsoleModal.classList.remove('flex');
-        });
-        document.getElementById('clearConsoleBtn').addEventListener('click', () => {
-            consoleOutput.innerHTML = ''; devLog('[SISTEMA] Console pulita.', 'info');
-        });
-
-        // =============================================
         //  STATE & DATA STRUCTURE
         // =============================================
         let videoIdeas = [];
@@ -1060,7 +1065,12 @@
                         
                         const base64Full = canvas.toDataURL('image/jpeg', quality);
                         const base64 = base64Full.split(',')[1];
-                        resolve({ base64, mimeType: 'image/jpeg', ext: 'jpg', dataUrl: base64Full });
+                        
+                        const originalKB = (file.size / 1024).toFixed(2);
+                        const compressedKB = getBase64SizeInKB(base64);
+                        devLog(`[IMAGE] Compressione completata. Da ${originalKB} KB a ${compressedKB} KB`, "success");
+
+                        resolve({ base64, mimeType: 'image/jpeg', ext: 'jpg', dataUrl: base64Full, sizeKB: compressedKB });
                     };
                 };
             });
@@ -1229,7 +1239,10 @@
         //  API CALLS (SUPER OTTIMIZZATE E LOGGATE)
         // =============================================
         async function callScriptAction(bodyObj) {
-            devLog(`[API] 📡 Chiamata POST in corso per azione: <span class="text-blue-400 font-bold">${bodyObj.action}</span>...`, "info");
+            const reqSizeKB = getBase64SizeInKB(JSON.stringify(bodyObj));
+            devLog(`[API] 📡 Invio POST per azione: <span class="text-blue-400 font-bold">${bodyObj.action}</span> (Grandezza richiesta: ~${reqSizeKB} KB)`, "info");
+            
+            const startTime = performance.now();
             try {
                 const res = await fetch(SCRIPT_URL, { 
                     method: 'POST', 
@@ -1237,7 +1250,9 @@
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' } // Previene preflight CORS
                 });
                 
-                devLog(`[API] ✅ Risposta ricevuta (HTTP Status: ${res.status})`, "success");
+                const endTime = performance.now();
+                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+                devLog(`[API] ✅ Server Google ha risposto in ${timeTaken} secondi (HTTP Status: ${res.status})`, "success");
                 
                 const data = await res.json();
                 
@@ -1245,7 +1260,7 @@
                     throw new Error(data.message);
                 }
                 
-                devLog(`[API] 🟢 Azione elaborata con successo da Google Drive.`, "success");
+                devLog(`[API] 🟢 Azione elaborata con successo.`, "success");
                 return data;
             } catch(e) { 
                 if (e.message.includes('Failed to fetch')) {
@@ -1263,7 +1278,6 @@
             if (ids.length === 0) return;
             
             let results = {};
-            devLog(`[SYNC] 🔎 Controllo stato cartelle su Drive...`, "info");
             try {
                 const res = await callScriptAction({ action: 'checkFolders', folderIds: ids });
                 results = res.results || {};
@@ -1285,15 +1299,18 @@
 
         async function loadDataFromCloud() {
             if (!SCRIPT_URL) return;
-            updateStatus("Connessione...", "warning");
-            devLog(`[DB] 🌐 Avvio download database dal Cloud...`, "info");
+            updateStatus("Sincronizzazione...", "warning");
+            devLog(`[DB SYNC] 🌐 Avvio download database dal Cloud...`, "info");
             
+            const startTime = performance.now();
             try {
                 const response = await fetch(SCRIPT_URL);
-                devLog(`[DB] 📥 Risposta HTTP: ${response.status}`, "info");
+                const fetchTime = performance.now();
+                devLog(`[DB SYNC] 📥 Connessione stabilita e dati ricevuti in ${((fetchTime - startTime)/1000).toFixed(2)}s (HTTP: ${response.status})`, "info");
                 
                 const raw = await response.json();
-                devLog(`[DB] 🟢 Database JSON scaricato correttamente. Analisi dati...`, "success");
+                const parseTime = performance.now();
+                devLog(`[DB SYNC] 🟢 JSON decodificato in ${((parseTime - fetchTime)/1000).toFixed(2)}s. Analisi dati...`, "success");
                 
                 videoIdeas = Array.isArray(raw.ideas) ? raw.ideas : (Array.isArray(raw) ? raw : []);
                 channels = Array.isArray(raw.channels) ? raw.channels : [];
@@ -1302,16 +1319,16 @@
                 editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
                 
                 updateStatus("🟢 Sincronizzato con Drive", "success");
-                devLog(`[DB] 📊 Trovate ${videoIdeas.length} Idee, ${channels.length} Canali. Interfaccia aggiornata.`, "success");
+                devLog(`[DB SYNC] 📊 Trovate ${videoIdeas.length} Idee, ${channels.length} Canali. Operazione completata in totale: ${((parseTime - startTime)/1000).toFixed(2)}s.`, "success");
                 
                 renderChannelList();
                 if(document.getElementById('adminModal').classList.contains('flex')) renderAdminChannelList(); 
                 switchView(currentView); 
             } catch (error) {
                 if (error.message.includes('Failed to fetch')) {
-                    devLog(`[DB ERROR FATALE] 🚨 Impossibile connettersi (Failed to fetch). Hai sbagliato la configurazione su Google Script. Devi pubblicare lo script come: ESEGUI COME: TUA EMAIL e ACCESSO: CHIUNQUE. Altrimenti Google blocca il sito!`, "error");
+                    devLog(`[DB SYNC FATAL ERROR] 🚨 Impossibile connettersi (Failed to fetch). Hai sbagliato la configurazione su Google Script. Devi pubblicare lo script come: ESEGUI COME: ME e ACCESSO: CHIUNQUE. Altrimenti Google blocca la lettura!`, "error");
                 } else {
-                    devLog(`[DB ERROR] ❌ Errore durante il download dal DB: ${error.message}`, "error");
+                    devLog(`[DB SYNC ERROR] ❌ Errore durante il download dal DB: ${error.message}`, "error");
                 }
                 updateStatus("Errore Connessione", "error");
             }
@@ -1320,15 +1337,27 @@
         async function autoSaveToCloud() {
             if (!SCRIPT_URL) return;
             updateStatus("Salvataggio...", "warning");
-            devLog(`[DB] 📤 Invio salvataggio del database al Cloud...`, "info");
             
+            const payload = { ideas: videoIdeas, channels: channels, tools: toolsData, training: trainingData, editorsHub: editorsHubData };
+            const payloadStr = JSON.stringify(payload);
+            const sizeKB = (payloadStr.length / 1024).toFixed(2);
+            
+            devLog(`[DB SAVE] 📤 Inizio salvataggio... Peso totale del Database da sovrascrivere: ${sizeKB} KB`, "info");
+            if (sizeKB > 500) {
+                devLog(`[DB SAVE ATTENZIONE] ⚠️ Il Database è molto grande (>500KB). Il salvataggio impiegherà più tempo. Assicurati che i nuovi Tool abbiano loghi compressi e non foto enormi offline.`, "warning");
+            }
+            
+            const startTime = performance.now();
             try {
-                await callScriptAction({ action: 'saveDB', data: { ideas: videoIdeas, channels: channels, tools: toolsData, training: trainingData, editorsHub: editorsHubData } });
+                await callScriptAction({ action: 'saveDB', data: payload });
+                const endTime = performance.now();
+                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+
                 updateStatus("💾 Salvato!", "success");
-                devLog(`[DB] 🟢 Database salvato su Google Drive con successo.`, "success");
+                devLog(`[DB SAVE] 🟢 Database sovrascritto e salvato su Google Drive con successo in ${timeTaken} secondi.`, "success");
                 setTimeout(() => updateStatus("🟢 Sincronizzato", "success"), 2000);
             } catch (error) {
-                devLog(`[DB ERROR] ❌ Fallimento critico nel salvataggio dei dati: ${error.message}`, "error");
+                devLog(`[DB SAVE ERROR] ❌ Fallimento critico nel salvataggio dei dati: ${error.message}`, "error");
                 updateStatus("Errore Auto-Save", "error");
             }
         }
@@ -1723,7 +1752,7 @@
         });
 
         // =============================================
-        //  MODAL CREAZIONE IDEA (COMPATIBILE CON VECCHIO CODE.GS + COMPRESSIONE VELOCE)
+        //  MODAL CREAZIONE IDEA (USANDO GS v25 - DOPPIA CHIAMATA IN PARALLELO)
         // =============================================
         let selectedThumbFile = null;
 
@@ -1753,48 +1782,48 @@
 
             let ideaFolderId = ''; let ideaFolderLink = ''; let thumbnailUrl = '';
             
-            devLog(`[IDEA] Inizio processo di salvataggio per: "${title}"`, "info");
+            devLog(`[IDEA] Avvio creazione nuova idea: "${title}"...`, "info");
 
             if (ch && ch.driveFolderId && SCRIPT_URL) {
                 try {
-                    submitBtn.textContent = '🔄 Preparazione HighRes...';
-                    devLog(`[IMAGE] Compressione immagine a 1920x1080 in corso...`, "info");
-                    // Comprime a 1920x1080, perfetto per YT (caricamento veloce, qualità alta)
-                    const compressedImg = await compressImage(selectedThumbFile, 1920, 0.90);
-                    devLog(`[IMAGE] Immagine pronta. Inizio comunicazione con Google Drive...`, "success");
-
-                    submitBtn.textContent = '📁 Creazione Cartella...';
-                    const resF = await callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId });
+                    submitBtn.textContent = '🔄 Creazione in corso...';
+                    devLog(`[IMAGE] Compressione immagine a 1920x1080 (HD per YT) in corso...`, "info");
                     
+                    // Lancio la compressione dell'immagine IN PARALLELO alla creazione della cartella
+                    const [compressedImg, resF] = await Promise.all([
+                        compressImage(selectedThumbFile, 1920, 0.90),
+                        callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId })
+                    ]);
+
                     ideaFolderId = resF.folderId || '';
                     if (ideaFolderId) {
                         ideaFolderLink = `https://drive.google.com/drive/folders/${ideaFolderId}`;
-                        devLog(`[DRIVE] Cartella creata correttamente (ID: ${ideaFolderId})`, "success");
+                        devLog(`[DRIVE] Cartella creata (ID: ${ideaFolderId})`, "success");
                         
-                        submitBtn.textContent = '🚀 Upload Thumbnail...';
+                        submitBtn.textContent = '🚀 Upload Copertina HD...';
+                        devLog(`[DRIVE] Invio copertina (Peso: ${compressedImg.sizeKB} KB)...`, "info");
                         const resI = await callScriptAction({ 
                             action: 'uploadThumbnail', 
                             folderId: ideaFolderId, 
                             base64: compressedImg.base64, 
                             mimeType: compressedImg.mimeType, 
-                            ext: compressedImg.ext,
-                            fileName: `thumbnail_HighRes.${compressedImg.ext}` // Passiamo il nome HighRes!
+                            ext: compressedImg.ext 
                         });
                         
                         if (resI.fileId) {
-                            // sz=w400 chiede a Drive la versione super-leggera per la UI!
                             thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
-                            devLog(`[DRIVE] Immagine HighRes salvata con successo. Link UI generato.`, "success");
+                            devLog(`[DRIVE] Immagine salvata. Link anteprima rapido generato.`, "success");
                         }
                     }
                 } catch(err) { 
-                    devLog(`[ERRORE DRIVE] ❌ Qualcosa è andato storto: ${err.message}`, "error"); 
+                    devLog(`[IDEA ERROR FATALE] ❌ Errore caricamento Drive: ${err.message}`, "error"); 
                 }
             } else {
-                devLog(`[OFFLINE] Nessun Drive collegato. Salvataggio locale in corso.`, "warning");
+                devLog(`[OFFLINE] Nessun Drive trovato. L'immagine verrà salvata in Database (Attenzione al peso!)`, "warning");
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
+                devLog(`[ATTENZIONE DATABASE] Salvando immagine offline. La riduco molto per non bloccare il DB JSON.`, "warning");
                 const compressedImg = await compressImage(selectedThumbFile, 800, 0.6);
                 thumbnailUrl = compressedImg.dataUrl;
             }
@@ -1812,7 +1841,7 @@
             closeModal('addModal', 'ideaForm');
             submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
             
-            devLog(`[DB] Sincronizzazione dati generali in corso...`, "info");
+            devLog(`[IDEA] Aggiornamento DB in corso...`, "info");
             await autoSaveToCloud();
         });
 
@@ -1883,14 +1912,13 @@
             
             submitBtn.disabled = true; 
             submitBtn.textContent = '🔄 Ottimizzazione...';
-            devLog(`[TOOL] Avvio salvataggio nuovo strumento...`, "info");
+            devLog(`[TOOL] Avvio compressione super-leggera per evitare di bloccare il Database...`, "info");
 
             const title = document.getElementById('inputToolTitle').value.trim();
             const description = document.getElementById('inputToolDesc').value.trim();
             const link = document.getElementById('inputToolLink').value.trim();
 
-            const compressedImg = await compressImage(selectedToolFile, 400, 0.6);
-            devLog(`[TOOL] Logo compresso e salvato in locale.`, "success");
+            const compressedImg = await compressImage(selectedToolFile, 300, 0.5);
 
             const newTool = {
                 id: Date.now().toString(),
@@ -2125,7 +2153,7 @@
             document.getElementById('ehDropHint').classList.add('hidden');
             document.getElementById('ehFileName').textContent = '📎 Selezionato: ' + file.name;
             document.getElementById('ehFileName').classList.remove('hidden');
-            devLog(`[EH] Selezionato file audio: ${file.name} (${Math.round(file.size/1024)} KB)`, "info");
+            devLog(`[EH] Selezionato file audio: ${file.name} (${(file.size/1024).toFixed(2)} KB)`, "info");
         });
 
         document.getElementById('ehForm').addEventListener('submit', async (e) => {
@@ -2382,15 +2410,15 @@
             try {
                 btn.textContent = '📁 Creazione Cartella...';
                 
+                // V25 CODE.GS: Parallelo ma con chiamate separate compatibili
+                const compressionPromise = selectedChannelAvatarFile ? compressImage(selectedChannelAvatarFile, 400, 0.7) : null;
                 const folderRes = await callScriptAction({ action: 'createChannelFolder', name }); 
                 driveFolderId = folderRes.folderId || '';
                 devLog(`[CANALE] Cartella creata (${driveFolderId})`, "success");
                 
                 if(selectedChannelAvatarFile && driveFolderId) {
-                    btn.textContent = '🔄 Ottimizzazione Logo...';
-                    const compressedImg = await compressImage(selectedChannelAvatarFile, 400, 0.7);
-
                     btn.textContent = '🚀 Upload Logo...';
+                    const compressedImg = await compressionPromise;
                     const resI = await callScriptAction({ 
                         action: 'uploadProfilePicture', 
                         folderId: driveFolderId, 
@@ -2412,5 +2440,3 @@
     </script>
 </body>
 </html>
-
-
