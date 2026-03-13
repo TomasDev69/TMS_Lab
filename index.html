@@ -1017,6 +1017,9 @@
         let currentView = 'idee'; 
         let currentEHTab = 'sfx'; 
         
+        // NUOVO: Cache per velocizzare il controllo delle cartelle Drive
+        let folderStatusCache = {};
+        
         const TEAM_MEMBERS = ["DG", "Tomas", "Pierò", "GFS", "Noemi", "Alex", "Davide", "Rog", "Camel", "Gatti"];
         
         let downloadedEHFiles = JSON.parse(localStorage.getItem('creatorhub_eh_downloads') || '[]');
@@ -1274,27 +1277,38 @@
 
         async function checkAllChannelFolders() {
             if (!SCRIPT_URL) return;
-            const ids = channels.filter(c => c.driveFolderId).map(c => c.driveFolderId);
-            if (ids.length === 0) return;
             
-            let results = {};
+            // MEGA OTTIMIZZAZIONE: Filtro solo gli ID delle cartelle che NON sono ancora in cache
+            const idsToCheck = channels
+                .filter(c => c.driveFolderId && typeof folderStatusCache[c.driveFolderId] === 'undefined')
+                .map(c => c.driveFolderId);
+            
+            // Se tutti i canali sono già stati verificati in questa sessione, salta la chiamata API!
+            if (idsToCheck.length === 0) return; 
+            
+            devLog(`[SYNC] 🔎 Controllo stato di ${idsToCheck.length} nuove cartelle su Drive...`, "info");
             try {
-                const res = await callScriptAction({ action: 'checkFolders', folderIds: ids });
-                results = res.results || {};
-            } catch(e) { return; } 
-
-            channels.forEach(ch => {
-                const icon = channelListEl.querySelector(`.folder-status-icon[data-chid="${ch.id}"]`);
-                if (!icon) return;
+                const res = await callScriptAction({ action: 'checkFolders', folderIds: idsToCheck });
+                const results = res.results || {};
                 
-                if (!ch.driveFolderId) {
-                    icon.textContent = '❓'; icon.title = 'Nessuna cartella Drive';
-                } else if (results[ch.driveFolderId] === true) {
-                    icon.textContent = '✅'; icon.title = 'Cartella OK';
-                } else {
-                    icon.textContent = '⚠️'; icon.title = 'Cartella mancante o permessi insufficienti';
-                }
-            });
+                // Salvo i risultati nella cache per non doverli più chiedere a Google
+                Object.assign(folderStatusCache, results);
+                
+                // Aggiorno visivamente solo le icone nella sidebar senza ricaricare tutto l'HTML
+                channels.forEach(ch => {
+                    const icon = channelListEl.querySelector(`.folder-status-icon[data-chid="${ch.id}"]`);
+                    if (!icon || !ch.driveFolderId) return;
+                    
+                    if (folderStatusCache[ch.driveFolderId] === true) {
+                        icon.textContent = '✅'; icon.title = 'Cartella OK';
+                    } else if (folderStatusCache[ch.driveFolderId] === false) {
+                        icon.textContent = '⚠️'; icon.title = 'Cartella mancante o permessi insufficienti';
+                    }
+                });
+                devLog(`[SYNC] ✅ Controllo cartelle completato e salvato in cache.`, "success");
+            } catch(e) { 
+                devLog(`[SYNC ERROR] Errore nel controllo cartelle: ${e.message}`, "error"); 
+            } 
         }
 
         async function loadDataFromCloud() {
@@ -1390,13 +1404,27 @@
                     ? `<img src="${ch.profilePicUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-7 h-7 rounded-full bg-[#303030] items-center justify-center text-sm shrink-0 hidden border border-[#404040]">📺</div>`
                     : `<div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-[#404040]" style="background:${ch.color || '#3ea6ff'}">${ch.name.charAt(0).toUpperCase()}</div>`;
 
+                // Legge lo stato direttamente dalla Cache, in modo istantaneo
+                let folderIcon = '⏳'; 
+                let folderTitle = 'Verifica cartella in corso...';
+                if (!ch.driveFolderId) { 
+                    folderIcon = '❓'; 
+                    folderTitle = 'Nessuna cartella Drive'; 
+                } else if (folderStatusCache[ch.driveFolderId] === true) { 
+                    folderIcon = '✅'; 
+                    folderTitle = 'Cartella OK'; 
+                } else if (folderStatusCache[ch.driveFolderId] === false) { 
+                    folderIcon = '⚠️'; 
+                    folderTitle = 'Errore cartella'; 
+                }
+
                 const el = document.createElement('div');
                 el.className = `channel-item channel-sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${activeChannelId === ch.id ? 'active' : ''}`;
                 el.dataset.id = ch.id;
                 el.innerHTML = `
                     <div class="shrink-0">${avatarHTML}</div>
                     <span class="sidebar-label text-sm text-gray-200 flex-1 truncate whitespace-nowrap">${ch.name}</span>
-                    <span class="sidebar-label folder-status-icon text-sm" data-chid="${ch.id}" title="Verifica cartella...">⏳</span>
+                    <span class="sidebar-label folder-status-icon text-sm" data-chid="${ch.id}" title="${folderTitle}">${folderIcon}</span>
                     <span class="sidebar-label text-[11px] text-gray-500 bg-[#222] px-1.5 py-0.5 rounded ml-1 transition-opacity">${count}</span>
                 `;
                 el.addEventListener('click', () => setActiveFilter(ch.id));
