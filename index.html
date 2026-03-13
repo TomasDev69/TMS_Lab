@@ -762,11 +762,6 @@
                     <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm font-mono">
                     <p class="text-[11px] text-gray-400 mt-2">Incolla qui l'URL generato dal tuo Google Apps Script per abilitare la sincronizzazione diretta.</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-300 mb-1">ID Cartella Editors Hub (Drive)</label>
-                    <input type="text" id="ehFolderIdInput" placeholder="Es: 1aB2c3D4e5F6g7H8i9J0..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm font-mono">
-                    <p class="text-[11px] text-gray-400 mt-2">Inserisci l'ID della cartella Google Drive dove verranno salvati gli audio e gli SFX caricati.</p>
-                </div>
                 <div class="pt-2 flex justify-end">
                     <button id="saveSettingsBtn" class="px-4 py-2 bg-[#3ea6ff] text-black rounded text-sm font-bold hover:bg-[#65b8ff] transition-colors w-full">Salva e Connetti</button>
                 </div>
@@ -776,7 +771,7 @@
 
     <!-- ADMIN DASHBOARD MODAL -->
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[150] px-4 backdrop-blur-sm">
-        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden border border-[#444] flex flex-col max-h-[90vh]">
+        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden border border-[#444] flex flex-col max-h-[90vh]">
             
             <div class="flex justify-between items-center p-4 border-b border-[#303030] bg-[#222]">
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -848,12 +843,8 @@
         // =============================================
         //  NESSUN DATO SENSIBILE HARDCODED
         // =============================================
-        // Tutte le impostazioni vengono lette unicamente dal LocalStorage.
-        // Se non sono presenti, l'utente dovrà cliccare sull'ingranaggio per inserirle.
         
         let SCRIPT_URL = localStorage.getItem('creatorhub_script_url') || "";
-        let EH_FOLDER_ID = localStorage.getItem('tmslab_eh_folder') || "";
-
 
         // =============================================
         //  LOGIN GATE SYSTEM
@@ -1620,10 +1611,21 @@
 
                 const fallbackImg = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop';
                 
+                // Generazione Minutaggio Pseudo-Randomizzato basato sull'ID dell'idea (da 8 a 22 min)
+                let hash = 0;
+                const strId = video.id.toString();
+                for (let i = 0; i < strId.length; i++) {
+                    hash = strId.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                hash = Math.abs(hash);
+                const randomMins = 8 + (hash % 15);
+                const randomSecs = hash % 60;
+                const durationStr = `${randomMins}:${randomSecs.toString().padStart(2, '0')}`;
+
                 card.innerHTML = `
                     <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#272727] border border-transparent group-hover:border-[#303030] transition-colors">
                         <img src="${video.thumbnail}" alt="Thumbnail" onerror="this.src='${fallbackImg}'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        <div class="absolute bottom-1.5 right-1.5 bg-black/90 text-white text-xs font-bold tracking-wider px-2 py-1 rounded">${video.ideaFolderId ? '📁 DRIVE' : '🔗 LINK'}</div>
+                        <div class="absolute bottom-1.5 right-1.5 bg-black/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow">${durationStr}</div>
                         <div class="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[11px] font-bold ${bColor} uppercase border border-[#444] shadow">${bLabel}</div>
                     </div>
                     <div class="flex gap-3 pr-2">
@@ -1944,13 +1946,18 @@
                 let actionHtml = '';
                 if (isDownloaded) {
                     actionHtml = `
-                        <div class="flex flex-col gap-1 w-full">
-                            <div class="flex items-center justify-center gap-2 w-full py-2 bg-green-900/30 border border-green-700/50 text-green-400 rounded text-sm font-semibold cursor-default">
+                        <div class="flex flex-col w-full">
+                            <div class="flex items-center justify-center gap-2 w-full py-1.5 bg-green-900/30 border border-green-700/50 text-green-400 rounded text-sm font-semibold cursor-default">
                                 ✅ Già Scaricato
                             </div>
-                            <button onclick="simulateOpenLocalFolder()" class="text-xs text-gray-400 hover:text-white flex items-center justify-center gap-1 mt-1 transition-colors py-1">
-                                📁 Apri cartella (Download/Musica)
-                            </button>
+                            <div class="flex items-center justify-between mt-2 px-1">
+                                <button onclick="simulateOpenLocalFolder()" class="text-[11px] text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
+                                    📁 Apri cartella
+                                </button>
+                                <button class="text-[11px] text-[#3ea6ff] hover:text-[#65b8ff] flex items-center gap-1 transition-colors font-bold download-eh-btn">
+                                    ⬇️ Scarica di nuovo
+                                </button>
+                            </div>
                         </div>
                     `;
                 } else {
@@ -2013,7 +2020,6 @@
             const submitBtn = e.target.querySelector('button[type=submit]');
             
             if (!selectedEHFile) { alert("Carica o trascina un file audio!"); return; }
-            if (!EH_FOLDER_ID) { alert("Imposta prima l'ID della cartella Editors Hub usando l'icona dell'ingranaggio in alto!"); return; }
 
             submitBtn.disabled = true; submitBtn.textContent = 'Caricamento su Drive...';
             devLog("Avvio caricamento file su Drive...", "warning");
@@ -2038,7 +2044,6 @@
 
                 const res = await callScriptAction({ 
                     action: 'uploadEHFile', 
-                    folderId: EH_FOLDER_ID, 
                     base64: base64, 
                     mimeType: mimeType, 
                     fileName: finalFileName 
@@ -2187,7 +2192,6 @@
         // Apertura Impostazioni Database (Ingranaggio)
         document.getElementById('settingsBtn').addEventListener('click', () => {
             document.getElementById('scriptUrlInput').value = SCRIPT_URL;
-            document.getElementById('ehFolderIdInput').value = EH_FOLDER_ID;
             document.getElementById('settingsModal').classList.remove('hidden'); 
             document.getElementById('settingsModal').classList.add('flex');
         });
@@ -2201,9 +2205,6 @@
         document.getElementById('saveSettingsBtn').addEventListener('click', () => {
             SCRIPT_URL = document.getElementById('scriptUrlInput').value.trim(); 
             localStorage.setItem('creatorhub_script_url', SCRIPT_URL);
-            
-            EH_FOLDER_ID = document.getElementById('ehFolderIdInput').value.trim();
-            localStorage.setItem('tmslab_eh_folder', EH_FOLDER_ID);
 
             document.getElementById('settingsModal').classList.add('hidden'); 
             document.getElementById('settingsModal').classList.remove('flex');
