@@ -64,6 +64,46 @@
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
+    <!-- LOGIN OVERLAY -->
+    <div id="loginOverlay" class="fixed inset-0 bg-[#0f0f0f] z-[9999] hidden items-center justify-center px-4">
+        <div class="bg-[#1a1a1a] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#303030] p-8 flex flex-col items-center">
+            <div class="w-16 h-16 bg-[#272727] rounded-full flex items-center justify-center text-3xl border border-[#404040] mb-4 shadow-inner">
+                🔒
+            </div>
+            <h2 class="text-2xl font-black text-white mb-1 text-center tracking-tight">Accesso TMS Lab</h2>
+            <p class="text-gray-500 text-[13px] text-center mb-8">Seleziona il tuo profilo e inserisci la password del team.</p>
+            
+            <form id="loginForm" class="w-full space-y-5">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Chi sei?</label>
+                    <select id="loginUserSelect" required class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                        <option value="" disabled selected>Seleziona utente...</option>
+                        <option value="DG">DG</option>
+                        <option value="Tomas">Tomas</option>
+                        <option value="Pierò">Pierò</option>
+                        <option value="GFS">GFS</option>
+                        <option value="Noemi">Noemi</option>
+                        <option value="Alex">Alex</option>
+                        <option value="Davide">Davide</option>
+                        <option value="Rog">Rog</option>
+                        <option value="Camel">Camel</option>
+                        <option value="Gatti">Gatti</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password Principale</label>
+                    <input type="password" id="loginPasswordInput" required placeholder="••••••••" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 font-mono tracking-widest text-center text-lg">
+                </div>
+                
+                <p id="loginError" class="text-red-500 text-sm font-bold hidden text-center mt-2">Password errata!</p>
+                
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors mt-8 shadow-lg shadow-blue-900/20">
+                    Entra nel Lab
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- HEADER -->
     <header class="flex items-center justify-between px-4 h-14 bg-[#0f0f0f] shrink-0 sticky top-0 z-50 border-b border-[#303030]">
         <div class="flex items-center gap-4">
@@ -87,6 +127,7 @@
             <button id="mainActionBtn" class="flex items-center gap-2 bg-[#f1f1f1] text-black hover:bg-[#d0d0d0] px-3 py-1.5 rounded-full text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                 <span class="text-lg leading-none">&#10133;</span> <span id="mainActionText">Crea Idea</span>
             </button>
+            <button id="settingsBtn" class="text-xl p-2 hover:bg-[#272727] rounded-full w-10 h-10 flex items-center justify-center transition-colors ml-1" title="Configura Connessione Database">⚙️</button>
             <button id="adminBtn" class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold cursor-pointer ml-1 text-sm hover:bg-blue-500 transition-colors shadow-lg" title="Pannello Amministratore">TU</button>
         </div>
     </header>
@@ -166,7 +207,7 @@
                         <span id="pageTitle">Le tue Idee Video</span>
                         <span id="dbStatusBadge" class="text-xs bg-red-900/40 text-red-400 px-2 py-0.5 rounded border border-red-500/30">Disconnesso</span>
                     </h1>
-                    <p class="text-sm text-gray-400 mt-1" id="pageSubtitle">Clicca sul pulsante 'TU' per collegare il tuo Google Drive.</p>
+                    <p class="text-sm text-gray-400 mt-1" id="pageSubtitle">Clicca sull'icona ⚙️ per collegare il database di Google Drive.</p>
                 </div>
             </div>
 
@@ -640,7 +681,7 @@
     </div>
 
     <!-- MODAL AGGIUNGI CANALE -->
-    <div id="addChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+    <div id="addChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[200] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#303030]">
             <div class="flex justify-between items-center p-4 border-b border-[#303030]">
                 <h2 class="text-lg font-bold">Nuovo Canale</h2>
@@ -708,40 +749,45 @@
         </div>
     </div>
 
+    <!-- SETTINGS MODAL (DATABASE) -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[300] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030]">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030]">
+                <h2 class="text-lg font-bold flex items-center gap-2">⚙️ Connessione Database</h2>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Web App URL (Google Apps Script)</label>
+                    <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm font-mono">
+                    <p class="text-[11px] text-gray-400 mt-2">Incolla qui l'URL generato dal tuo Google Apps Script per abilitare la sincronizzazione diretta.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">ID Cartella Editors Hub (Drive)</label>
+                    <input type="text" id="ehFolderIdInput" placeholder="Es: 1aB2c3D4e5F6g7H8i9J0..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 text-sm font-mono">
+                    <p class="text-[11px] text-gray-400 mt-2">Inserisci l'ID della cartella Google Drive dove verranno salvati gli audio e gli SFX caricati.</p>
+                </div>
+                <div class="pt-2 flex justify-end">
+                    <button id="saveSettingsBtn" class="px-4 py-2 bg-[#3ea6ff] text-black rounded text-sm font-bold hover:bg-[#65b8ff] transition-colors w-full">Salva e Connetti</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ADMIN DASHBOARD MODAL -->
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[150] px-4 backdrop-blur-sm">
-        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden border border-[#444] flex flex-col max-h-[90vh]">
+        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden border border-[#444] flex flex-col max-h-[90vh]">
             
             <div class="flex justify-between items-center p-4 border-b border-[#303030] bg-[#222]">
                 <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                    ⚙️ Pannello di Amministrazione
+                    🛠️ Pannello di Amministrazione
                 </h2>
                 <button onclick="closeModal('adminModal')" class="text-gray-400 hover:text-white text-3xl leading-none px-2">&times;</button>
             </div>
             
             <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-8">
                 
-                <!-- SEZIONE 1: Connessioni DB -->
-                <div class="bg-[#212121] border border-[#303030] rounded-xl p-5">
-                    <h3 class="text-lg font-bold mb-4 border-b border-[#303030] pb-2 text-blue-400">🌐 Connessione DataBase (Drive)</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-1">Web App URL (Google Apps Script)</label>
-                            <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-[#0f0f0f] border border-[#444] rounded p-2.5 text-white focus:outline-none focus:border-blue-500 font-mono text-xs">
-                            <p class="text-[11px] text-gray-500 mt-1">Incolla qui l'URL per abilitare la sincronizzazione diretta con il Cloud.</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-1">ID Cartella Editors Hub</label>
-                            <input type="text" id="ehFolderIdInput" placeholder="Es: 1aB2c3D4e5F6g7H8i9J0..." class="w-full bg-[#0f0f0f] border border-[#444] rounded p-2.5 text-white focus:outline-none focus:border-blue-500 font-mono text-xs">
-                            <p class="text-[11px] text-gray-500 mt-1">L'ID della cartella Google Drive dove verranno salvati gli audio e gli SFX caricati dal PC.</p>
-                        </div>
-                        <div class="pt-2 flex justify-end">
-                            <button id="saveSettingsBtn" class="px-6 py-2.5 bg-[#3ea6ff] text-black rounded text-sm font-bold hover:bg-[#65b8ff] transition-colors">Salva e Connetti al DB</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SEZIONE 2: Gestione Canali Avanzata -->
+                <!-- SEZIONE: Gestione Canali Avanzata -->
                 <div class="bg-[#212121] border border-[#303030] rounded-xl p-5">
                     <div class="flex justify-between items-center border-b border-[#303030] pb-2 mb-4">
                         <h3 class="text-lg font-bold text-blue-400">📺 Gestione Canali YouTube</h3>
@@ -754,6 +800,13 @@
                         </ul>
                     </div>
                     <div id="adminNoChannels" class="text-center py-6 text-gray-500 hidden">Nessun canale presente nel database.</div>
+                </div>
+
+                <!-- SEZIONE LOGOUT -->
+                <div class="flex justify-center border-t border-[#303030] pt-6">
+                    <button id="logoutBtn" class="px-6 py-3 bg-red-900/30 text-red-400 hover:bg-red-900/60 border border-red-900/50 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                        🚪 Logout (Cambia Utente)
+                    </button>
                 </div>
             </div>
         </div>
@@ -793,16 +846,48 @@
 
     <script>
         // =============================================
-        //  CONFIGURAZIONE DEFAULT (HARDCODED PER NUOVI UTENTI)
+        //  NESSUN DATO SENSIBILE HARDCODED
         // =============================================
-        /* ISTRUZIONI:
-           Se vuoi che il sito funzioni in automatico per un nuovo utente o su un PC nuovo 
-           senza dover incollare a mano il link nelle impostazioni, scrivi i tuoi link qui sotto
-           sostituendo le frasi in MAIUSCOLO tra le virgolette.
-        */
-        const DEFAULT_SCRIPT_URL = "INSERISCI_QUI_IL_TUO_URL_APP_SCRIPT";
-        const DEFAULT_EH_FOLDER_ID = "INSERISCI_QUI_ID_CARTELLA_EDITORS_HUB";
+        // Tutte le impostazioni vengono lette unicamente dal LocalStorage.
+        // Se non sono presenti, l'utente dovrà cliccare sull'ingranaggio per inserirle.
+        
+        let SCRIPT_URL = localStorage.getItem('creatorhub_script_url') || "";
+        let EH_FOLDER_ID = localStorage.getItem('tmslab_eh_folder') || "";
 
+
+        // =============================================
+        //  LOGIN GATE SYSTEM
+        // =============================================
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const user = document.getElementById('loginUserSelect').value;
+            const pass = document.getElementById('loginPasswordInput').value;
+            
+            if (pass === "TMSLAB69") {
+                localStorage.setItem('tmslab_logged_in_user', user);
+                document.getElementById('loginOverlay').classList.add('hidden');
+                document.getElementById('loginOverlay').classList.remove('flex');
+                document.getElementById('adminBtn').textContent = user.substring(0, 2).toUpperCase();
+                
+                // Avvia il caricamento del database solo DOPO il login (se il link è presente)
+                if (SCRIPT_URL) loadDataFromCloud();
+                else {
+                    switchView('idee');
+                    devLog("Nessun link Database configurato. Clicca l'icona ingranaggio per impostarlo.", "warning");
+                }
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('loginPasswordInput').value = '';
+                document.getElementById('loginPasswordInput').focus();
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if(confirm("Sei sicuro di voler uscire da TMS Lab?")) {
+                localStorage.removeItem('tmslab_logged_in_user');
+                location.reload(); 
+            }
+        });
 
         // =============================================
         //  SCRIPT ANALYZER TOOL
@@ -933,20 +1018,13 @@
         
         let activeChannelId = null; 
         let activeStatusFilter = 'all'; 
-        let currentView = 'idee'; // 'idee', 'strumenti', 'formazione', 'editorshub', 'stats'
-        let currentEHTab = 'sfx'; // 'sfx', 'music'
+        let currentView = 'idee'; 
+        let currentEHTab = 'sfx'; 
         
         const TEAM_MEMBERS = ["DG", "Tomas", "Pierò", "GFS", "Noemi", "Alex", "Davide", "Rog", "Camel", "Gatti"];
         
         let downloadedEHFiles = JSON.parse(localStorage.getItem('creatorhub_eh_downloads') || '[]');
         
-        // Priority to LocalStorage. If missing, fallback to Hardcoded Config.
-        let SCRIPT_URL = localStorage.getItem('creatorhub_script_url');
-        if(!SCRIPT_URL && DEFAULT_SCRIPT_URL !== "INSERISCI_QUI_IL_TUO_URL_APP_SCRIPT") SCRIPT_URL = DEFAULT_SCRIPT_URL;
-        
-        let EH_FOLDER_ID = localStorage.getItem('tmslab_eh_folder');
-        if(!EH_FOLDER_ID && DEFAULT_EH_FOLDER_ID !== "INSERISCI_QUI_ID_CARTELLA_EDITORS_HUB") EH_FOLDER_ID = DEFAULT_EH_FOLDER_ID;
-
         const CHANNEL_COLORS = ['#3ea6ff','#ff4e4e','#4ade80','#facc15','#f97316','#a855f7','#ec4899','#14b8a6','#f59e0b','#6366f1','#84cc16','#06b6d4'];
 
         // =============================================
@@ -1176,7 +1254,7 @@
                 
                 updateStatus("🟢 Sincronizzato con Drive", "success");
                 renderChannelList();
-                if(document.getElementById('adminModal').classList.contains('flex')) renderAdminChannelList(); // Aggiorna modale se aperta
+                if(document.getElementById('adminModal').classList.contains('flex')) renderAdminChannelList(); 
                 switchView(currentView); 
             } catch (error) {
                 devLog(`Errore sync: ${error.message}`, "error");
@@ -1214,7 +1292,6 @@
             renderVideos(getFilteredIdeas());
         }
 
-        // Renderizza la Sidebar in modo pulito
         function renderChannelList() {
             channelListEl.innerHTML = '';
             document.getElementById('inputChannel').innerHTML = '<option value="">— Nessun canale —</option>';
@@ -1242,7 +1319,6 @@
             checkAllChannelFolders();
         }
 
-        // Renderizza lista canali nel Pannello Admin con opzioni modifica/elimina
         function renderAdminChannelList() {
             const list = document.getElementById('adminChannelList');
             const noChText = document.getElementById('adminNoChannels');
@@ -1276,7 +1352,6 @@
                     </div>
                 `;
                 
-                // Admin Delete Channel
                 li.querySelector('.admin-del-ch').addEventListener('click', async () => {
                     if(confirm(`Attenzione! Vuoi eliminare DEFINITIVAMENTE il canale "${ch.name}"? Le idee collegate rimarranno orfane.`)) {
                         videoIdeas = videoIdeas.map(v => v.channelId === ch.id ? {...v, channelId: ''} : v);
@@ -1289,7 +1364,6 @@
                     }
                 });
 
-                // Admin Edit Channel
                 li.querySelector('.admin-edit-ch').addEventListener('click', () => {
                     document.getElementById('editChannelId').value = ch.id;
                     document.getElementById('editChannelName').value = ch.name;
@@ -1362,7 +1436,7 @@
             }
 
             renderChannelList(); 
-            renderAdminChannelList(); // Aggiorna lista in admin
+            renderAdminChannelList(); 
             if (currentView === 'idee') renderVideos(getFilteredIdeas()); 
             closeModal('editChannelModal'); 
             btn.disabled = false; 
@@ -1939,7 +2013,7 @@
             const submitBtn = e.target.querySelector('button[type=submit]');
             
             if (!selectedEHFile) { alert("Carica o trascina un file audio!"); return; }
-            if (!EH_FOLDER_ID) { alert("Imposta prima l'ID della cartella Editors Hub nel Pannello di Amministrazione!"); return; }
+            if (!EH_FOLDER_ID) { alert("Imposta prima l'ID della cartella Editors Hub usando l'icona dell'ingranaggio in alto!"); return; }
 
             submitBtn.disabled = true; submitBtn.textContent = 'Caricamento su Drive...';
             devLog("Avvio caricamento file su Drive...", "warning");
@@ -2110,15 +2184,17 @@
         //  ADMIN PANEL & IMPOSTAZIONI
         // =============================================
         
-        // Apertura Pannello Admin con PIN
-        document.getElementById('adminBtn').addEventListener('click', () => {
-            requirePin("Accesso al Pannello di Amministrazione di TMS Lab", () => {
-                document.getElementById('scriptUrlInput').value = SCRIPT_URL;
-                document.getElementById('ehFolderIdInput').value = EH_FOLDER_ID;
-                document.getElementById('adminModal').classList.remove('hidden'); 
-                document.getElementById('adminModal').classList.add('flex');
-                renderAdminChannelList(); // Popola la lista canali nell'admin
-            });
+        // Apertura Impostazioni Database (Ingranaggio)
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            document.getElementById('scriptUrlInput').value = SCRIPT_URL;
+            document.getElementById('ehFolderIdInput').value = EH_FOLDER_ID;
+            document.getElementById('settingsModal').classList.remove('hidden'); 
+            document.getElementById('settingsModal').classList.add('flex');
+        });
+
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => { 
+            document.getElementById('settingsModal').classList.add('hidden'); 
+            document.getElementById('settingsModal').classList.remove('flex'); 
         });
         
         // Salvataggio impostazioni DB
@@ -2129,13 +2205,36 @@
             EH_FOLDER_ID = document.getElementById('ehFolderIdInput').value.trim();
             localStorage.setItem('tmslab_eh_folder', EH_FOLDER_ID);
 
-            devLog("Impostazioni database salvate.", "success");
-            loadDataFromCloud(); // Forza ricaricamento
+            document.getElementById('settingsModal').classList.add('hidden'); 
+            document.getElementById('settingsModal').classList.remove('flex');
+
+            devLog("Impostazioni database salvate. Avvio connessione...", "success");
+            loadDataFromCloud(); 
         });
 
-        // Boot
-        if (SCRIPT_URL) loadDataFromCloud();
-        else switchView('idee'); 
+        // Apertura Pannello Admin con PIN (Pulsante TU)
+        document.getElementById('adminBtn').addEventListener('click', () => {
+            requirePin("Accesso al Pannello di Amministrazione di TMS Lab", () => {
+                document.getElementById('adminModal').classList.remove('hidden'); 
+                document.getElementById('adminModal').classList.add('flex');
+                renderAdminChannelList(); // Popola la lista canali nell'admin
+            });
+        });
+
+        // Boot Init
+        const savedUser = localStorage.getItem('tmslab_logged_in_user');
+        if (savedUser) {
+            document.getElementById('adminBtn').textContent = savedUser.substring(0, 2).toUpperCase();
+            if (SCRIPT_URL) {
+                loadDataFromCloud();
+            } else {
+                switchView('idee'); 
+                devLog("Nessun link Database configurato. Clicca l'icona ingranaggio per impostarlo.", "warning");
+            }
+        } else {
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('loginOverlay').classList.add('flex');
+        }
 
         // Upload PFP Nuovo Canale
         let selectedChannelAvatarFile = null;
