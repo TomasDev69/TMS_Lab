@@ -31,37 +31,31 @@
         .channel-item.active { background: #272727; border-left: 3px solid #3ea6ff; padding-left: 13px; }
         .channel-item:not(.active) { border-left: 3px solid transparent; padding-left: 13px; }
         .channel-item:hover { background: #1e1e1e; }
-        .channel-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
+        
         .sidebar-expanded { width: 240px; }
         .sidebar-collapsed { width: 72px; }
         
-        /* Console Sviluppatore & Script Tool scrollbar */
+        /* Drag handle CSS */
+        .drag-handle { cursor: grab; opacity: 0.5; transition: opacity 0.2s; }
+        .drag-handle:hover { opacity: 1; }
+        .dragging { opacity: 0.4; border: 2px dashed #3ea6ff !important; }
+
         #consoleOutput::-webkit-scrollbar, #scriptInput::-webkit-scrollbar { width: 4px; }
         #consoleOutput::-webkit-scrollbar-thumb, #scriptInput::-webkit-scrollbar-thumb { background: #555; }
 
-        /* Status Filters */
         .status-filter { transition: all 0.2s; }
         .status-filter.active { background-color: #f1f1f1; color: #0f0f0f; font-weight: bold; }
         .status-filter:not(.active):hover { background-color: #272727; }
         
-        /* Custom Checkbox */
-        .custom-checkbox:checked + div {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
-        }
-        .custom-checkbox:checked + div svg {
-            display: block;
-        }
+        .custom-checkbox:checked + div { background-color: #3b82f6; border-color: #3b82f6; }
+        .custom-checkbox:checked + div svg { display: block; }
         
-        /* Editors Hub Tabs */
         .eh-tab { transition: all 0.2s; border-bottom: 2px solid transparent; }
         .eh-tab.active { border-bottom-color: #3ea6ff; color: #3ea6ff; }
         
-        /* Progress Bar Animata */
+        .insp-tab { transition: all 0.2s; border-bottom: 2px solid transparent; }
+        .insp-tab.active { border-bottom-color: #a855f7; color: #a855f7; }
+        
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
     </style>
 </head>
@@ -70,9 +64,7 @@
     <!-- LOGIN OVERLAY -->
     <div id="loginOverlay" class="fixed inset-0 bg-[#0f0f0f] z-[9999] hidden items-center justify-center px-4">
         <div class="bg-[#1a1a1a] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#303030] p-8 flex flex-col items-center">
-            <div class="w-16 h-16 bg-[#272727] rounded-full flex items-center justify-center text-3xl border border-[#404040] mb-4 shadow-inner">
-                🔒
-            </div>
+            <div class="w-16 h-16 bg-[#272727] rounded-full flex items-center justify-center text-3xl border border-[#404040] mb-4 shadow-inner">🔒</div>
             <h2 class="text-2xl font-black text-white mb-1 text-center tracking-tight">Accesso TMS Lab</h2>
             <p class="text-gray-500 text-[13px] text-center mb-8">Seleziona il tuo profilo e inserisci la password del team.</p>
             
@@ -97,12 +89,8 @@
                     <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password Principale</label>
                     <input type="password" id="loginPasswordInput" required placeholder="••••••••" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 font-mono tracking-widest text-center text-lg">
                 </div>
-                
                 <p id="loginError" class="text-red-500 text-sm font-bold hidden text-center mt-2">Password errata!</p>
-                
-                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors mt-8 shadow-lg shadow-blue-900/20">
-                    Entra nel Lab
-                </button>
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors mt-8 shadow-lg shadow-blue-900/20">Entra nel Lab</button>
             </form>
         </div>
     </div>
@@ -110,9 +98,7 @@
     <!-- HEADER -->
     <header class="flex items-center justify-between px-4 h-14 bg-[#0f0f0f] shrink-0 sticky top-0 z-50 border-b border-[#303030]">
         <div class="flex items-center gap-4">
-            <button id="sidebarToggle" class="text-2xl p-2 hover:bg-[#272727] rounded-full w-10 h-10 flex items-center justify-center transition-colors">
-                &#9776;
-            </button>
+            <button id="sidebarToggle" class="text-2xl p-2 hover:bg-[#272727] rounded-full w-10 h-10 flex items-center justify-center transition-colors">&#9776;</button>
             <div class="flex items-center gap-1 cursor-pointer">
                 <span class="text-red-600 text-2xl font-bold">&#9654;</span>
                 <span class="text-xl font-bold tracking-tighter">TMS Lab</span>
@@ -140,48 +126,38 @@
         <!-- SIDEBAR -->
         <aside id="sidebar" class="sidebar-expanded bg-[#0f0f0f] hidden sm:flex flex-col overflow-hidden transition-all duration-300 pt-3 border-r border-[#303030] shrink-0">
             
-            <!-- MAIN NAVIGATION -->
-            <div class="px-4 mb-2">
-                <span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500">Navigazione</span>
-            </div>
+            <div class="px-4 mb-2"><span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500">Navigazione</span></div>
             <div id="navIdee" class="channel-item active flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('idee')">
-                <span class="text-xl">💡</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Idee Video</span>
+                <span class="text-xl">💡</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Idee Video</span>
             </div>
             <div id="navStrumenti" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('strumenti')">
-                <span class="text-xl">🛠️</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Risorse & Tools</span>
+                <span class="text-xl">🛠️</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Risorse & Tools</span>
             </div>
             <div id="navFormazione" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('formazione')">
-                <span class="text-xl">🎓</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Formazione</span>
+                <span class="text-xl">🎓</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Formazione</span>
+            </div>
+            <div id="navInspirations" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('inspirations')">
+                <span class="text-xl">🌟</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Inspirations</span>
             </div>
             <div id="navEditorsHub" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('editorshub')">
-                <span class="text-xl">🎛️</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Editors Hub</span>
+                <span class="text-xl">🎛️</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Editors Hub</span>
             </div>
             <div id="navScript" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('script')">
-                <span class="text-xl">📝</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Script</span>
+                <span class="text-xl">📝</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Script</span>
             </div>
             <div id="navStats" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('stats')">
-                <span class="text-xl">📊</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
+                <span class="text-xl">📊</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
             </div>
             <div id="navDatabase" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('database')">
-                <span class="text-xl">💾</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Database</span>
+                <span class="text-xl">💾</span> <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Database</span>
             </div>
 
             <div class="mx-4 border-t border-[#303030] my-2"></div>
 
-            <!-- FILTRO TUTTE IDEE -->
             <div id="filterAll" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="setActiveFilter(null)">
-                <span class="text-xl">&#127968;</span>
-                <span class="sidebar-label text-sm font-semibold text-blue-400 whitespace-nowrap overflow-hidden">Tutte le idee</span>
+                <span class="text-xl">&#127968;</span> <span class="sidebar-label text-sm font-semibold text-blue-400 whitespace-nowrap overflow-hidden">Tutte le idee</span>
             </div>
 
-            <!-- Sezione CANALI -->
             <div class="flex items-center justify-between px-4 mb-2 mt-2">
                 <span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500 whitespace-nowrap">Canali</span>
                 <button id="addChannelBtn" class="sidebar-label text-gray-400 hover:text-white w-6 h-6 flex items-center justify-center rounded hover:bg-[#303030] transition-colors text-lg leading-none" title="Aggiungi canale">+</button>
@@ -191,7 +167,6 @@
                 <!-- Canali renderizzati qui. Drag & drop supportato -->
             </div>
 
-            <!-- Developer Tools & Console -->
             <div class="mt-auto mb-2 px-2 flex flex-col gap-1">
                 <button id="openConsoleBtn" class="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-[#272727] transition-colors group">
                     <span class="text-gray-400 group-hover:text-green-400 transition-colors">👨‍💻</span>
@@ -252,10 +227,35 @@
                     <p>Nessun video di formazione salvato. Aggiungine uno!</p>
                 </div>
             </div>
+            
+            <!-- VISTA: INSPIRATIONS -->
+            <div id="viewInspirationsWrapper" class="hidden">
+                <div class="flex gap-6 border-b border-[#303030] mb-6">
+                    <button class="insp-tab active pb-2 font-bold text-[#a855f7] border-b-2 border-[#a855f7]" data-insptab="dashboard" onclick="switchInspTab('dashboard')">📊 Dashboard Canali</button>
+                    <button class="insp-tab pb-2 font-bold text-gray-400 border-b-2 border-transparent" data-insptab="feed" onclick="switchInspTab('feed')">🎬 Feed Video</button>
+                </div>
+                
+                <!-- Tab: Dashboard Canali -->
+                <div id="inspDashboardTab" class="block">
+                    <div id="inspChannelGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+                    <div id="noInspChannelResults" class="text-center py-20 text-gray-400 flex flex-col items-center hidden">
+                        <span class="text-4xl mb-3">🌟</span>
+                        <p>Nessun canale d'ispirazione aggiunto.</p>
+                    </div>
+                </div>
+                
+                <!-- Tab: Feed Video -->
+                <div id="inspFeedTab" class="hidden">
+                    <div id="inspVideoGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                    <div id="noInspVideoResults" class="text-center py-20 text-gray-400 flex flex-col items-center hidden">
+                        <span class="text-4xl mb-3">🎬</span>
+                        <p>Nessun video nel feed.</p>
+                    </div>
+                </div>
+            </div>
 
             <!-- VISTA: EDITORS HUB -->
             <div id="viewEditorsHubWrapper" class="hidden">
-                <!-- SFX / Music Tabs -->
                 <div class="flex gap-6 border-b border-[#303030] mb-6">
                     <button class="eh-tab active pb-2 font-bold text-gray-400" data-ehtab="sfx" onclick="switchEHTab('sfx')">🔊 Sound Effects (SFX)</button>
                     <button class="eh-tab pb-2 font-bold text-gray-400" data-ehtab="music" onclick="switchEHTab('music')">🎵 Musica</button>
@@ -317,8 +317,6 @@
             <!-- VISTA: STATISTICHE E TIMELINE -->
             <div id="viewStatsWrapper" class="hidden">
                 <div class="flex flex-col gap-6">
-                    
-                    <!-- Top Cards -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
                             <div>
@@ -350,21 +348,12 @@
                         </div>
                     </div>
 
-                    <!-- Layout: Insight & Performance / Timeline -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- Left Column: Insights & Team -->
                         <div class="lg:col-span-2 flex flex-col gap-6">
-                            
-                            <!-- Insights Box -->
                             <div class="bg-gradient-to-br from-[#1a1a1a] to-[#222] border border-[#303030] p-6 rounded-xl">
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-4">🧠 Analisi & Consigli</h2>
-                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300">
-                                    <!-- Populated dynamically -->
-                                </ul>
+                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300"></ul>
                             </div>
-
-                            <!-- Team Performance -->
                             <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
                                 <div class="p-4 border-b border-[#303030] bg-[#222]">
                                     <h2 class="text-lg font-bold text-white flex items-center gap-2">👥 Performance del Team</h2>
@@ -379,26 +368,20 @@
                                                 <th class="px-4 py-3">Totale Prese in Carico</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]">
-                                            <!-- Populated dynamically -->
-                                        </tbody>
+                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]"></tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right Column: Timeline -->
                         <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden flex flex-col h-[500px]">
                             <div class="p-4 border-b border-[#303030] bg-[#222] shrink-0">
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2">⏱️ Timeline Recente</h2>
                             </div>
                             <div class="p-4 overflow-y-auto flex-1">
-                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer">
-                                    <!-- Populated dynamically -->
-                                </div>
+                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer"></div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -406,8 +389,6 @@
             <!-- VISTA: DATABASE ANALYZER -->
             <div id="viewDatabaseWrapper" class="hidden">
                 <div class="flex flex-col gap-6">
-                    
-                    <!-- Overview Database -->
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
                         <h2 class="text-2xl font-black text-white mb-1 relative z-10">Stato Database JSON</h2>
@@ -424,12 +405,11 @@
                             
                             <div class="md:col-span-2 bg-[#222] border border-[#404040] p-5 rounded-lg flex flex-col justify-center">
                                 <span class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Distribuzione Spazio</span>
-                                <!-- Barra di progresso divisa -->
                                 <div class="w-full h-4 bg-[#111] rounded-full overflow-hidden flex shadow-inner">
                                     <div id="dbBarIdeas" class="h-full bg-[#3ea6ff] progress-bar-fill" style="width: 0%" title="Idee"></div>
                                     <div id="dbBarTools" class="h-full bg-[#a855f7] progress-bar-fill" style="width: 0%" title="Strumenti"></div>
                                     <div id="dbBarChannels" class="h-full bg-[#facc15] progress-bar-fill" style="width: 0%" title="Canali"></div>
-                                    <div id="dbBarOther" class="h-full bg-[#4ade80] progress-bar-fill" style="width: 0%" title="Altro (Formazione, EH)"></div>
+                                    <div id="dbBarOther" class="h-full bg-[#4ade80] progress-bar-fill" style="width: 0%" title="Altro (Formazione, EH, Insp)"></div>
                                 </div>
                                 <div class="flex flex-wrap gap-4 mt-3 text-[11px] font-bold text-gray-400">
                                     <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#3ea6ff]"></span> Idee: <span id="dbSizeIdeas" class="text-gray-200">0 KB</span></div>
@@ -441,12 +421,11 @@
                         </div>
                     </div>
                     
-                    <!-- Rilevatore Mattoni Base64 -->
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
                         <div class="p-5 border-b border-[#303030] bg-red-900/10 flex justify-between items-center">
                             <div>
                                 <h2 class="text-lg font-bold text-red-400 flex items-center gap-2">⚠️ Rilevatore Elementi Pesanti (Base64)</h2>
-                                <p class="text-xs text-gray-400 mt-1">Questi elementi contengono immagini salvate direttamente nel testo del database. Cerca di eliminarli o sostituirli con URL normali per velocizzare il sito.</p>
+                                <p class="text-xs text-gray-400 mt-1">Questi elementi contengono immagini salvate direttamente nel testo del database.</p>
                             </div>
                             <button onclick="renderDatabaseStats()" class="px-4 py-2 bg-[#303030] hover:bg-[#404040] text-white rounded text-sm transition-colors">Aggiorna Analisi</button>
                         </div>
@@ -460,9 +439,7 @@
                                         <th class="px-5 py-3 text-right">Azione Ràpida</th>
                                     </tr>
                                 </thead>
-                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]">
-                                    <!-- Populated dynamically via JS -->
-                                </tbody>
+                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]"></tbody>
                             </table>
                             <div id="dbNoHeavyItems" class="text-center py-10 text-gray-500 hidden">
                                 <span class="text-3xl block mb-2">🎉</span>
@@ -471,128 +448,10 @@
                             </div>
                         </div>
                     </div>
-                    
                 </div>
             </div>
 
         </main>
-    </div>
-
-    <!-- MODAL DASHBOARD IDEA -->
-    <div id="ideaDashboardModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[150] px-4 backdrop-blur-sm">
-        <div class="bg-[#1a1a1a] rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden border border-[#303030] flex flex-col max-h-[90vh]">
-            <div class="relative h-40 shrink-0 bg-[#272727]">
-                <img id="dashThumb" src="" alt="Copertina" class="w-full h-full object-cover opacity-60">
-                <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent"></div>
-                <button id="closeDashBtn" class="absolute top-3 right-4 bg-black/50 text-white hover:text-red-400 hover:bg-black/80 w-8 h-8 flex items-center justify-center rounded-full text-xl leading-none transition-all">&times;</button>
-                
-                <div class="absolute bottom-4 left-6 right-6">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span id="dashChannelBadge" class="bg-black/60 text-xs px-2 py-0.5 rounded border border-[#404040]">Canale</span>
-                        <span id="dashStatusBadge" class="bg-blue-600/20 text-blue-400 text-xs px-2 py-0.5 rounded border border-blue-500/30">Nuova Idea</span>
-                    </div>
-                    <h2 id="dashTitle" class="text-2xl font-bold text-white line-clamp-2 leading-tight">Titolo dell'idea video</h2>
-                </div>
-            </div>
-
-            <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button id="dashDriveBtn" class="flex-1 flex items-center justify-center gap-2 bg-[#1c62b9] hover:bg-[#2573d4] text-white py-3 rounded-lg font-semibold transition-colors">
-                        <span class="text-xl">📁</span> Apri Repository Drive
-                    </button>
-                    <button id="dashDeleteBtn" class="px-4 py-3 bg-red-900/30 hover:bg-red-900/60 text-red-400 rounded-lg border border-red-900/50 transition-colors font-medium flex items-center gap-2">
-                        🗑️ Elimina Idea
-                    </button>
-                </div>
-                <hr class="border-[#303030]">
-
-                <div id="dashAssignSection" class="bg-[#212121] p-5 rounded-lg border border-[#404040]">
-                    <h3 class="text-lg font-bold mb-2 flex items-center gap-2">🎯 Prendi in Carico il Progetto</h3>
-                    <p class="text-sm text-gray-400 mb-4">Questa idea è disponibile. Assegnala a te stesso o a un collaboratore per iniziare i lavori.</p>
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <select id="assigneeSelect" class="flex-1 bg-[#0f0f0f] border border-[#404040] rounded-lg p-3 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
-                            <option value="">Seleziona chi prende in carico...</option>
-                            <option value="DG">DG</option>
-                            <option value="Tomas">Tomas</option>
-                            <option value="Pierò">Pierò</option>
-                            <option value="GFS">GFS</option>
-                            <option value="Noemi">Noemi</option>
-                            <option value="Alex">Alex</option>
-                            <option value="Davide">Davide</option>
-                            <option value="Rog">Rog</option>
-                            <option value="Camel">Camel</option>
-                            <option value="Gatti">Gatti</option>
-                        </select>
-                        <button id="assignConfirmBtn" class="bg-white text-black font-bold py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                            Conferma Assegnazione
-                        </button>
-                    </div>
-                </div>
-
-                <div id="dashProgressSection" class="bg-[#212121] p-5 rounded-lg border border-[#404040] hidden">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold flex items-center gap-2">📈 Stato Avanzamento</h3>
-                            <p id="dashAssignDateContainer" class="text-sm text-gray-400 mt-1 leading-relaxed"></p>
-                        </div>
-                        <div class="text-2xl font-black text-blue-400" id="dashProgressText">0%</div>
-                    </div>
-                    <div class="w-full bg-[#0f0f0f] rounded-full h-3 mb-6 border border-[#303030] overflow-hidden">
-                        <div id="dashProgressBar" class="bg-blue-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
-                    </div>
-                    <div class="space-y-3">
-                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
-                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
-                                <input type="checkbox" id="chkScript" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Script</span>
-                                <span class="text-[11px] text-gray-500">+25% completamento</span>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
-                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
-                                <input type="checkbox" id="chkAudio" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Traccia Audio</span>
-                                <span class="text-[11px] text-gray-500">+25% completamento</span>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
-                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
-                                <input type="checkbox" id="chkVideo" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Generazione Traccia Video</span>
-                                <span class="text-[11px] text-gray-500">+25% completamento</span>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
-                            <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
-                                <input type="checkbox" id="chkFinal" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Rifinitura</span>
-                                <span class="text-[11px] text-gray-500">Finale per 100%</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- MODAL AGGIUNGI IDEA -->
@@ -764,6 +623,86 @@
                         <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded text-sm font-bold hover:bg-purple-500 transition-colors">
                             Salva Video
                         </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL -->
+    <div id="addInspChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold">Aggiungi Canale Ispirazione</h2>
+                <button onclick="closeModal('addInspChannelModal', 'inspChannelForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="inspChannelForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Nome Canale</label>
+                        <input type="text" id="inputInspName" required placeholder="Es: MrBeast, Ali Abdaal..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Link Canale</label>
+                        <input type="url" id="inputInspLink" required placeholder="https://youtube.com/@..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Iscritti (Testo)</label>
+                            <input type="text" id="inputInspSubs" placeholder="Es: 1.2M" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Vis/Mese (Testo)</label>
+                            <input type="text" id="inputInspViews" placeholder="Es: 500K" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Frequenza</label>
+                            <input type="text" id="inputInspFreq" placeholder="Es: 1/sett" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Trend</label>
+                            <input type="text" id="inputInspTrend" placeholder="Es: In Crescita 📈" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Avatar / Logo</label>
+                        <input type="file" id="inputInspFile" accept="image/*" required class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#303030] file:text-white hover:file:bg-[#404040]">
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('addInspChannelModal', 'inspChannelForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-[#a855f7] hover:bg-[#b06cf8] text-white rounded text-sm font-bold transition-colors">Salva Canale</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL AGGIUNGI INSPIRATION VIDEO -->
+    <div id="addInspVideoModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold">Aggiungi Video al Feed</h2>
+                <button onclick="closeModal('addInspVideoModal', 'inspVideoForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="inspVideoForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Seleziona Canale</label>
+                        <select id="inputInspVideoChannel" required class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                            <option value="">— Seleziona Canale —</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Titolo Video</label>
+                        <input type="text" id="inputInspVideoTitle" required placeholder="Es: La verità su..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Link Video YouTube</label>
+                        <input type="url" id="inputInspVideoLink" required placeholder="https://youtube.com/watch?v=..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('addInspVideoModal', 'inspVideoForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-[#a855f7] hover:bg-[#b06cf8] text-white rounded text-sm font-bold transition-colors">Aggiungi al Feed</button>
                     </div>
                 </form>
             </div>
@@ -1020,6 +959,11 @@
             }
             return array;
         }
+        
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            document.getElementById(modalId).classList.add('flex');
+        }
 
         const consoleOutput = document.getElementById('consoleOutput');
         function devLog(message, type = 'info') {
@@ -1130,11 +1074,14 @@
         let toolsData = [];
         let trainingData = [];
         let editorsHubData = []; 
+        let inspirationChannels = [];
+        let inspirationFeed = [];
         
         let activeChannelId = null; 
         let activeStatusFilter = 'all'; 
         let currentView = 'idee'; 
         let currentEHTab = 'sfx'; 
+        let currentInspTab = 'dashboard';
         
         let folderStatusCache = {};
         let randomIdeaOrder = []; 
@@ -1209,6 +1156,7 @@
             document.getElementById('navIdee').classList.remove('active');
             document.getElementById('navStrumenti').classList.remove('active');
             document.getElementById('navFormazione').classList.remove('active');
+            document.getElementById('navInspirations').classList.remove('active');
             document.getElementById('navEditorsHub').classList.remove('active');
             document.getElementById('navScript').classList.remove('active');
             document.getElementById('navStats').classList.remove('active');
@@ -1217,6 +1165,7 @@
             document.getElementById('viewIdeeWrapper').classList.add('hidden');
             document.getElementById('viewStrumentiWrapper').classList.add('hidden');
             document.getElementById('viewFormazioneWrapper').classList.add('hidden');
+            document.getElementById('viewInspirationsWrapper').classList.add('hidden');
             document.getElementById('viewEditorsHubWrapper').classList.add('hidden');
             document.getElementById('viewScriptWrapper').classList.add('hidden');
             document.getElementById('viewStatsWrapper').classList.add('hidden');
@@ -1254,11 +1203,23 @@
                 mainActionBtn.onclick = () => { document.getElementById('addTrainingModal').classList.remove('hidden'); document.getElementById('addTrainingModal').classList.add('flex'); };
                 renderTraining();
             }
+            else if (view === 'inspirations') {
+                document.getElementById('navInspirations').classList.add('active');
+                document.getElementById('viewInspirationsWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Inspirations & Competitors';
+                pageSubtitle.textContent = 'Monitora i canali da cui prendere spunto e analizza i loro contenuti.';
+                mainActionText.textContent = currentInspTab === 'dashboard' ? 'Aggiungi Canale' : 'Aggiungi Video';
+                mainActionBtn.onclick = () => { 
+                    if(currentInspTab === 'dashboard') openModal('addInspChannelModal');
+                    else openModal('addInspVideoModal'); 
+                };
+                switchInspTab(currentInspTab);
+            }
             else if (view === 'editorshub') {
                 document.getElementById('navEditorsHub').classList.add('active');
                 document.getElementById('viewEditorsHubWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Editors Hub';
-                pageSubtitle.textContent = 'Libreria centralizzata per Effetti Sonori e Musica.';
+                pageSubtitle.textContent = 'Libreria centralizzata per Effetti Sonori e Musica. Clicca sull\'icona per l\'anteprima in tempo reale.';
                 mainActionText.textContent = 'Aggiungi File';
                 mainActionBtn.onclick = () => { document.getElementById('addEHModal').classList.remove('hidden'); document.getElementById('addEHModal').classList.add('flex'); };
                 renderEditorsHub();
@@ -1458,6 +1419,8 @@
                 toolsData = Array.isArray(raw.tools) ? raw.tools : [];
                 trainingData = Array.isArray(raw.training) ? raw.training : [];
                 editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
+                inspirationChannels = Array.isArray(raw.inspirationChannels) ? raw.inspirationChannels : [];
+                inspirationFeed = Array.isArray(raw.inspirationFeed) ? raw.inspirationFeed : [];
                 
                 updateStatus("🟢 Sincronizzato con Drive", "success");
                 
@@ -1474,7 +1437,15 @@
         async function autoSaveToCloud() {
             if (!SCRIPT_URL) return;
             updateStatus("Salvataggio...", "warning");
-            const payload = { ideas: videoIdeas, channels: channels, tools: toolsData, training: trainingData, editorsHub: editorsHubData };
+            const payload = { 
+                ideas: videoIdeas, 
+                channels: channels, 
+                tools: toolsData, 
+                training: trainingData, 
+                editorsHub: editorsHubData,
+                inspirationChannels: inspirationChannels,
+                inspirationFeed: inspirationFeed
+            };
             try {
                 callScriptAction({ action: 'saveDB', data: payload }).then(() => {
                     updateStatus("💾 Salvato!", "success");
@@ -1513,8 +1484,8 @@
                 const count = videoIdeas.filter(v => v.channelId === ch.id).length;
                 
                 let avatarHTML = ch.profilePicUrl 
-                    ? `<img src="${ch.profilePicUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-7 h-7 rounded-full bg-[#303030] items-center justify-center text-sm shrink-0 hidden border border-[#404040]">📺</div>`
-                    : `<div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-[#404040]" style="background:${ch.color || '#3ea6ff'}">${ch.name.charAt(0).toUpperCase()}</div>`;
+                    ? `<img src="${ch.profilePicUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-[#404040] pointer-events-none" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-7 h-7 rounded-full bg-[#303030] items-center justify-center text-sm shrink-0 hidden border border-[#404040] pointer-events-none">📺</div>`
+                    : `<div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-[#404040] pointer-events-none" style="background:${ch.color || '#3ea6ff'}">${ch.name.charAt(0).toUpperCase()}</div>`;
 
                 let folderIcon = '⏳'; let folderTitle = 'Verifica cartella in corso...';
                 if (!ch.driveFolderId) { folderIcon = '❓'; folderTitle = 'Nessuna cartella Drive'; } 
@@ -1522,16 +1493,16 @@
                 else if (folderStatusCache[ch.driveFolderId] === false) { folderIcon = '⚠️'; folderTitle = 'Errore cartella'; }
 
                 const el = document.createElement('div');
-                el.className = `channel-item channel-sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${activeChannelId === ch.id ? 'active' : ''}`;
+                el.className = `channel-item channel-sidebar-item flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer ${activeChannelId === ch.id ? 'active' : ''} group relative`;
                 el.dataset.id = ch.id;
                 
                 // --- DRAG AND DROP CANALI ---
                 el.draggable = true;
                 el.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', ch.id);
-                    el.style.opacity = '0.5';
+                    el.classList.add('dragging');
                 });
-                el.addEventListener('dragend', () => { el.style.opacity = '1'; });
+                el.addEventListener('dragend', () => { el.classList.remove('dragging'); });
                 el.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     el.classList.add('border-t-2', 'border-blue-500');
@@ -1558,12 +1529,15 @@
                 // -----------------------------
 
                 el.innerHTML = `
-                    <div class="shrink-0">${avatarHTML}</div>
-                    <span class="sidebar-label text-sm text-gray-200 flex-1 truncate whitespace-nowrap">${ch.name}</span>
-                    <span class="sidebar-label folder-status-icon text-sm" data-chid="${ch.id}" title="${folderTitle}">${folderIcon}</span>
-                    <span class="sidebar-label text-[11px] text-gray-500 bg-[#222] px-1.5 py-0.5 rounded ml-1 transition-opacity">${count}</span>
+                    <span class="drag-handle sidebar-label text-gray-500 hover:text-white mr-1 -ml-1 text-lg">⋮</span>
+                    <div class="shrink-0 pointer-events-none">${avatarHTML}</div>
+                    <span class="sidebar-label text-sm text-gray-200 flex-1 truncate whitespace-nowrap pointer-events-none">${ch.name}</span>
+                    <span class="sidebar-label folder-status-icon text-sm pointer-events-none" data-chid="${ch.id}" title="${folderTitle}">${folderIcon}</span>
+                    <span class="sidebar-label text-[11px] text-gray-500 bg-[#222] px-1.5 py-0.5 rounded ml-1 transition-opacity pointer-events-none">${count}</span>
                 `;
-                el.addEventListener('click', () => setActiveFilter(ch.id));
+                el.addEventListener('click', (e) => {
+                    if(!e.target.classList.contains('drag-handle')) setActiveFilter(ch.id);
+                });
                 channelListEl.appendChild(el);
             });
             checkAllChannelFolders();
@@ -1671,7 +1645,7 @@
 
 
         // =============================================
-        //  DASHBOARD IDEA (LOGICA MODALE)
+        //  DASHBOARD IDEA E SALVATAGGIO
         // =============================================
         function openIdeaDashboard(idea) {
             currentlyOpenIdeaId = idea.id;
@@ -1888,7 +1862,7 @@
                             devLog(`[IDEA EDIT ERROR] Impossibile caricare la copertina su Drive.`, "error");
                         }
                     } else {
-                        const fallbackImg = await compressImage(selectedEditIdeaThumbFile, 900, 0.8, 'image/webp');
+                        const fallbackImg = await compressImage(selectedEditIdeaThumbFile, 900, 0.8, 'image/jpeg');
                         idea.thumbnail = fallbackImg.dataUrl;
                     }
                 }
@@ -2038,7 +2012,7 @@
                     submitBtn.textContent = '🔄 Preparazione File...';
                     
                     const getOrigBase64 = new Promise(r => { const fr = new FileReader(); fr.onload = ev => r(ev.target.result.split(',')[1]); fr.readAsDataURL(selectedThumbFile); });
-                    const compressLowRes = compressImage(selectedThumbFile, 900, 0.8, 'image/webp');
+                    const compressLowRes = compressImage(selectedThumbFile, 900, 0.8, 'image/jpeg');
                     
                     const [originalBase64, compressedImg, resF] = await Promise.all([
                         getOrigBase64,
@@ -2070,7 +2044,7 @@
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                const compressedImg = await compressImage(selectedThumbFile, 900, 0.8, 'image/webp');
+                const compressedImg = await compressImage(selectedThumbFile, 900, 0.8, 'image/jpeg');
                 if(compressedImg.sizeKB > 1500) {
                      submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
                      return;
@@ -2095,7 +2069,7 @@
         });
 
         // =============================================
-        //  RENDER STRUMENTI & TOOLS (OTTIMIZZATI CON DRAG & DROP E UPLOAD DRIVE)
+        //  RENDER STRUMENTI & TOOLS
         // =============================================
         const noToolsResults = document.getElementById('noToolsResults');
 
@@ -2113,13 +2087,10 @@
                 const card = document.createElement('div');
                 card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-blue-500 transition-all flex flex-col group relative cursor-move';
                 
-                // --- DRAG AND DROP TOOLS ---
+                // DRAG AND DROP
                 card.draggable = true;
-                card.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('toolId', tool.id);
-                    card.classList.add('opacity-50');
-                });
-                card.addEventListener('dragend', () => { card.classList.remove('opacity-50'); });
+                card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('toolId', tool.id); card.classList.add('dragging'); });
+                card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
                 card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('ring-2', 'ring-blue-500'); });
                 card.addEventListener('dragleave', () => { card.classList.remove('ring-2', 'ring-blue-500'); });
                 card.addEventListener('drop', (e) => {
@@ -2132,13 +2103,11 @@
                         if(draggedIdx > -1 && targetIdx > -1) {
                             const [draggedItem] = toolsData.splice(draggedIdx, 1);
                             toolsData.splice(targetIdx, 0, draggedItem);
-                            devLog(`[UI] Ordine Strumenti aggiornato.`, "info");
                             renderTools();
                             autoSaveToCloud();
                         }
                     }
                 });
-                // ---------------------------
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
@@ -2147,13 +2116,13 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare lo strumento "${tool.title}"?`, async () => {
                         toolsData = toolsData.filter(t => t.id !== tool.id);
-                        devLog(`[TOOL] Strumento eliminato: ${tool.title}`, "info");
                         renderTools();
                         await autoSaveToCloud();
                     });
                 };
 
                 card.innerHTML = `
+                    <div class="absolute top-2 left-2 drag-handle w-6 h-6 flex items-center justify-center text-gray-300 bg-black/60 rounded z-10 text-xs shadow" title="Trascina per riordinare">☰</div>
                     <img src="${tool.image}" class="w-full h-32 object-cover bg-[#111] pointer-events-none">
                     <div class="p-4 flex-1 flex flex-col">
                         <h3 class="font-bold text-white text-lg">${tool.title}</h3>
@@ -2195,7 +2164,8 @@
 
             let finalImageUrl = "";
             const ext = selectedToolFile.name.split('.').pop().toLowerCase();
-            const compressedImg = await compressImage(selectedToolFile, 500, 0.85, 'image/webp');
+            // IMPORTANTE: Modificato a JPEG per evitare che GAS v25 fallisca con le webp
+            const compressedImg = await compressImage(selectedToolFile, 500, 0.85, 'image/jpeg');
 
             if (SCRIPT_URL) {
                 try {
@@ -2203,25 +2173,18 @@
                     const res = await callScriptAction({ 
                         action: 'uploadEHFile', 
                         base64: compressedImg.base64, 
-                        mimeType: 'image/webp', 
+                        mimeType: 'image/jpeg', 
                         fileName: `tool_logo_${Date.now()}.${ext}` 
                     });
                     if(res.fileId) {
                         finalImageUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w400`;
-                        devLog(`[TOOL] Logo caricato su Drive, il database rimarrà leggerissimo!`, "success");
                     }
-                } catch(e) {
-                    devLog(`[TOOL] Errore upload Drive. Fallback al database locale.`, "warning");
-                }
+                } catch(e) { }
             }
 
             if(!finalImageUrl) {
-                 if(compressedImg.sizeKB > 500) {
-                         submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
-                         alert("L'immagine è troppo pesante per il salvataggio offline.");
-                         return;
-                 }
-                 finalImageUrl = compressedImg.dataUrl;
+                 const ultraCompressed = await compressImage(selectedToolFile, 250, 0.5, 'image/jpeg');
+                 finalImageUrl = ultraCompressed.dataUrl;
             }
 
             const newTool = {
@@ -2240,7 +2203,7 @@
         });
 
         // =============================================
-        //  RENDER FORMAZIONE (CON DRAG E DROP)
+        //  RENDER FORMAZIONE
         // =============================================
         const noTrainingResults = document.getElementById('noTrainingResults');
 
@@ -2264,13 +2227,10 @@
                 const card = document.createElement('div');
                 card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-purple-500 transition-colors flex flex-col group relative cursor-move';
                 
-                // --- DRAG AND DROP FORMAZIONE ---
+                // DRAG AND DROP FORMAZIONE
                 card.draggable = true;
-                card.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('trainingId', training.id);
-                    card.classList.add('opacity-50');
-                });
-                card.addEventListener('dragend', () => { card.classList.remove('opacity-50'); });
+                card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('trainingId', training.id); card.classList.add('dragging'); });
+                card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
                 card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('ring-2', 'ring-purple-500'); });
                 card.addEventListener('dragleave', () => { card.classList.remove('ring-2', 'ring-purple-500'); });
                 card.addEventListener('drop', (e) => {
@@ -2283,13 +2243,11 @@
                         if(draggedIdx > -1 && targetIdx > -1) {
                             const [draggedItem] = trainingData.splice(draggedIdx, 1);
                             trainingData.splice(targetIdx, 0, draggedItem);
-                            devLog(`[UI] Ordine Formazione aggiornato.`, "info");
                             renderTraining();
                             autoSaveToCloud();
                         }
                     }
                 });
-                // --------------------------------
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
@@ -2304,13 +2262,14 @@
                 };
 
                 card.innerHTML = `
+                    <div class="absolute top-2 left-2 drag-handle w-6 h-6 flex items-center justify-center text-gray-300 bg-black/60 rounded z-10 text-xs shadow" title="Trascina per riordinare">☰</div>
                     <div class="relative aspect-video bg-[#111]" onclick="window.open('${training.link}', '_blank')">
                         <img src="https://img.youtube.com/vi/${training.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${training.ytId}/hqdefault.jpg'" class="w-full h-full object-cover pointer-events-none">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <span class="text-5xl drop-shadow-lg">▶️</span>
                         </div>
                     </div>
-                    <div class="p-4 flex-1 flex flex-col justify-center">
+                    <div class="p-4 flex-1 flex flex-col justify-center pointer-events-none">
                         <h3 class="font-bold text-white text-sm line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">${training.title}</h3>
                     </div>
                 `;
@@ -2341,12 +2300,215 @@
             submitBtn.disabled = false; submitBtn.textContent = 'Salva Video';
             autoSaveToCloud();
         });
+        
+        // =============================================
+        //  RENDER INSPIRATIONS & COMPETITORS (NUOVA SEZIONE)
+        // =============================================
+        function switchInspTab(tabName) {
+            currentInspTab = tabName;
+            document.querySelectorAll('.insp-tab').forEach(btn => {
+                if(btn.dataset.insptab === tabName) {
+                    btn.classList.add('active', 'border-[#a855f7]', 'text-[#a855f7]');
+                    btn.classList.remove('text-gray-400', 'border-transparent');
+                } else {
+                    btn.classList.remove('active', 'border-[#a855f7]', 'text-[#a855f7]');
+                    btn.classList.add('text-gray-400', 'border-transparent');
+                }
+            });
+            
+            document.getElementById('inspDashboardTab').classList.toggle('hidden', tabName !== 'dashboard');
+            document.getElementById('inspDashboardTab').classList.toggle('block', tabName === 'dashboard');
+            document.getElementById('inspFeedTab').classList.toggle('hidden', tabName !== 'feed');
+            document.getElementById('inspFeedTab').classList.toggle('block', tabName === 'feed');
+            
+            document.getElementById('mainActionText').textContent = tabName === 'dashboard' ? 'Aggiungi Canale' : 'Aggiungi Video';
+            
+            if(tabName === 'dashboard') renderInspChannels();
+            else renderInspVideos();
+        }
+        
+        function renderInspChannels() {
+            const grid = document.getElementById('inspChannelGrid');
+            const empty = document.getElementById('noInspChannelResults');
+            grid.innerHTML = '';
+            
+            const term = searchInput.value.toLowerCase();
+            const filtered = term ? inspirationChannels.filter(c => c.name.toLowerCase().includes(term)) : inspirationChannels;
+
+            if (filtered.length === 0) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+
+            filtered.forEach(channel => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#1a1a1a] rounded-xl border border-[#303030] hover:border-[#a855f7] transition-all overflow-hidden relative cursor-move group';
+                
+                // DRAG AND DROP INSPIRATION
+                card.draggable = true;
+                card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('inspChId', channel.id); card.classList.add('dragging'); });
+                card.addEventListener('dragend', () => { card.classList.remove('dragging'); });
+                card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('ring-2', 'ring-[#a855f7]'); });
+                card.addEventListener('dragleave', () => { card.classList.remove('ring-2', 'ring-[#a855f7]'); });
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('ring-2', 'ring-[#a855f7]');
+                    const draggedId = e.dataTransfer.getData('inspChId');
+                    if(draggedId && draggedId !== channel.id) {
+                        const draggedIdx = inspirationChannels.findIndex(t => t.id === draggedId);
+                        const targetIdx = inspirationChannels.findIndex(t => t.id === channel.id);
+                        if(draggedIdx > -1 && targetIdx > -1) {
+                            const [draggedItem] = inspirationChannels.splice(draggedIdx, 1);
+                            inspirationChannels.splice(targetIdx, 0, draggedItem);
+                            renderInspChannels();
+                            autoSaveToCloud();
+                        }
+                    }
+                });
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.className = 'absolute top-3 right-3 bg-red-600/90 hover:bg-red-500 text-white text-xs w-7 h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center shadow-lg';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi eliminare il canale di ispirazione "${channel.name}"?`, async () => {
+                        inspirationChannels = inspirationChannels.filter(t => t.id !== channel.id);
+                        renderInspChannels();
+                        autoSaveToCloud();
+                    });
+                };
+                
+                const goBtn = document.createElement('button');
+                goBtn.innerHTML = '↗';
+                goBtn.className = 'absolute top-3 left-3 bg-blue-600/90 hover:bg-blue-500 text-white text-xs w-7 h-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center shadow-lg';
+                goBtn.onclick = (e) => { e.stopPropagation(); window.open(channel.url, '_blank'); };
+
+                card.innerHTML = `
+                    <div class="p-6 flex flex-col items-center border-b border-[#303030] bg-[#222]">
+                        <img src="${channel.avatar}" class="w-20 h-20 rounded-full object-cover border-4 border-[#303030] mb-3 bg-black pointer-events-none">
+                        <h3 class="font-black text-white text-lg truncate w-full text-center pointer-events-none">${channel.name}</h3>
+                    </div>
+                    <div class="grid grid-cols-2 divide-x divide-y divide-[#303030] text-center text-sm">
+                        <div class="p-3 bg-[#151515]"><span class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">Iscritti</span><span class="font-bold text-gray-200">${channel.subs || '-'}</span></div>
+                        <div class="p-3 bg-[#151515]"><span class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">Vis/Mese</span><span class="font-bold text-blue-400">${channel.views || '-'}</span></div>
+                        <div class="p-3 bg-[#151515]"><span class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">Frequenza</span><span class="font-bold text-purple-400">${channel.freq || '-'}</span></div>
+                        <div class="p-3 bg-[#151515]"><span class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold">Trend</span><span class="font-bold text-green-400">${channel.trend || '-'}</span></div>
+                    </div>
+                `;
+                card.appendChild(goBtn);
+                card.appendChild(deleteBtn);
+                grid.appendChild(card);
+            });
+        }
+        
+        function renderInspVideos() {
+            const grid = document.getElementById('inspVideoGrid');
+            const empty = document.getElementById('noInspVideoResults');
+            grid.innerHTML = '';
+            
+            const term = searchInput.value.toLowerCase();
+            const filtered = term ? inspirationFeed.filter(c => c.title.toLowerCase().includes(term)) : inspirationFeed;
+
+            if (filtered.length === 0) { empty.classList.remove('hidden'); return; }
+            empty.classList.add('hidden');
+            
+            // Popoliamo la select per aggiungere video
+            const selectCh = document.getElementById('inputInspVideoChannel');
+            selectCh.innerHTML = '<option value="">— Seleziona Canale —</option>';
+            inspirationChannels.forEach(c => selectCh.innerHTML += `<option value="${c.name}">${c.name}</option>`);
+
+            filtered.forEach(vid => {
+                const card = document.createElement('div');
+                card.className = 'bg-[#212121] rounded-xl overflow-hidden border border-[#303030] hover:border-[#a855f7] transition-colors flex flex-col group relative cursor-pointer';
+                card.onclick = () => window.open(vid.url, '_blank');
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '🗑️';
+                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center shadow-lg transform hover:scale-110';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi eliminare il video dal feed?`, async () => {
+                        inspirationFeed = inspirationFeed.filter(t => t.id !== vid.id);
+                        renderInspVideos();
+                        autoSaveToCloud();
+                    });
+                };
+
+                card.innerHTML = `
+                    <div class="relative aspect-video bg-[#111]">
+                        <img src="https://img.youtube.com/vi/${vid.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${vid.ytId}/hqdefault.jpg'" class="w-full h-full object-cover pointer-events-none">
+                        <div class="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[11px] font-bold text-[#a855f7] uppercase border border-[#444] shadow">${vid.channelName}</div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h3 class="font-bold text-white text-sm line-clamp-2 leading-tight group-hover:text-[#a855f7] transition-colors">${vid.title}</h3>
+                    </div>
+                `;
+                card.appendChild(deleteBtn);
+                grid.appendChild(card);
+            });
+        }
+        
+        // Aggiunta Canale Inspiration
+        let selectedInspAvatar = null;
+        document.getElementById('inputInspFile').addEventListener('change', (e) => selectedInspAvatar = e.target.files[0]);
+        
+        document.getElementById('inspChannelForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            if (!selectedInspAvatar) { alert('Carica un avatar.'); return; }
+            
+            submitBtn.disabled = true; submitBtn.textContent = '🔄 Elaborazione...';
+
+            const name = document.getElementById('inputInspName').value.trim();
+            const link = document.getElementById('inputInspLink').value.trim();
+            const subs = document.getElementById('inputInspSubs').value.trim();
+            const views = document.getElementById('inputInspViews').value.trim();
+            const freq = document.getElementById('inputInspFreq').value.trim();
+            const trend = document.getElementById('inputInspTrend').value.trim();
+
+            let finalAvatarUrl = "";
+            const ext = selectedInspAvatar.name.split('.').pop().toLowerCase();
+            const compressedImg = await compressImage(selectedInspAvatar, 400, 0.85, 'image/jpeg');
+
+            if (SCRIPT_URL) {
+                try {
+                    const res = await callScriptAction({ action: 'uploadEHFile', base64: compressedImg.base64, mimeType: 'image/jpeg', fileName: `insp_avatar_${Date.now()}.${ext}` });
+                    if(res.fileId) finalAvatarUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w400`;
+                } catch(e) {}
+            }
+
+            if(!finalAvatarUrl) finalAvatarUrl = compressedImg.dataUrl;
+
+            inspirationChannels.push({ id: Date.now().toString(), name, url: link, subs, views, freq, trend, avatar: finalAvatarUrl });
+            
+            renderInspChannels();
+            closeModal('addInspChannelModal', 'inspChannelForm');
+            selectedInspAvatar = null;
+            
+            submitBtn.disabled = false; submitBtn.textContent = 'Salva Canale';
+            autoSaveToCloud();
+        });
+        
+        // Aggiunta Video Inspiration Feed
+        document.getElementById('inspVideoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            const channelName = document.getElementById('inputInspVideoChannel').value;
+            const title = document.getElementById('inputInspVideoTitle').value.trim();
+            const link = document.getElementById('inputInspVideoLink').value.trim();
+            const ytId = getYouTubeID(link);
+
+            if (!ytId) { alert("Link YouTube non valido."); return; }
+
+            inspirationFeed.unshift({ id: Date.now().toString(), channelName, title, url: link, ytId });
+            
+            renderInspVideos();
+            closeModal('addInspVideoModal', 'inspVideoForm');
+            autoSaveToCloud();
+        });
 
         // =============================================
-        //  RENDER EDITORS HUB (SFX & MUSIC + AUDIO PLAYER)
+        //  RENDER EDITORS HUB (SFX & MUSIC + AUDIO IFRAME PLAYER)
         // =============================================
         const noEHResults = document.getElementById('noEHResults');
-        let selectedEHFile = null;
 
         function switchEHTab(tabName) {
             currentEHTab = tabName;
@@ -2374,33 +2536,6 @@
             }
             return originalLink;
         }
-
-        // Funzione helper per non ricaricare tutto l'HTML solo per un'icona
-        function updateAudioUI() {
-            document.querySelectorAll('.eh-play-trigger').forEach(trigger => {
-                const id = trigger.dataset.id;
-                const mainIcon = trigger.querySelector('.eh-icon-main');
-                const playIcon = trigger.querySelector('.eh-play-icon');
-                
-                if (id === currentlyPlayingEHId && !globalAudioPlayer.paused) {
-                    mainIcon.className = 'eh-icon-main hidden';
-                    playIcon.className = 'eh-play-icon block text-[#3ea6ff] text-sm';
-                    playIcon.textContent = '⏸️';
-                } else {
-                    mainIcon.className = 'eh-icon-main group-hover/audio:hidden';
-                    playIcon.className = 'eh-play-icon hidden group-hover/audio:block text-[#3ea6ff] text-sm';
-                    playIcon.textContent = '▶️';
-                }
-            });
-        }
-
-        // Eventi globali per la traccia audio
-        globalAudioPlayer.addEventListener('ended', () => {
-            currentlyPlayingEHId = null;
-            updateAudioUI();
-        });
-        globalAudioPlayer.addEventListener('pause', updateAudioUI);
-        globalAudioPlayer.addEventListener('play', updateAudioUI);
 
         function renderEditorsHub() {
             ehGrid.innerHTML = '';
@@ -2430,7 +2565,6 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare il file "${item.title}" dall'Editors Hub?`, async () => {
                         editorsHubData = editorsHubData.filter(t => t.id !== item.id);
-                        if(currentlyPlayingEHId === item.id) globalAudioPlayer.pause();
                         renderEditorsHub();
                         await autoSaveToCloud();
                     });
@@ -2461,51 +2595,52 @@
                     `;
                 }
 
-                // Determiniamo lo stato visivo basandoci sulla funzione helper
-                const isPlaying = currentlyPlayingEHId === item.id && !globalAudioPlayer.paused;
-                const mainIconClass = isPlaying ? 'hidden' : 'group-hover/audio:hidden';
-                const playIconClass = isPlaying ? 'block' : 'hidden group-hover/audio:block';
-                const playIconText = isPlaying ? '⏸️' : '▶️';
-
                 card.innerHTML = `
-                    <div class="flex items-start gap-3 mb-4">
-                        <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" data-id="${item.id}" title="Clicca per ascoltare l'anteprima">
-                            <span class="eh-icon-main ${mainIconClass}">${icon}</span>
-                            <span class="eh-play-icon ${playIconClass} text-[#3ea6ff] text-sm">${playIconText}</span>
+                    <div class="flex items-start gap-3 mb-2 relative">
+                        <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" title="Mostra Anteprima Drive">
+                            <span class="eh-icon-main group-hover/audio:hidden">${icon}</span>
+                            <span class="eh-play-icon hidden group-hover/audio:block text-[#3ea6ff] text-sm">▶️</span>
                         </div>
                         <div class="flex flex-col pr-6 flex-1">
                             <h3 class="font-bold text-white text-sm leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
                             <span class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">${item.category === 'sfx' ? 'Sound Effect' : 'Audio Track'}</span>
                         </div>
                     </div>
-                    <div class="mt-auto pt-2 flex w-full">
+                    
+                    <div class="eh-iframe-container hidden w-full h-12 mt-1 mb-3 rounded overflow-hidden"></div>
+                    
+                    <div class="mt-auto pt-2 flex w-full border-t border-[#303030]">
                         ${actionHtml}
                     </div>
                 `;
                 
-                // Logica Audio Perfetta (Senza ricaricare il DOM)
+                // AUDIO IFRAME PLAYER BYPASS (100% Affidabile)
                 const playTrigger = card.querySelector('.eh-play-trigger');
+                const iframeContainer = card.querySelector('.eh-iframe-container');
+                
                 playTrigger.onclick = (e) => {
                     e.stopPropagation();
                     
-                    if (currentlyPlayingEHId === item.id) {
-                        if (globalAudioPlayer.paused) {
-                            globalAudioPlayer.play().catch(err => devLog(`[AUDIO] Impossibile riprodurre: ${err.message}`, "error"));
-                        } else {
-                            globalAudioPlayer.pause();
-                        }
-                    } else {
-                        // Resetta eventuali player attivi
-                        if (currentlyPlayingEHId) updateAudioUI();
+                    if (iframeContainer.classList.contains('hidden')) {
+                        // Chiudi tutti gli altri
+                        document.querySelectorAll('.eh-iframe-container').forEach(c => { c.classList.add('hidden'); c.innerHTML = ''; });
+                        document.querySelectorAll('.eh-play-icon').forEach(i => i.textContent = '▶️');
+                        document.querySelectorAll('.eh-icon-main').forEach(i => i.classList.remove('hidden'));
                         
-                        const audioUrl = getDirectDownloadLink(item.fileId, item.link);
-                        globalAudioPlayer.src = audioUrl;
-                        globalAudioPlayer.play().catch(err => {
-                            devLog(`[AUDIO ERRORE] Google Drive ha bloccato lo streaming. L'audio va scaricato per essere ascoltato.`, "error");
-                            currentlyPlayingEHId = null;
-                            updateAudioUI();
-                        });
-                        currentlyPlayingEHId = item.id;
+                        // Apri questo
+                        iframeContainer.classList.remove('hidden');
+                        card.querySelector('.eh-icon-main').classList.add('hidden');
+                        card.querySelector('.eh-play-icon').classList.remove('hidden');
+                        card.querySelector('.eh-play-icon').textContent = '⏹️'; // Quadratino stop
+                        
+                        // Bypass: iframe diretto a Drive
+                        iframeContainer.innerHTML = `<iframe src="https://drive.google.com/file/d/${item.fileId}/preview" width="100%" height="50" style="border:none; margin-top:-10px;"></iframe>`;
+                    } else {
+                        // Chiudi
+                        iframeContainer.classList.add('hidden');
+                        iframeContainer.innerHTML = '';
+                        card.querySelector('.eh-icon-main').classList.remove('hidden');
+                        card.querySelector('.eh-play-icon').textContent = '▶️';
                     }
                 };
 
@@ -2532,6 +2667,7 @@
             });
         }
 
+        let selectedEHFile = null;
         document.getElementById('inputEHFile').addEventListener('change', (e) => {
             const file = e.target.files[0]; 
             if (!file) return;
@@ -2611,7 +2747,6 @@
             document.getElementById('statProgressIdeas').textContent = p;
             document.getElementById('statCompletedIdeas').textContent = c;
 
-            // Generate Insights
             const insightsList = document.getElementById('statsInsightsList');
             insightsList.innerHTML = '';
             let insights = [];
@@ -2635,7 +2770,6 @@
                 insightsList.appendChild(li);
             });
 
-            // Generate Team Performance
             const teamBody = document.getElementById('teamPerformanceBody');
             teamBody.innerHTML = '';
             
@@ -2659,7 +2793,6 @@
                 teamBody.appendChild(tr);
             });
 
-            // Generate Timeline
             const timelineContainer = document.getElementById('timelineContainer');
             timelineContainer.innerHTML = '';
             
@@ -2705,7 +2838,7 @@
             const sizeIdeas = parseFloat(getStringSizeInKB(JSON.stringify(videoIdeas)));
             const sizeTools = parseFloat(getStringSizeInKB(JSON.stringify(toolsData)));
             const sizeChannels = parseFloat(getStringSizeInKB(JSON.stringify(channels)));
-            const sizeOther = parseFloat(getStringSizeInKB(JSON.stringify(trainingData))) + parseFloat(getStringSizeInKB(JSON.stringify(editorsHubData)));
+            const sizeOther = parseFloat(getStringSizeInKB(JSON.stringify(trainingData))) + parseFloat(getStringSizeInKB(JSON.stringify(editorsHubData))) + parseFloat(getStringSizeInKB(JSON.stringify(inspirationChannels)));
             
             const totalKB = sizeIdeas + sizeTools + sizeChannels + sizeOther;
             const totalMB = (totalKB / 1024).toFixed(2);
@@ -2733,21 +2866,10 @@
             const heavyItems = [];
             const threshold = 1000; 
             
-            videoIdeas.forEach(i => {
-                if (i.thumbnail && i.thumbnail.length > threshold) {
-                    heavyItems.push({ type: 'Idea', id: i.id, title: i.title, size: getStringSizeInKB(i.thumbnail), ref: i, arrayRef: videoIdeas });
-                }
-            });
-            toolsData.forEach(t => {
-                if (t.image && t.image.length > threshold) {
-                    heavyItems.push({ type: 'Tool', id: t.id, title: t.title, size: getStringSizeInKB(t.image), ref: t, arrayRef: toolsData });
-                }
-            });
-            channels.forEach(c => {
-                if (c.profilePicUrl && c.profilePicUrl.length > threshold) {
-                    heavyItems.push({ type: 'Canale', id: c.id, title: c.name, size: getStringSizeInKB(c.profilePicUrl), ref: c, arrayRef: channels });
-                }
-            });
+            videoIdeas.forEach(i => { if (i.thumbnail && i.thumbnail.length > threshold) { heavyItems.push({ type: 'Idea', id: i.id, title: i.title, size: getStringSizeInKB(i.thumbnail), ref: i, arrayRef: videoIdeas }); } });
+            toolsData.forEach(t => { if (t.image && t.image.length > threshold) { heavyItems.push({ type: 'Tool', id: t.id, title: t.title, size: getStringSizeInKB(t.image), ref: t, arrayRef: toolsData }); } });
+            channels.forEach(c => { if (c.profilePicUrl && c.profilePicUrl.length > threshold) { heavyItems.push({ type: 'Canale', id: c.id, title: c.name, size: getStringSizeInKB(c.profilePicUrl), ref: c, arrayRef: channels }); } });
+            inspirationChannels.forEach(c => { if (c.avatar && c.avatar.length > threshold) { heavyItems.push({ type: 'Insp. Canale', id: c.id, title: c.name, size: getStringSizeInKB(c.avatar), ref: c, arrayRef: inspirationChannels }); } });
 
             heavyItems.sort((a, b) => parseFloat(b.size) - parseFloat(a.size));
 
@@ -2767,7 +2889,7 @@
                     
                     let badgeClass = 'bg-blue-900/30 text-blue-400 border-blue-500/30';
                     if (item.type === 'Tool') badgeClass = 'bg-purple-900/30 text-purple-400 border-purple-500/30';
-                    if (item.type === 'Canale') badgeClass = 'bg-yellow-900/30 text-yellow-400 border-yellow-500/30';
+                    if (item.type === 'Canale' || item.type.includes('Insp')) badgeClass = 'bg-yellow-900/30 text-yellow-400 border-yellow-500/30';
 
                     let sizeClass = 'text-yellow-400 font-bold';
                     if (parseFloat(item.size) > 500) sizeClass = 'text-red-500 font-black';
@@ -2780,7 +2902,7 @@
                         <td class="px-5 py-3 ${sizeClass}">${item.size} KB</td>
                         <td class="px-5 py-3 text-right">
                             <button class="delete-heavy-btn text-xs bg-red-900/40 hover:bg-red-600 text-red-400 hover:text-white px-3 py-1.5 rounded transition-colors font-bold">
-                                Elimina Elemento
+                                Elimina
                             </button>
                         </td>
                     `;
@@ -2805,7 +2927,6 @@
         // =============================================
         //  ADMIN PANEL & IMPOSTAZIONI
         // =============================================
-        
         document.getElementById('settingsBtn').addEventListener('click', () => {
             document.getElementById('scriptUrlInput').value = SCRIPT_URL;
             document.getElementById('settingsModal').classList.remove('hidden'); 
@@ -2820,7 +2941,6 @@
         document.getElementById('saveSettingsBtn').addEventListener('click', () => {
             SCRIPT_URL = document.getElementById('scriptUrlInput').value.trim(); 
             localStorage.setItem('creatorhub_script_url', SCRIPT_URL);
-
             document.getElementById('settingsModal').classList.add('hidden'); 
             document.getElementById('settingsModal').classList.remove('flex');
             loadDataFromCloud(); 
