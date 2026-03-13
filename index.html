@@ -644,6 +644,67 @@
             </div>
         </div>
     </div>
+    
+    <!-- MODAL MODIFICA IDEA -->
+    <div id="editIdeaModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
+        <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
+                <h2 class="text-lg font-bold flex items-center gap-2">✏️ Modifica Idea</h2>
+                <button onclick="closeModal('editIdeaModal', 'editIdeaForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <form id="editIdeaForm" class="space-y-4">
+                    <input type="hidden" id="editIdeaId">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Titolo del Video</label>
+                        <input type="text" id="editIdeaTitle" required class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Link Repository Drive</label>
+                        <input type="url" id="editIdeaDriveLink" placeholder="https://drive.google.com/..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div id="editIdeaAssigneeContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Assegnato a</label>
+                        <select id="editIdeaAssignee" class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
+                            <option value="">Nessuno</option>
+                            <option value="DG">DG</option>
+                            <option value="Tomas">Tomas</option>
+                            <option value="Pierò">Pierò</option>
+                            <option value="GFS">GFS</option>
+                            <option value="Noemi">Noemi</option>
+                            <option value="Alex">Alex</option>
+                            <option value="Davide">Davide</option>
+                            <option value="Rog">Rog</option>
+                            <option value="Camel">Camel</option>
+                            <option value="Gatti">Gatti</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Sostituisci Copertina</label>
+                        <div class="flex items-center gap-4">
+                            <div class="w-24 h-14 rounded overflow-hidden bg-[#0f0f0f] border border-[#404040] shrink-0">
+                                <img id="editIdeaThumbPreview" src="" class="w-full h-full object-cover hidden">
+                                <div id="editIdeaThumbDropHint" class="w-full h-full flex items-center justify-center text-xs text-gray-500">Attuale</div>
+                            </div>
+                            <div class="flex-1">
+                                <label for="editIdeaThumbFile" class="block w-full cursor-pointer bg-[#0f0f0f] border border-dashed border-[#404040] hover:border-blue-500 rounded-lg px-3 py-2 text-center text-sm text-gray-400 hover:text-gray-200 transition-all">
+                                    Scegli Nuova
+                                </label>
+                                <input type="file" id="editIdeaThumbFile" accept="image/*" class="hidden">
+                                <p id="editIdeaThumbFileName" class="text-[10px] text-gray-500 mt-1 hidden"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
+                        <button type="button" onclick="closeModal('editIdeaModal', 'editIdeaForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-bold transition-colors">
+                            Salva Modifiche ⚡
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- MODAL AGGIUNGI STRUMENTO -->
     <div id="addToolModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
@@ -926,17 +987,46 @@
         let SCRIPT_URL = localStorage.getItem('creatorhub_script_url') || "";
 
         // =============================================
-        //  FUNZIONI DI SUPPORTO TROUBLESHOOTING E CALCOLO DB
+        //  FUNZIONI DI SUPPORTO E YOUTUBE TIME AGO
         // =============================================
         function getBase64SizeInKB(base64Str) {
             if(!base64Str) return 0;
             return ((base64Str.length * 3 / 4) / 1024).toFixed(2);
         }
         
-        // Calcola in modo preciso i byte effettivi di una stringa/JSON
         function getStringSizeInKB(str) {
             if(!str) return 0;
             return (new Blob([str]).size / 1024).toFixed(2);
+        }
+
+        // Funzione per mostrare il tempo trascorso (stile YouTube)
+        function timeSince(dateValue) {
+            const date = new Date(dateValue);
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return "pochi secondi fa";
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " anno fa" : " anni fa");
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " mese fa" : " mesi fa");
+            interval = seconds / 604800;
+            if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " settimana fa" : " settimane fa");
+            interval = seconds / 86400;
+            if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " giorno fa" : " giorni fa");
+            interval = seconds / 3600;
+            if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " ora fa" : " ore fa");
+            interval = seconds / 60;
+            if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? " minuto fa" : " minuti fa");
+            return "pochi secondi fa";
+        }
+
+        // Funzione per randomizzare un array (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
         }
 
         const consoleOutput = document.getElementById('consoleOutput');
@@ -984,7 +1074,6 @@
                 document.getElementById('loginOverlay').classList.remove('flex');
                 document.getElementById('adminBtn').textContent = user.substring(0, 2).toUpperCase();
                 
-                // Avvia il caricamento del database solo DOPO il login (se il link è presente)
                 if (SCRIPT_URL) loadDataFromCloud();
                 else {
                     switchView('idee');
@@ -1102,13 +1191,11 @@
         let currentView = 'idee'; 
         let currentEHTab = 'sfx'; 
         
-        // NUOVO: Cache per velocizzare il controllo delle cartelle Drive
         let folderStatusCache = {};
+        let randomIdeaOrder = []; // Array di appoggio per mantenere l'ordine randomico fisso tra un refresh e l'altro
         
         const TEAM_MEMBERS = ["DG", "Tomas", "Pierò", "GFS", "Noemi", "Alex", "Davide", "Rog", "Camel", "Gatti"];
-        
         let downloadedEHFiles = JSON.parse(localStorage.getItem('creatorhub_eh_downloads') || '[]');
-        
         const CHANNEL_COLORS = ['#3ea6ff','#ff4e4e','#4ade80','#facc15','#f97316','#a855f7','#ec4899','#14b8a6','#f59e0b','#6366f1','#84cc16','#06b6d4'];
 
         // =============================================
@@ -1131,10 +1218,8 @@
         let currentlyOpenIdeaId = null;
 
         // =============================================
-        //  COMPRESSIONE IMMAGINI (MEGA OTTIMIZZAZIONE TEMPI E SPAZIO DB)
+        //  COMPRESSIONE IMMAGINI
         // =============================================
-        // maxQuality = qualità di output (es. 0.7 per 70%)
-        // targetFormat = 'image/jpeg' per Drive, 'image/webp' per DB locale (più leggero)
         function compressImage(file, maxWidth = 1280, quality = 0.7, targetFormat = 'image/jpeg') {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -1168,12 +1253,11 @@
         }
 
         // =============================================
-        //  VIEWS SWITCHER
+        //  VIEWS SWITCHER E MODALI
         // =============================================
         function switchView(view) {
             currentView = view;
             
-            // Sidebar styles
             document.getElementById('navIdee').classList.remove('active');
             document.getElementById('navStrumenti').classList.remove('active');
             document.getElementById('navFormazione').classList.remove('active');
@@ -1181,7 +1265,6 @@
             document.getElementById('navStats').classList.remove('active');
             document.getElementById('navDatabase').classList.remove('active');
             
-            // Sections visibility
             document.getElementById('viewIdeeWrapper').classList.add('hidden');
             document.getElementById('viewStrumentiWrapper').classList.add('hidden');
             document.getElementById('viewFormazioneWrapper').classList.add('hidden');
@@ -1230,7 +1313,7 @@
                 document.getElementById('viewStatsWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Dashboard & Statistiche';
                 pageSubtitle.textContent = 'Analisi delle performance e andamento del canale.';
-                mainActionText.textContent = 'Crea Idea'; // Fallback
+                mainActionText.textContent = 'Crea Idea'; 
                 mainActionBtn.onclick = () => { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); };
                 renderStats();
             }
@@ -1267,6 +1350,11 @@
                 document.getElementById('ehDropHint').classList.remove('hidden');
                 selectedEHFile = null;
             }
+            if(modalId === 'editIdeaModal') {
+                document.getElementById('editIdeaThumbPreview').src = '';
+                document.getElementById('editIdeaThumbFileName').classList.add('hidden');
+                selectedEditIdeaThumbFile = null;
+            }
         }
 
         // =============================================
@@ -1282,8 +1370,12 @@
         }
 
         function getFilteredIdeas() {
-            let filtered = videoIdeas;
-            if (activeChannelId !== null) filtered = filtered.filter(v => v.channelId === activeChannelId);
+            let filtered = [...videoIdeas];
+            
+            if (activeChannelId !== null) {
+                filtered = filtered.filter(v => v.channelId === activeChannelId);
+            }
+            
             const term = searchInput.value.toLowerCase();
             if (term) filtered = filtered.filter(v => v.title.toLowerCase().includes(term));
             
@@ -1296,6 +1388,18 @@
                     return stat === activeStatusFilter;
                 });
             }
+            
+            // Randomizza l'ordine solo se siamo su "Tutte le idee" senza ricerche attive
+            if (activeChannelId === null && !term && activeStatusFilter === 'all') {
+                filtered.sort((a, b) => {
+                    let indexA = randomIdeaOrder.indexOf(a.id);
+                    let indexB = randomIdeaOrder.indexOf(b.id);
+                    if(indexA === -1) indexA = 999999;
+                    if(indexB === -1) indexB = 999999;
+                    return indexA - indexB;
+                });
+            }
+            
             return filtered;
         }
 
@@ -1338,92 +1442,50 @@
         }
 
         // =============================================
-        //  API CALLS (SUPER OTTIMIZZATE E LOGGATE)
+        //  API CALLS E SINCRONIZZAZIONE
         // =============================================
         async function callScriptAction(bodyObj) {
             const reqSizeKB = getBase64SizeInKB(JSON.stringify(bodyObj));
-            devLog(`[API] 📡 Invio POST per azione: <span class="text-blue-400 font-bold">${bodyObj.action}</span> (Grandezza richiesta: ~${reqSizeKB} KB)`, "info");
+            devLog(`[API] 📡 Invio POST per azione: <span class="text-blue-400 font-bold">${bodyObj.action}</span> (Grandezza: ~${reqSizeKB} KB)`, "info");
             
             const startTime = performance.now();
             try {
-                const res = await fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify(bodyObj), 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' } // Previene preflight CORS
-                });
-                
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(bodyObj), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
                 const endTime = performance.now();
-                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-                devLog(`[API] ✅ Server Google ha risposto in ${timeTaken} secondi (HTTP Status: ${res.status})`, "success");
+                devLog(`[API] ✅ Server Google ha risposto in ${((endTime - startTime) / 1000).toFixed(2)}s`, "success");
                 
                 const data = await res.json();
-                
-                if(data.status === 'error') {
-                    throw new Error(data.message);
-                }
-                
-                devLog(`[API] 🟢 Azione elaborata con successo.`, "success");
+                if(data.status === 'error') throw new Error(data.message);
                 return data;
             } catch(e) { 
-                if (e.message.includes('Failed to fetch')) {
-                    devLog(`[API ERROR FATALE] 🚨 Il browser ha bloccato la connessione. Questo accade perché Google Apps Script sta chiedendo un login e il browser non lo permette. Metti "Esegui Come: Me" e "Accesso: Chiunque".`, "error");
-                } else {
-                    devLog(`[API ERROR] ❌ Si è verificato un errore durante ${bodyObj.action}: ${e.message}`, "error");
-                }
+                devLog(`[API ERROR] ❌ Errore durante ${bodyObj.action}: ${e.message}`, "error");
                 throw e; 
             }
         }
 
         async function checkAllChannelFolders() {
             if (!SCRIPT_URL) return;
-            
-            // MEGA OTTIMIZZAZIONE: Filtro solo gli ID delle cartelle che NON sono ancora in cache
-            const idsToCheck = channels
-                .filter(c => c.driveFolderId && typeof folderStatusCache[c.driveFolderId] === 'undefined')
-                .map(c => c.driveFolderId);
-            
-            // Se tutti i canali sono già stati verificati in questa sessione, salta la chiamata API!
+            const idsToCheck = channels.filter(c => c.driveFolderId && typeof folderStatusCache[c.driveFolderId] === 'undefined').map(c => c.driveFolderId);
             if (idsToCheck.length === 0) return; 
             
-            devLog(`[SYNC] 🔎 Controllo stato di ${idsToCheck.length} nuove cartelle su Drive...`, "info");
             try {
                 const res = await callScriptAction({ action: 'checkFolders', folderIds: idsToCheck });
-                const results = res.results || {};
-                
-                // Salvo i risultati nella cache per non doverli più chiedere a Google
-                Object.assign(folderStatusCache, results);
-                
-                // Aggiorno visivamente solo le icone nella sidebar senza ricaricare tutto l'HTML
+                Object.assign(folderStatusCache, res.results || {});
                 channels.forEach(ch => {
                     const icon = channelListEl.querySelector(`.folder-status-icon[data-chid="${ch.id}"]`);
                     if (!icon || !ch.driveFolderId) return;
-                    
-                    if (folderStatusCache[ch.driveFolderId] === true) {
-                        icon.textContent = '✅'; icon.title = 'Cartella OK';
-                    } else if (folderStatusCache[ch.driveFolderId] === false) {
-                        icon.textContent = '⚠️'; icon.title = 'Cartella mancante o permessi insufficienti';
-                    }
+                    if (folderStatusCache[ch.driveFolderId] === true) { icon.textContent = '✅'; icon.title = 'Cartella OK'; } 
+                    else if (folderStatusCache[ch.driveFolderId] === false) { icon.textContent = '⚠️'; icon.title = 'Errore cartella'; }
                 });
-                devLog(`[SYNC] ✅ Controllo cartelle completato e salvato in cache.`, "success");
-            } catch(e) { 
-                devLog(`[SYNC ERROR] Errore nel controllo cartelle: ${e.message}`, "error"); 
-            } 
+            } catch(e) {} 
         }
 
         async function loadDataFromCloud() {
             if (!SCRIPT_URL) return;
             updateStatus("Sincronizzazione...", "warning");
-            devLog(`[DB SYNC] 🌐 Avvio download database dal Cloud...`, "info");
-            
-            const startTime = performance.now();
             try {
                 const response = await fetch(SCRIPT_URL);
-                const fetchTime = performance.now();
-                devLog(`[DB SYNC] 📥 Connessione stabilita e dati ricevuti in ${((fetchTime - startTime)/1000).toFixed(2)}s (HTTP: ${response.status})`, "info");
-                
                 const raw = await response.json();
-                const parseTime = performance.now();
-                devLog(`[DB SYNC] 🟢 JSON decodificato in ${((parseTime - fetchTime)/1000).toFixed(2)}s. Analisi dati...`, "success");
                 
                 videoIdeas = Array.isArray(raw.ideas) ? raw.ideas : (Array.isArray(raw) ? raw : []);
                 channels = Array.isArray(raw.channels) ? raw.channels : [];
@@ -1431,24 +1493,15 @@
                 trainingData = Array.isArray(raw.training) ? raw.training : [];
                 editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
                 
-                // Controlliamo il peso dei dati in cache per avvisare l'utente se ha DB enormi
-                const totalCacheSize = getStringSizeInKB(JSON.stringify(raw));
-                if (totalCacheSize > 2000) {
-                     devLog(`[DB WARNING] ⚠️ Il tuo database pesa ${totalCacheSize} KB (Più di 2 MB!). Vai nella nuova scheda 'Analisi Database' per pulirlo.`, "warning");
-                }
-                
                 updateStatus("🟢 Sincronizzato con Drive", "success");
-                devLog(`[DB SYNC] 📊 Trovate ${videoIdeas.length} Idee, ${channels.length} Canali. Operazione completata in totale: ${((parseTime - startTime)/1000).toFixed(2)}s.`, "success");
+                
+                // Genera un ordine random di partenza per "Tutte le idee"
+                randomIdeaOrder = shuffleArray([...videoIdeas]).map(v => v.id);
                 
                 renderChannelList();
                 if(document.getElementById('adminModal').classList.contains('flex')) renderAdminChannelList(); 
                 switchView(currentView); 
             } catch (error) {
-                if (error.message.includes('Failed to fetch')) {
-                    devLog(`[DB SYNC FATAL ERROR] 🚨 Impossibile connettersi (Failed to fetch). Hai sbagliato la configurazione su Google Script. Devi pubblicare lo script come: ESEGUI COME: ME e ACCESSO: CHIUNQUE. Altrimenti Google blocca la lettura!`, "error");
-                } else {
-                    devLog(`[DB SYNC ERROR] ❌ Errore durante il download dal DB: ${error.message}`, "error");
-                }
                 updateStatus("Errore Connessione", "error");
             }
         }
@@ -1456,38 +1509,14 @@
         async function autoSaveToCloud() {
             if (!SCRIPT_URL) return;
             updateStatus("Salvataggio...", "warning");
-            
             const payload = { ideas: videoIdeas, channels: channels, tools: toolsData, training: trainingData, editorsHub: editorsHubData };
-            const payloadStr = JSON.stringify(payload);
-            const sizeKB = getStringSizeInKB(payloadStr);
-            
-            devLog(`[DB SAVE] 📤 Inizio salvataggio... Peso totale del Database da sovrascrivere: ${sizeKB} KB`, "info");
-            
-            // BLOCCO SICUREZZA: Evita di inviare file mostruosi a GS
-            if (sizeKB > 50000) {
-                 devLog(`[DB SAVE ERROR] ❌ ERRORE CRITICO: Il Database ha superato i 50 MB. Il salvataggio è bloccato per evitare il crash del server Google. Elimina le immagini non compresse dai tool o dalle idee.`, "error");
-                 updateStatus("DB Troppo Grande", "error");
-                 return;
-            } else if (sizeKB > 5000) {
-                devLog(`[DB SAVE ATTENZIONE] ⚠️ Il Database è enorme (>${(sizeKB/1024).toFixed(2)} MB). Il salvataggio impiegherà molto tempo! Cerca di usare link Drive al posto di salvare immagini nel DB.`, "warning");
-            }
-            
-            const startTime = performance.now();
             try {
-                // Esecuzione "Non Bloccante": il sito non si congela in attesa della risposta
                 callScriptAction({ action: 'saveDB', data: payload }).then(() => {
-                    const endTime = performance.now();
-                    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
                     updateStatus("💾 Salvato!", "success");
-                    devLog(`[DB SAVE] 🟢 Database sovrascritto e salvato su Google Drive con successo in ${timeTaken} secondi.`, "success");
                     setTimeout(() => updateStatus("🟢 Sincronizzato", "success"), 2000);
                 }).catch(e => { throw e; });
-                
-                // Aggiorniamo subito lo status a vista per dare feedback istantaneo all'utente
                 updateStatus("Salvando in bg...", "warning"); 
-                
             } catch (error) {
-                devLog(`[DB SAVE ERROR] ❌ Fallimento critico nel salvataggio dei dati: ${error.message}`, "error");
                 updateStatus("Errore Auto-Save", "error");
             }
         }
@@ -1500,8 +1529,11 @@
             activeChannelId = channelId;
             document.getElementById('filterAll').classList.toggle('active', channelId === null);
             document.querySelectorAll('.channel-sidebar-item').forEach(el => el.classList.toggle('active', el.dataset.id === channelId));
+            
             if (channelId === null) {
                 pageTitle.textContent = 'Le tue Idee Video'; pageSubtitle.textContent = 'Tutte le idee su tutti i canali.';
+                // Rimescola l'array ogni volta che l'utente clicca di nuovo su "Tutte le idee"
+                randomIdeaOrder = shuffleArray([...videoIdeas]).map(v => v.id);
             } else {
                 const ch = channels.find(c => c.id === channelId);
                 pageTitle.textContent = ch ? ch.name : 'Canale'; pageSubtitle.textContent = `Idee del canale "${ch ? ch.name : ''}"`;
@@ -1520,19 +1552,10 @@
                     ? `<img src="${ch.profilePicUrl}" class="w-7 h-7 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="w-7 h-7 rounded-full bg-[#303030] items-center justify-center text-sm shrink-0 hidden border border-[#404040]">📺</div>`
                     : `<div class="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold border border-[#404040]" style="background:${ch.color || '#3ea6ff'}">${ch.name.charAt(0).toUpperCase()}</div>`;
 
-                // Legge lo stato direttamente dalla Cache, in modo istantaneo
-                let folderIcon = '⏳'; 
-                let folderTitle = 'Verifica cartella in corso...';
-                if (!ch.driveFolderId) { 
-                    folderIcon = '❓'; 
-                    folderTitle = 'Nessuna cartella Drive'; 
-                } else if (folderStatusCache[ch.driveFolderId] === true) { 
-                    folderIcon = '✅'; 
-                    folderTitle = 'Cartella OK'; 
-                } else if (folderStatusCache[ch.driveFolderId] === false) { 
-                    folderIcon = '⚠️'; 
-                    folderTitle = 'Errore cartella'; 
-                }
+                let folderIcon = '⏳'; let folderTitle = 'Verifica cartella in corso...';
+                if (!ch.driveFolderId) { folderIcon = '❓'; folderTitle = 'Nessuna cartella Drive'; } 
+                else if (folderStatusCache[ch.driveFolderId] === true) { folderIcon = '✅'; folderTitle = 'Cartella OK'; } 
+                else if (folderStatusCache[ch.driveFolderId] === false) { folderIcon = '⚠️'; folderTitle = 'Errore cartella'; }
 
                 const el = document.createElement('div');
                 el.className = `channel-item channel-sidebar-item flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${activeChannelId === ch.id ? 'active' : ''}`;
@@ -1546,7 +1569,6 @@
                 el.addEventListener('click', () => setActiveFilter(ch.id));
                 channelListEl.appendChild(el);
             });
-            
             checkAllChannelFolders();
         }
 
@@ -1555,10 +1577,7 @@
             const noChText = document.getElementById('adminNoChannels');
             list.innerHTML = '';
             
-            if(channels.length === 0) {
-                noChText.classList.remove('hidden');
-                return;
-            }
+            if(channels.length === 0) { noChText.classList.remove('hidden'); return; }
             noChText.classList.add('hidden');
 
             channels.forEach(ch => {
@@ -1584,12 +1603,11 @@
                 `;
                 
                 li.querySelector('.admin-del-ch').addEventListener('click', async () => {
-                    if(confirm(`Attenzione! Vuoi eliminare DEFINITIVAMENTE il canale "${ch.name}"? Le idee collegate rimarranno orfane.`)) {
+                    if(confirm(`Vuoi eliminare DEFINITIVAMENTE il canale "${ch.name}"?`)) {
                         videoIdeas = videoIdeas.map(v => v.channelId === ch.id ? {...v, channelId: ''} : v);
                         channels = channels.filter(c => c.id !== ch.id);
                         if (activeChannelId === ch.id) setActiveFilter(null);
-                        renderChannelList();
-                        renderAdminChannelList();
+                        renderChannelList(); renderAdminChannelList();
                         if (currentView === 'idee') renderVideos(getFilteredIdeas()); 
                         await autoSaveToCloud();
                     }
@@ -1598,20 +1616,14 @@
                 li.querySelector('.admin-edit-ch').addEventListener('click', () => {
                     document.getElementById('editChannelId').value = ch.id;
                     document.getElementById('editChannelName').value = ch.name;
-                    
                     const preview = document.getElementById('editChannelAvatarPreview');
-                    if (ch.profilePicUrl) {
-                        preview.innerHTML = `<img src="${ch.profilePicUrl}" class="w-full h-full object-cover rounded-full">`;
-                    } else {
-                        preview.innerHTML = '📺';
-                    }
+                    if (ch.profilePicUrl) preview.innerHTML = `<img src="${ch.profilePicUrl}" class="w-full h-full object-cover rounded-full">`;
+                    else preview.innerHTML = '📺';
                     document.getElementById('editChannelAvatar').value = '';
                     selectedEditChannelAvatarFile = null;
-                    
                     document.getElementById('editChannelModal').classList.remove('hidden');
                     document.getElementById('editChannelModal').classList.add('flex');
                 });
-
                 list.appendChild(li);
             });
         }
@@ -1641,41 +1653,23 @@
             if (!newName) return;
             
             const btn = document.getElementById('saveEditChannelBtn');
-            btn.disabled = true;
-            btn.textContent = 'Salvataggio...';
+            btn.disabled = true; btn.textContent = 'Salvataggio...';
 
             let chIndex = channels.findIndex(c => c.id === chId);
             if(chIndex > -1) {
                 channels[chIndex].name = newName;
-
                 if(selectedEditChannelAvatarFile && channels[chIndex].driveFolderId && SCRIPT_URL) {
                     try {
-                        btn.textContent = '🔄 Ottimizzazione...';
-                        devLog(`[CANALE] Compressione nuova PFP in corso...`, "info");
                         const compressedImg = await compressImage(selectedEditChannelAvatarFile, 400, 0.7);
-
-                        btn.textContent = '🖼️ Upload...';
-                        const resI = await callScriptAction({ 
-                            action: 'uploadProfilePicture', 
-                            folderId: channels[chIndex].driveFolderId, 
-                            base64: compressedImg.base64, 
-                            mimeType: compressedImg.mimeType, 
-                            ext: compressedImg.ext 
-                        });
-                        if(resI.fileId) {
-                            channels[chIndex].profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
-                        }
-                    } catch(e) { devLog(`Errore upload nuova PFP: ${e.message}`, "error"); }
+                        const resI = await callScriptAction({ action: 'uploadProfilePicture', folderId: channels[chIndex].driveFolderId, base64: compressedImg.base64, mimeType: compressedImg.mimeType, ext: compressedImg.ext });
+                        if(resI.fileId) channels[chIndex].profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
+                    } catch(e) {}
                 }
             }
 
-            renderChannelList(); 
-            renderAdminChannelList(); 
+            renderChannelList(); renderAdminChannelList(); 
             if (currentView === 'idee') renderVideos(getFilteredIdeas()); 
-            closeModal('editChannelModal'); 
-            btn.disabled = false; 
-            btn.textContent = 'Salva Modifiche'; 
-            await autoSaveToCloud();
+            closeModal('editChannelModal'); btn.disabled = false; btn.textContent = 'Salva Modifiche'; await autoSaveToCloud();
         });
 
 
@@ -1719,7 +1713,6 @@
                 btnAssign.onclick = async () => {
                     idea.assignee = select.value;
                     idea.assignedAt = new Date().toLocaleDateString('it-IT');
-                    devLog(`[TEAM] Idea "${idea.title}" presa in carico da ${idea.assignee}`, "success");
                     await autoSaveToCloud();
                     renderVideos(getFilteredIdeas()); 
                     openIdeaDashboard(idea); 
@@ -1739,10 +1732,7 @@
             document.getElementById('dashDeleteBtn').onclick = () => {
                 requirePin(`Vuoi eliminare definitivamente l'idea "${idea.title}"?`, async () => {
                     videoIdeas = videoIdeas.filter(v => v.id !== idea.id);
-                    devLog(`[IDEA] Eliminata dal database locale: "${idea.title}"`, "info");
-                    closeDashModal();
-                    renderVideos(getFilteredIdeas());
-                    await autoSaveToCloud();
+                    closeDashModal(); renderVideos(getFilteredIdeas()); await autoSaveToCloud();
                 });
             };
 
@@ -1806,6 +1796,118 @@
         }
 
         // =============================================
+        //  MODIFICA IDEA (NUOVA FUNZIONALITÀ)
+        // =============================================
+        let selectedEditIdeaThumbFile = null;
+
+        function openEditIdeaModal(idea) {
+            document.getElementById('editIdeaId').value = idea.id;
+            document.getElementById('editIdeaTitle').value = idea.title;
+            document.getElementById('editIdeaDriveLink').value = idea.driveLink || '';
+
+            // Assegnatario modificabile se già in progress
+            const assigneeContainer = document.getElementById('editIdeaAssigneeContainer');
+            if (idea.assignee) {
+                assigneeContainer.classList.remove('hidden');
+                document.getElementById('editIdeaAssignee').value = idea.assignee;
+            } else {
+                assigneeContainer.classList.add('hidden');
+                document.getElementById('editIdeaAssignee').value = "";
+            }
+
+            // Preview copertina attuale
+            const preview = document.getElementById('editIdeaThumbPreview');
+            const hint = document.getElementById('editIdeaThumbDropHint');
+            if (idea.thumbnail) {
+                preview.src = idea.thumbnail;
+                preview.classList.remove('hidden');
+                hint.classList.add('hidden');
+            } else {
+                preview.src = '';
+                preview.classList.add('hidden');
+                hint.classList.remove('hidden');
+            }
+            
+            document.getElementById('editIdeaThumbFileName').classList.add('hidden');
+            selectedEditIdeaThumbFile = null;
+
+            document.getElementById('editIdeaModal').classList.remove('hidden');
+            document.getElementById('editIdeaModal').classList.add('flex');
+        }
+
+        document.getElementById('editIdeaThumbFile').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            selectedEditIdeaThumbFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('editIdeaThumbPreview').src = ev.target.result;
+                document.getElementById('editIdeaThumbPreview').classList.remove('hidden');
+                document.getElementById('editIdeaThumbDropHint').classList.add('hidden');
+                document.getElementById('editIdeaThumbFileName').textContent = '📎 ' + file.name;
+                document.getElementById('editIdeaThumbFileName').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+
+        document.getElementById('editIdeaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type=submit]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Salvataggio in corso...';
+
+            const id = document.getElementById('editIdeaId').value;
+            const title = document.getElementById('editIdeaTitle').value.trim();
+            const driveLink = document.getElementById('editIdeaDriveLink').value.trim();
+            const assignee = document.getElementById('editIdeaAssignee').value;
+
+            let idea = videoIdeas.find(v => v.id === id);
+            if(idea) {
+                idea.title = title;
+                idea.driveLink = driveLink;
+                if (idea.assignee) {
+                    idea.assignee = assignee;
+                }
+
+                // Se l'utente ha scelto una nuova immagine
+                if (selectedEditIdeaThumbFile) {
+                    if (idea.ideaFolderId && SCRIPT_URL) {
+                        try {
+                            submitBtn.textContent = '🚀 Caricamento Copertina...';
+                            const compressedImg = await compressImage(selectedEditIdeaThumbFile, 1280, 0.95, 'image/jpeg');
+                            const origExt = selectedEditIdeaThumbFile.name.split('.').pop().toLowerCase();
+                            
+                            const resI = await callScriptAction({ 
+                                action: 'uploadThumbnail', 
+                                folderId: idea.ideaFolderId, 
+                                base64: compressedImg.base64, 
+                                mimeType: compressedImg.mimeType, 
+                                ext: compressedImg.ext,
+                                fileName: `thumbnail_HighRes.${origExt}` 
+                            });
+                            
+                            if (resI.fileId) {
+                                idea.thumbnail = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w400`;
+                            }
+                        } catch(err) {
+                            devLog(`[IDEA EDIT ERROR] Impossibile caricare la copertina su Drive.`, "error");
+                        }
+                    } else {
+                        // Fallback locale iper-compresso per proteggere il Database JSON
+                        const fallbackImg = await compressImage(selectedEditIdeaThumbFile, 600, 0.5, 'image/webp');
+                        idea.thumbnail = fallbackImg.dataUrl;
+                    }
+                }
+
+                renderVideos(getFilteredIdeas());
+                autoSaveToCloud();
+            }
+
+            closeModal('editIdeaModal', 'editIdeaForm');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Salva Modifiche ⚡';
+        });
+
+        // =============================================
         //  RENDER GRID (CARD ESTERNE - IDEE)
         // =============================================
         const noResultsElement  = document.getElementById('noResults');
@@ -1839,10 +1941,22 @@
                 card.className = 'flex flex-col gap-3 cursor-pointer group relative';
                 card.onclick = () => openIdeaDashboard(video);
 
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10';
+
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '✏️';
+                editBtn.className = 'bg-blue-600/90 hover:bg-blue-500 text-white text-xs w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform';
+                editBtn.title = 'Modifica Idea';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    openEditIdeaModal(video);
+                };
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
-                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center shadow-lg transform hover:scale-110';
-                
+                deleteBtn.className = 'bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform';
+                deleteBtn.title = 'Elimina Idea';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare definitivamente l'idea "${video.title}"?`, async () => {
@@ -1852,24 +1966,21 @@
                         await autoSaveToCloud();
                     });
                 };
+                
+                actionsContainer.appendChild(editBtn);
+                actionsContainer.appendChild(deleteBtn);
 
                 const fallbackImg = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop';
                 
-                // Generazione Minutaggio Pseudo-Randomizzato basato sull'ID dell'idea (da 8 a 22 min)
-                let hash = 0;
-                const strId = video.id.toString();
-                for (let i = 0; i < strId.length; i++) {
-                    hash = strId.charCodeAt(i) + ((hash << 5) - hash);
+                // Formatta il tempo alla YouTube
+                let timeAgoStr = video.timeAgo; // fallback ai vecchi dati
+                if (video.createdAt) {
+                    timeAgoStr = timeSince(video.createdAt);
                 }
-                hash = Math.abs(hash);
-                const randomMins = 8 + (hash % 15);
-                const randomSecs = hash % 60;
-                const durationStr = `${randomMins}:${randomSecs.toString().padStart(2, '0')}`;
 
                 card.innerHTML = `
                     <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#272727] border border-transparent group-hover:border-[#303030] transition-colors">
                         <img src="${video.thumbnail}" alt="Thumbnail" onerror="this.src='${fallbackImg}'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                        <div class="absolute bottom-1.5 right-1.5 bg-black/90 text-white text-[11px] font-bold px-1.5 py-0.5 rounded shadow">${durationStr}</div>
                         <div class="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[11px] font-bold ${bColor} uppercase border border-[#444] shadow">${bLabel}</div>
                     </div>
                     <div class="flex gap-3 pr-2">
@@ -1877,13 +1988,13 @@
                         <div class="flex flex-col">
                             <h3 class="text-[16px] font-semibold text-[#f1f1f1] line-clamp-2 leading-tight group-hover:text-[#3ea6ff] transition-colors" title="${video.title}">${video.title}</h3>
                             <div class="text-[12px] text-[#aaaaaa] mt-1 flex flex-col">
-                                <span>${channelName} &bull; ${video.timeAgo}</span>
+                                <span>${channelName} &bull; ${timeAgoStr}</span>
                                 <span class="mt-0.5">Resp: ${assigneeText}</span>
                             </div>
                         </div>
                     </div>
                 `;
-                card.appendChild(deleteBtn);
+                card.appendChild(actionsContainer);
                 gridElement.appendChild(card);
             });
         }
@@ -1896,7 +2007,7 @@
         });
 
         // =============================================
-        //  MODAL CREAZIONE IDEA (USANDO GS v25 - DOPPIA CHIAMATA IN PARALLELO)
+        //  MODAL CREAZIONE IDEA
         // =============================================
         let selectedThumbFile = null;
 
@@ -1949,12 +2060,9 @@
                     ideaFolderId = resF.folderId || '';
                     if (ideaFolderId) {
                         ideaFolderLink = `https://drive.google.com/drive/folders/${ideaFolderId}`;
-                        devLog(`[DRIVE] Cartella creata (ID: ${ideaFolderId})`, "success");
                         
                         submitBtn.textContent = '🚀 Upload Originale su Drive...';
                         const origExt = selectedThumbFile.name.split('.').pop().toLowerCase();
-                        const origSize = (selectedThumbFile.size / 1024).toFixed(2);
-                        devLog(`[DRIVE] Invio copertina ORIGINALE intatta (Peso: ${origSize} KB)...`, "info");
                         
                         const resI = await callScriptAction({ 
                             action: 'uploadThumbnail', 
@@ -1968,23 +2076,14 @@
                         if (resI.fileId) {
                             // Chiediamo a Drive una versione "LowRes" a 800px che non sgrana ma carica in un attimo sul sito
                             thumbnailUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w800`;
-                            devLog(`[DRIVE] Immagine HighRes salvata in cloud. Link LowRes per il sito generato.`, "success");
                         }
                     }
-                } catch(err) { 
-                    devLog(`[IDEA ERROR FATALE] ❌ Errore caricamento Drive: ${err.message}`, "error"); 
-                }
-            } else {
-                devLog(`[OFFLINE] Nessun Drive trovato. L'immagine verrà salvata in Database (Attenzione al peso!)`, "warning");
+                } catch(err) {}
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                devLog(`[ATTENZIONE DATABASE] Salvando immagine offline. Uso la versione LowRes creata in locale.`, "warning");
-                // Usiamo la versione 800px 85% creata prima
                 const compressedImg = await compressImage(selectedThumbFile, 800, 0.85, 'image/jpeg');
-                
                 if(compressedImg.sizeKB > 1500) {
-                     devLog(`[ERRORE OFFLINE] ❌ La versione LowRes pesa ancora ${compressedImg.sizeKB} KB. Operazione bloccata per proteggere il Database.`, "error");
                      submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
                      return;
                 }
@@ -2004,13 +2103,11 @@
             closeModal('addModal', 'ideaForm');
             submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
             
-            devLog(`[IDEA] Task aggiunto in UI. Avvio salvataggio DB in background (non blocca).`, "info");
-            // Il salvataggio cloud non ha l'await, quindi sblocca l'interfaccia subito
             autoSaveToCloud();
         });
 
         // =============================================
-        //  RENDER STRUMENTI & TOOLS (OTTIMIZZATI)
+        //  RENDER STRUMENTI & TOOLS
         // =============================================
         const noToolsResults = document.getElementById('noToolsResults');
 
@@ -2035,7 +2132,6 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare lo strumento "${tool.title}"?`, async () => {
                         toolsData = toolsData.filter(t => t.id !== tool.id);
-                        devLog(`[TOOL] Strumento eliminato: ${tool.title}`, "info");
                         renderTools();
                         await autoSaveToCloud();
                     });
@@ -2076,13 +2172,14 @@
             
             submitBtn.disabled = true; 
             submitBtn.textContent = '🔄 Ottimizzazione...';
-            devLog(`[TOOL] Avvio compressione super-leggera per evitare di bloccare il Database...`, "info");
 
-            // I tool non si salvano su Drive ma nel JSON, quindi usiamo WEBP super compresso
+            const title = document.getElementById('inputToolTitle').value.trim();
+            const description = document.getElementById('inputToolDesc').value.trim();
+            const link = document.getElementById('inputToolLink').value.trim();
+
             const compressedImg = await compressImage(selectedToolFile, 300, 0.6, 'image/webp');
             
              if(compressedImg.sizeKB > 500) {
-                     devLog(`[ERRORE TOOL] ❌ Il logo pesa troppo (${compressedImg.sizeKB} KB) per il DB. Usa un logo più semplice.`, "error");
                      submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
                      return;
              }
@@ -2099,8 +2196,6 @@
             
             submitBtn.disabled = false; 
             submitBtn.textContent = 'Salva Strumento';
-            
-            devLog(`[TOOL] Tool aggiunto. Avvio salvataggio DB in background.`, "info");
             autoSaveToCloud();
         });
 
@@ -2137,7 +2232,6 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare il video di formazione "${training.title}"?`, async () => {
                         trainingData = trainingData.filter(t => t.id !== training.id);
-                        devLog(`[TRAINING] Video rimosso: ${training.title}`, "info");
                         renderTraining();
                         await autoSaveToCloud();
                     });
@@ -2176,7 +2270,6 @@
             };
 
             trainingData.push(newTraining);
-            devLog(`[TRAINING] Nuovo video aggiunto. Salvataggio DB in background...`, "success");
             renderTraining();
             closeModal('addTrainingModal', 'trainingForm');
             submitBtn.disabled = false; submitBtn.textContent = 'Salva Video';
@@ -2244,7 +2337,6 @@
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare il file "${item.title}" dall'Editors Hub?`, async () => {
                         editorsHubData = editorsHubData.filter(t => t.id !== item.id);
-                        devLog(`[EH] File eliminato dalla libreria: ${item.title}`, "info");
                         renderEditorsHub();
                         await autoSaveToCloud();
                     });
@@ -2302,8 +2394,6 @@
                         a.click();
                         document.body.removeChild(a);
 
-                        devLog(`[EH] Avviato download locale del file: ${item.title}`, "info");
-
                         downloadedEHFiles.push(item.id);
                         localStorage.setItem('creatorhub_eh_downloads', JSON.stringify(downloadedEHFiles));
                         renderEditorsHub(); 
@@ -2321,17 +2411,14 @@
             document.getElementById('ehDropHint').classList.add('hidden');
             document.getElementById('ehFileName').textContent = '📎 Selezionato: ' + file.name;
             document.getElementById('ehFileName').classList.remove('hidden');
-            devLog(`[EH] Selezionato file audio: ${file.name} (${(file.size/1024).toFixed(2)} KB)`, "info");
         });
 
         document.getElementById('ehForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type=submit]');
-            
             if (!selectedEHFile) { alert("Carica o trascina un file audio!"); return; }
 
             submitBtn.disabled = true; submitBtn.textContent = 'Caricamento su Drive...';
-            devLog(`[EH] Inizio conversione Base64 e upload del file audio...`, "info");
 
             const title = document.getElementById('inputEHTitle').value.trim();
             const category = document.getElementById('inputEHCategory').value;
@@ -2351,30 +2438,20 @@
                 const mimeType = selectedEHFile.type || 'application/octet-stream';
                 const finalFileName = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.${ext}`;
 
-                const res = await callScriptAction({ 
-                    action: 'uploadEHFile', 
-                    base64: base64, 
-                    mimeType: mimeType, 
-                    fileName: finalFileName 
-                });
+                const res = await callScriptAction({ action: 'uploadEHFile', base64: base64, mimeType: mimeType, fileName: finalFileName });
 
                 if(res.fileId) {
                     uploadedFileId = res.fileId;
                     genericLink = `https://drive.google.com/file/d/${res.fileId}/view`;
-                    devLog(`[EH] File audio caricato su Drive. ID: ${res.fileId}`, "success");
                 }
             } catch(e) {
-                devLog(`[EH ERROR] ❌ Errore durante l'upload audio: ${e.message}`, "error");
                 submitBtn.disabled = false; submitBtn.textContent = 'Salva File';
                 return;
             }
 
             const newEHFile = {
                 id: Date.now().toString(),
-                title, 
-                category, 
-                link: genericLink,
-                fileId: uploadedFileId
+                title, category, link: genericLink, fileId: uploadedFileId
             };
 
             editorsHubData.push(newEHFile);
@@ -2458,7 +2535,8 @@
             const timelineContainer = document.getElementById('timelineContainer');
             timelineContainer.innerHTML = '';
             
-            const recentIdeas = videoIdeas.slice(0, 15);
+            // Ordina per le vere novità e non l'ordine randomico!
+            const recentIdeas = [...videoIdeas].sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0)).slice(0, 15);
             if(recentIdeas.length === 0) {
                 timelineContainer.innerHTML = '<p class="text-sm text-gray-500 mt-4 ml-4">Nessuna attività recente da mostrare.</p>';
             } else {
@@ -2466,16 +2544,16 @@
                     const stat = getIdeaStatus(idea);
                     let color = 'bg-gray-500';
                     let text = `Idea creata: <strong>${idea.title}</strong>`;
-                    let subText = `Creata il ${idea.timeAgo}`;
+                    let subText = `Creata ${timeSince(idea.createdAt || Date.now())}`;
 
                     if(stat === 'completed') {
                         color = 'bg-green-500';
                         text = `Video completato: <strong>${idea.title}</strong>`;
-                        subText = `Finito da ${idea.assignee} il ${idea.completedAt}`;
+                        subText = `Finito da ${idea.assignee}`;
                     } else if (stat === 'progress') {
                         color = 'bg-purple-500';
                         text = `In lavorazione: <strong>${idea.title}</strong>`;
-                        subText = `Preso in carico da ${idea.assignee} il ${idea.assignedAt}`;
+                        subText = `Preso in carico da ${idea.assignee}`;
                     } else if (stat === 'new') {
                         color = 'bg-blue-500';
                         text = `Nuova idea: <strong>${idea.title}</strong>`;
@@ -2497,7 +2575,6 @@
         //  RENDER DATABASE ANALYZER (NUOVA SEZIONE)
         // =============================================
         function renderDatabaseStats() {
-            // Calcolo Pesi
             const sizeIdeas = parseFloat(getStringSizeInKB(JSON.stringify(videoIdeas)));
             const sizeTools = parseFloat(getStringSizeInKB(JSON.stringify(toolsData)));
             const sizeChannels = parseFloat(getStringSizeInKB(JSON.stringify(channels)));
@@ -2506,7 +2583,6 @@
             const totalKB = sizeIdeas + sizeTools + sizeChannels + sizeOther;
             const totalMB = (totalKB / 1024).toFixed(2);
             
-            // Update UI testuale
             if (totalKB > 1024) {
                 document.getElementById('dbTotalSize').textContent = totalMB;
                 document.getElementById('dbTotalUnit').textContent = 'MB';
@@ -2520,7 +2596,6 @@
             document.getElementById('dbSizeChannels').textContent = sizeChannels.toFixed(1) + ' KB';
             document.getElementById('dbSizeOther').textContent = sizeOther.toFixed(1) + ' KB';
 
-            // Update UI Barra
             if (totalKB > 0) {
                 document.getElementById('dbBarIdeas').style.width = `${(sizeIdeas / totalKB) * 100}%`;
                 document.getElementById('dbBarTools').style.width = `${(sizeTools / totalKB) * 100}%`;
@@ -2528,9 +2603,8 @@
                 document.getElementById('dbBarOther').style.width = `${(sizeOther / totalKB) * 100}%`;
             }
 
-            // Ricerca Elementi Pesanti (Base64)
             const heavyItems = [];
-            const threshold = 1000; // Se una stringa è più lunga di 1000 caratteri, è sicuramente Base64 e non un URL Drive
+            const threshold = 1000; 
             
             videoIdeas.forEach(i => {
                 if (i.thumbnail && i.thumbnail.length > threshold) {
@@ -2548,7 +2622,6 @@
                 }
             });
 
-            // Ordina per peso decrescente
             heavyItems.sort((a, b) => parseFloat(b.size) - parseFloat(a.size));
 
             const tableBody = document.getElementById('dbHeavyItemsBody');
@@ -2587,13 +2660,11 @@
                     
                     tr.querySelector('.delete-heavy-btn').addEventListener('click', () => {
                         requirePin(`Vuoi davvero eliminare "${item.title}" per liberare spazio?`, async () => {
-                            // Rimuove l'elemento dall'array corrispondente
                             const index = item.arrayRef.findIndex(x => x.id === item.id);
                             if (index > -1) {
                                 item.arrayRef.splice(index, 1);
-                                devLog(`[DB MANAGER] Rimosso elemento pesante: ${item.title} liberando ${item.size} KB`, "success");
-                                renderDatabaseStats(); // Ricarica questa vista
-                                await autoSaveToCloud(); // Salva le modifiche sul cloud
+                                renderDatabaseStats(); 
+                                await autoSaveToCloud();
                             }
                         });
                     });
@@ -2608,7 +2679,6 @@
         //  ADMIN PANEL & IMPOSTAZIONI
         // =============================================
         
-        // Apertura Impostazioni Database (Ingranaggio)
         document.getElementById('settingsBtn').addEventListener('click', () => {
             document.getElementById('scriptUrlInput').value = SCRIPT_URL;
             document.getElementById('settingsModal').classList.remove('hidden'); 
@@ -2620,44 +2690,36 @@
             document.getElementById('settingsModal').classList.remove('flex'); 
         });
         
-        // Salvataggio impostazioni DB
         document.getElementById('saveSettingsBtn').addEventListener('click', () => {
             SCRIPT_URL = document.getElementById('scriptUrlInput').value.trim(); 
             localStorage.setItem('creatorhub_script_url', SCRIPT_URL);
 
             document.getElementById('settingsModal').classList.add('hidden'); 
             document.getElementById('settingsModal').classList.remove('flex');
-
-            devLog("[SISTEMA] Nuovo link salvato. Test di connessione in corso...", "info");
             loadDataFromCloud(); 
         });
 
-        // Apertura Pannello Admin con PIN (Pulsante TU)
         document.getElementById('adminBtn').addEventListener('click', () => {
             requirePin("Accesso al Pannello di Amministrazione di TMS Lab", () => {
                 document.getElementById('adminModal').classList.remove('hidden'); 
                 document.getElementById('adminModal').classList.add('flex');
-                renderAdminChannelList(); // Popola la lista canali nell'admin
+                renderAdminChannelList();
             });
         });
 
-        // Boot Init
         const savedUser = localStorage.getItem('tmslab_logged_in_user');
         if (savedUser) {
             document.getElementById('adminBtn').textContent = savedUser.substring(0, 2).toUpperCase();
             if (SCRIPT_URL) {
-                devLog(`[SISTEMA] Accesso effettuato come ${savedUser}. Link Drive presente.`, "info");
                 loadDataFromCloud();
             } else {
                 switchView('idee'); 
-                devLog("[SISTEMA] Nessun link Database configurato. Clicca l'icona ingranaggio per impostarlo.", "warning");
             }
         } else {
             document.getElementById('loginOverlay').classList.remove('hidden');
             document.getElementById('loginOverlay').classList.add('flex');
         }
 
-        // Upload PFP Nuovo Canale
         let selectedChannelAvatarFile = null;
         document.getElementById('inputChannelAvatar').addEventListener('change', (e) => {
             selectedChannelAvatarFile = e.target.files[0];
@@ -2666,7 +2728,6 @@
             }
         });
         
-        // Modal Nuovo Canale
         document.getElementById('addChannelBtn').addEventListener('click', () => {
             requirePin("Per creare un nuovo canale devi essere autorizzato.", () => {
                 document.getElementById('addChannelModal').classList.remove('hidden'); 
@@ -2676,23 +2737,19 @@
         const closeAddChannelModal = () => { document.getElementById('addChannelModal').classList.add('hidden'); document.getElementById('addChannelModal').classList.remove('flex'); };
         document.getElementById('closeChannelModalBtn').addEventListener('click', closeAddChannelModal); document.getElementById('cancelChannelBtn').addEventListener('click', closeAddChannelModal);
         
-        // Salvataggio Nuovo Canale
         document.getElementById('saveChannelBtn').addEventListener('click', async () => {
             const name = document.getElementById('inputChannelName').value.trim();
             if (!name || !SCRIPT_URL) return;
             const btn = document.getElementById('saveChannelBtn'); btn.disabled = true;
 
             let driveFolderId = '', profilePicUrl = '';
-            devLog(`[CANALE] Creazione nuovo canale: "${name}"`, "info");
 
             try {
                 btn.textContent = '📁 Creazione Cartella...';
                 
-                // V25 CODE.GS: Parallelo ma con chiamate separate compatibili
                 const compressionPromise = selectedChannelAvatarFile ? compressImage(selectedChannelAvatarFile, 400, 0.7, 'image/jpeg') : null;
                 const folderRes = await callScriptAction({ action: 'createChannelFolder', name }); 
                 driveFolderId = folderRes.folderId || '';
-                devLog(`[CANALE] Cartella creata (${driveFolderId})`, "success");
                 
                 if(selectedChannelAvatarFile && driveFolderId) {
                     btn.textContent = '🚀 Upload Logo...';
@@ -2706,15 +2763,12 @@
                     });
                     if(resI.fileId) {
                         profilePicUrl = `https://drive.google.com/thumbnail?id=${resI.fileId}&sz=w200`;
-                        devLog(`[CANALE] Avatar caricato correttamente.`, "success");
                     }
                 }
-            } catch(e) { devLog(`[CANALE ERROR] ❌ Si è verificato un problema: ${e.message}`, "error"); }
+            } catch(e) {}
 
             channels.push({ id: Date.now().toString(), name, color: CHANNEL_COLORS[channels.length % CHANNEL_COLORS.length], driveFolderId, profilePicUrl });
             renderChannelList(); closeAddChannelModal(); btn.disabled = false; btn.textContent = 'Crea Canale'; 
-            
-            devLog(`[CANALE] Salvataggio DB in background...`, "info");
             autoSaveToCloud();
         });
 
