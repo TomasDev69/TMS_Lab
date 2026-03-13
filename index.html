@@ -1048,7 +1048,9 @@
         // =============================================
         //  COMPRESSIONE IMMAGINI (MEGA OTTIMIZZAZIONE TEMPI E SPAZIO DB)
         // =============================================
-        function compressImage(file, maxWidth = 1280, quality = 0.7) {
+        // maxQuality = qualità di output (es. 0.7 per 70%)
+        // targetFormat = 'image/jpeg' per Drive, 'image/webp' per DB locale (più leggero)
+        function compressImage(file, maxWidth = 1280, quality = 0.7, targetFormat = 'image/jpeg') {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -1066,14 +1068,15 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
                         
-                        const base64Full = canvas.toDataURL('image/jpeg', quality);
+                        const base64Full = canvas.toDataURL(targetFormat, quality);
                         const base64 = base64Full.split(',')[1];
+                        const ext = targetFormat === 'image/webp' ? 'webp' : 'jpg';
                         
                         const originalKB = (file.size / 1024).toFixed(2);
                         const compressedKB = getBase64SizeInKB(base64);
-                        devLog(`[IMAGE] Compressione completata. Da ${originalKB} KB a ${compressedKB} KB`, "success");
+                        devLog(`[IMAGE] Compressione completata (${ext}). Da ${originalKB} KB a ${compressedKB} KB`, "success");
 
-                        resolve({ base64, mimeType: 'image/jpeg', ext: 'jpg', dataUrl: base64Full, sizeKB: compressedKB });
+                        resolve({ base64, mimeType: targetFormat, ext: ext, dataUrl: base64Full, sizeKB: compressedKB });
                     };
                 };
             });
@@ -1332,6 +1335,12 @@
                 trainingData = Array.isArray(raw.training) ? raw.training : [];
                 editorsHubData = Array.isArray(raw.editorsHub) ? raw.editorsHub : [];
                 
+                // Controlliamo il peso dei dati in cache per avvisare l'utente se ha DB enormi
+                const totalCacheSize = (JSON.stringify(raw).length / 1024).toFixed(2);
+                if (totalCacheSize > 2000) {
+                     devLog(`[DB WARNING] ⚠️ Il tuo database pesa ${totalCacheSize} KB (Più di 2 MB!). Controlla se hai vecchie immagini offline salvate nei Tool o nelle Idee, rallentano i salvataggi.`, "warning");
+                }
+                
                 updateStatus("🟢 Sincronizzato con Drive", "success");
                 devLog(`[DB SYNC] 📊 Trovate ${videoIdeas.length} Idee, ${channels.length} Canali. Operazione completata in totale: ${((parseTime - startTime)/1000).toFixed(2)}s.`, "success");
                 
@@ -1357,19 +1366,30 @@
             const sizeKB = (payloadStr.length / 1024).toFixed(2);
             
             devLog(`[DB SAVE] 📤 Inizio salvataggio... Peso totale del Database da sovrascrivere: ${sizeKB} KB`, "info");
-            if (sizeKB > 500) {
-                devLog(`[DB SAVE ATTENZIONE] ⚠️ Il Database è molto grande (>500KB). Il salvataggio impiegherà più tempo. Assicurati che i nuovi Tool abbiano loghi compressi e non foto enormi offline.`, "warning");
+            
+            // BLOCCO SICUREZZA: Evita di inviare file mostruosi a GS
+            if (sizeKB > 50000) {
+                 devLog(`[DB SAVE ERROR] ❌ ERRORE CRITICO: Il Database ha superato i 50 MB. Il salvataggio è bloccato per evitare il crash del server Google. Elimina le immagini non compresse dai tool o dalle idee.`, "error");
+                 updateStatus("DB Troppo Grande", "error");
+                 return;
+            } else if (sizeKB > 5000) {
+                devLog(`[DB SAVE ATTENZIONE] ⚠️ Il Database è enorme (>${(sizeKB/1024).toFixed(2)} MB). Il salvataggio impiegherà molto tempo! Cerca di usare link Drive al posto di salvare immagini nel DB.`, "warning");
             }
             
             const startTime = performance.now();
             try {
-                await callScriptAction({ action: 'saveDB', data: payload });
-                const endTime = performance.now();
-                const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-
-                updateStatus("💾 Salvato!", "success");
-                devLog(`[DB SAVE] 🟢 Database sovrascritto e salvato su Google Drive con successo in ${timeTaken} secondi.`, "success");
-                setTimeout(() => updateStatus("🟢 Sincronizzato", "success"), 2000);
+                // Esecuzione "Non Bloccante": il sito non si congela in attesa della risposta
+                callScriptAction({ action: 'saveDB', data: payload }).then(() => {
+                    const endTime = performance.now();
+                    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+                    updateStatus("💾 Salvato!", "success");
+                    devLog(`[DB SAVE] 🟢 Database sovrascritto e salvato su Google Drive con successo in ${timeTaken} secondi.`, "success");
+                    setTimeout(() => updateStatus("🟢 Sincronizzato", "success"), 2000);
+                }).catch(e => { throw e; });
+                
+                // Aggiorniamo subito lo status a vista per dare feedback istantaneo all'utente
+                updateStatus("Salvando in bg...", "warning"); 
+                
             } catch (error) {
                 devLog(`[DB SAVE ERROR] ❌ Fallimento critico nel salvataggio dei dati: ${error.message}`, "error");
                 updateStatus("Errore Auto-Save", "error");
@@ -1820,7 +1840,7 @@
                     // Lancio la compressione dell'immagine IN PARALLELO alla creazione della cartella
                     // Impostato a 1280px e qualità 0.95 (95%) per avere il file HD della massima qualità possibile
                     const [compressedImg, resF] = await Promise.all([
-                        compressImage(selectedThumbFile, 1280, 0.95),
+                        compressImage(selectedThumbFile, 1280, 0.95, 'image/jpeg'),
                         callScriptAction({ action: 'createIdeaFolder', name: title, channelFolderId: ch.driveFolderId })
                     ]);
 
@@ -1853,8 +1873,15 @@
             }
 
             if (!thumbnailUrl && selectedThumbFile) {
-                devLog(`[ATTENZIONE DATABASE] Salvando immagine offline. La riduco molto per non bloccare il DB JSON.`, "warning");
-                const compressedImg = await compressImage(selectedThumbFile, 800, 0.6);
+                devLog(`[ATTENZIONE DATABASE] Salvando immagine offline. La converto in WEBP ultra-leggero per non bloccare il DB JSON!`, "warning");
+                // Compressione estrema per i salvataggi offline per proteggere il DB
+                const compressedImg = await compressImage(selectedThumbFile, 600, 0.5, 'image/webp');
+                
+                if(compressedImg.sizeKB > 800) {
+                     devLog(`[ERRORE OFFLINE] ❌ L'immagine pesa ancora ${compressedImg.sizeKB} KB ed è troppo grande per il database. Usa immagini più semplici o collega Drive.`, "error");
+                     submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
+                     return;
+                }
                 thumbnailUrl = compressedImg.dataUrl;
             }
 
@@ -1871,8 +1898,9 @@
             closeModal('addModal', 'ideaForm');
             submitBtn.disabled = false; submitBtn.textContent = 'Aggiungi e Salva ⚡';
             
-            devLog(`[IDEA] Aggiornamento DB in corso...`, "info");
-            await autoSaveToCloud();
+            devLog(`[IDEA] Task aggiunto in UI. Avvio salvataggio DB in background (non blocca).`, "info");
+            // Il salvataggio cloud non ha l'await, quindi sblocca l'interfaccia subito
+            autoSaveToCloud();
         });
 
         // =============================================
@@ -1944,11 +1972,14 @@
             submitBtn.textContent = '🔄 Ottimizzazione...';
             devLog(`[TOOL] Avvio compressione super-leggera per evitare di bloccare il Database...`, "info");
 
-            const title = document.getElementById('inputToolTitle').value.trim();
-            const description = document.getElementById('inputToolDesc').value.trim();
-            const link = document.getElementById('inputToolLink').value.trim();
-
-            const compressedImg = await compressImage(selectedToolFile, 300, 0.5);
+            // I tool non si salvano su Drive ma nel JSON, quindi usiamo WEBP super compresso
+            const compressedImg = await compressImage(selectedToolFile, 300, 0.6, 'image/webp');
+            
+             if(compressedImg.sizeKB > 500) {
+                     devLog(`[ERRORE TOOL] ❌ Il logo pesa troppo (${compressedImg.sizeKB} KB) per il DB. Usa un logo più semplice.`, "error");
+                     submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
+                     return;
+             }
 
             const newTool = {
                 id: Date.now().toString(),
@@ -1962,9 +1993,10 @@
             
             submitBtn.disabled = false; 
             submitBtn.textContent = 'Salva Strumento';
-            await autoSaveToCloud();
+            
+            devLog(`[TOOL] Tool aggiunto. Avvio salvataggio DB in background.`, "info");
+            autoSaveToCloud();
         });
-
 
         // =============================================
         //  RENDER FORMAZIONE
@@ -2038,11 +2070,11 @@
             };
 
             trainingData.push(newTraining);
-            devLog(`[TRAINING] Nuovo video aggiunto.`, "success");
+            devLog(`[TRAINING] Nuovo video aggiunto. Salvataggio DB in background...`, "success");
             renderTraining();
             closeModal('addTrainingModal', 'trainingForm');
             submitBtn.disabled = false; submitBtn.textContent = 'Salva Video';
-            await autoSaveToCloud();
+            autoSaveToCloud();
         });
 
         // =============================================
@@ -2441,7 +2473,7 @@
                 btn.textContent = '📁 Creazione Cartella...';
                 
                 // V25 CODE.GS: Parallelo ma con chiamate separate compatibili
-                const compressionPromise = selectedChannelAvatarFile ? compressImage(selectedChannelAvatarFile, 400, 0.7) : null;
+                const compressionPromise = selectedChannelAvatarFile ? compressImage(selectedChannelAvatarFile, 400, 0.7, 'image/jpeg') : null;
                 const folderRes = await callScriptAction({ action: 'createChannelFolder', name }); 
                 driveFolderId = folderRes.folderId || '';
                 devLog(`[CANALE] Cartella creata (${driveFolderId})`, "success");
@@ -2464,7 +2496,10 @@
             } catch(e) { devLog(`[CANALE ERROR] ❌ Si è verificato un problema: ${e.message}`, "error"); }
 
             channels.push({ id: Date.now().toString(), name, color: CHANNEL_COLORS[channels.length % CHANNEL_COLORS.length], driveFolderId, profilePicUrl });
-            renderChannelList(); closeAddChannelModal(); btn.disabled = false; btn.textContent = 'Crea Canale'; await autoSaveToCloud();
+            renderChannelList(); closeAddChannelModal(); btn.disabled = false; btn.textContent = 'Crea Canale'; 
+            
+            devLog(`[CANALE] Salvataggio DB in background...`, "info");
+            autoSaveToCloud();
         });
 
     </script>
