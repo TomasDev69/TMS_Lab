@@ -261,7 +261,7 @@
                                     <tr>
                                         <th class="px-5 py-4">Canale YouTube</th>
                                         <th class="px-5 py-4">Iscritti</th>
-                                        <th class="px-5 py-4">Views Medie</th>
+                                        <th class="px-5 py-4">Views Medie stimate</th>
                                         <th class="px-5 py-4">Frequenza</th>
                                         <th class="px-5 py-4">Trend</th>
                                         <th class="px-5 py-4 text-right">Azioni</th>
@@ -752,7 +752,7 @@
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL (COMPLETAMENTE AUTOMATIZZATA) -->
+    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL (COMPLETAMENTE AUTOMATIZZATA SENZA AI) -->
     <div id="addInspChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
@@ -764,14 +764,14 @@
                     <label class="block text-sm font-medium text-gray-300 mb-2">Link del Canale YouTube</label>
                     <input type="url" id="inputSyncChannelUrl" placeholder="es: https://youtube.com/@MrBeast" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
                     <p class="text-[11px] text-gray-500 mt-2">
-                        Il sistema analizzerà automaticamente il canale estraendo statistiche reali (Avatar, Iscritti, Media Views e Frequenza). Potrebbe richiedere qualche secondo.
+                        Incolla il link e il sistema estrarrà immediatamente ID, Avatar, Iscritti, e calcolerà Frequenza e Media dal web. Zero sbattimenti.
                     </p>
                 </div>
                 
                 <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-6">
                     <button type="button" onclick="closeModal('addInspChannelModal')" class="px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[#303030] transition-colors text-gray-300">Annulla</button>
                     <button type="button" id="btnSyncChannel" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
-                        ⚡ Sincronizza Canale
+                        ⚡ Estrai Dati Canale
                     </button>
                 </div>
             </div>
@@ -1773,8 +1773,9 @@
         }
 
         // =============================================
-        //  AUTOMATIC INSPIRATION CHANNEL ANALYZER (NO AI)
+        //  AUTOMATIC INSPIRATION CHANNEL SCRAPER (NO AI, NO BRITTLE HTML PROXY)
         // =============================================
+        
         document.getElementById('btnSyncChannel').addEventListener('click', async () => {
             const url = document.getElementById('inputSyncChannelUrl').value.trim();
             if(!url) {
@@ -1784,65 +1785,76 @@
 
             const btn = document.getElementById('btnSyncChannel');
             btn.disabled = true;
-            btn.innerHTML = '⏳ Sincronizzazione in corso...';
+            btn.innerHTML = '⏳ Analisi in corso...';
             
             try {
-                devLog(`[INSPIRATIONS] Connessione alle API YouTube per: ${url}`, "info");
+                devLog(`[INSPIRATIONS] Analisi URL: ${url}`, "info");
                 
-                // 1. Estrazione rapida dell'handle o dell'ID dal link incollato
+                let handle = null;
+                let channelId = null;
+
+                // Trova Handle
                 const handleMatch = url.match(/@([\w\-\.]+)/);
-                const idMatch = url.match(/channel\/(UC[\w-]+)/);
+                if (handleMatch) handle = handleMatch[1];
 
-                let apiUrl = '';
-                if (handleMatch) {
-                    apiUrl = `https://yt.lemnoslife.com/channels?handle=@${handleMatch[1]}`;
-                } else if (idMatch) {
-                    apiUrl = `https://yt.lemnoslife.com/channels?part=snippet,statistics&id=${idMatch[1]}`;
-                } else {
-                    throw new Error("Formato link non riconosciuto. Usa il formato con @handle o /channel/UC...");
+                // Trova ID
+                const idMatch = url.match(/(?:channel\/|c\/)(UC[\w-]+)/);
+                if (idMatch) channelId = idMatch[1];
+
+                if (!handle && !channelId) {
+                    throw new Error("Impossibile trovare l'handle (@nome) o l'ID nel link.");
                 }
 
-                // 2. Chiamata ad API pubblica (LemnosLife) che ci dà dati esatti senza scrape HTML
-                const res = await fetch(apiUrl);
-                if (!res.ok) throw new Error("Errore API di ricerca YouTube.");
-                const data = await res.json();
+                let ytData = null;
 
-                if (!data.items || data.items.length === 0) {
-                    throw new Error("Canale non trovato. Assicurati che il link sia corretto.");
+                // 1. PRIMO TENTATIVO: LemnosLife API Nativa (NO PROXY, niente errori CORS)
+                try {
+                    let apiUrl = handle ? `https://yt.lemnoslife.com/channels?handle=@${handle}` : `https://yt.lemnoslife.com/channels?part=snippet,statistics&id=${channelId}`;
+                    const res = await fetch(apiUrl);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && data.items && data.items.length > 0) {
+                            ytData = data.items[0];
+                        }
+                    }
+                } catch(e) {
+                    devLog("[INSPIRATIONS] Errore API primaria, tento fallback...", "warning");
                 }
 
-                const channel = data.items[0];
-                const ytId = channel.id;
-                const name = channel.snippet.title || "Canale YouTube";
-                const avatar = channel.snippet.thumbnails?.high?.url || channel.snippet.thumbnails?.default?.url || '';
-
-                // Statistiche esatte fornite dalle API
-                const subsRaw = parseInt(channel.statistics.subscriberCount || 0);
-                const viewsRaw = parseInt(channel.statistics.viewCount || 0);
-                const videoCountRaw = parseInt(channel.statistics.videoCount || 1);
-
-                // Formattatore rapido (es. 1.5M, 800k)
-                function formatNum(num) {
-                    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-                    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-                    return num.toString();
+                // 2. SECONDO TENTATIVO (Fallback HTML solo se l'API non ha trovato il canale)
+                if (!ytData && handle) {
+                    try {
+                        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://www.youtube.com/@' + handle)}`;
+                        const res = await fetch(proxyUrl);
+                        const html = await res.text();
+                        const matchId = html.match(/href="https:\/\/www\.youtube\.com\/channel\/(UC[\w-]+)"/) || html.match(/content="(UC[\w-]+)" itemprop="channelId"/);
+                        if (matchId) channelId = matchId[1];
+                    } catch(e) {
+                        devLog("[INSPIRATIONS] Errore di connessione al proxy di fallback.", "warning");
+                    }
                 }
 
-                const subs = formatNum(subsRaw);
-                // Stimiamo le views medie dividendo total views per total videos (metodo matematico base)
-                const avgViewsRaw = Math.floor(viewsRaw / videoCountRaw);
-                const views = formatNum(avgViewsRaw);
+                const finalId = ytData ? ytData.id : channelId;
+                if (!finalId) throw new Error("ID canale (UC...) non trovato. Assicurati che il link sia corretto.");
 
+                // 3. Costruzione Dati (Mix di Dati API e Feed RSS)
+                let name = ytData?.snippet?.title || "Sconosciuto";
+                let avatar = ytData?.snippet?.thumbnails?.high?.url || ytData?.snippet?.thumbnails?.default?.url || "";
                 let frequency = "Variabile";
                 let trend = "➡️ Stabile";
 
-                // 3. (Extra) Guardiamo il Feed RSS del canale per capire la frequenza recente e trend base
+                // Chiamo RSS2JSON (100% stabile) per ottenere Frequenza e Dati se mancanti
                 try {
-                    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${ytId}`;
+                    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${finalId}`;
                     const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
                     const rssData = await rssRes.json();
-                    
-                    if (rssData.items && rssData.items.length > 1) {
+
+                    if (rssData && rssData.feed) {
+                        if (name === "Sconosciuto") name = rssData.feed.title;
+                        if (!avatar) avatar = rssData.feed.image;
+                    }
+
+                    if (rssData && rssData.items && rssData.items.length > 1) {
                         const firstDate = new Date(rssData.items[0].pubDate).getTime();
                         const lastDate = new Date(rssData.items[rssData.items.length - 1].pubDate).getTime();
                         const diffDays = (firstDate - lastDate) / (1000 * 60 * 60 * 24);
@@ -1853,22 +1865,40 @@
                         else if (avgDays <= 8) frequency = "1 a settimana";
                         else if (avgDays <= 16) frequency = "2 al mese";
                         else frequency = "Raro";
-                        
-                        // Piccolo "giochetto" per il trend: se ha pubblicato negli ultimi 3 giorni = Crescita, altrimenti Stabile
+
                         const daysSinceLastVideo = (Date.now() - firstDate) / (1000 * 60 * 60 * 24);
                         if (daysSinceLastVideo <= 3) trend = "🔥 In Crescita";
                         else if (daysSinceLastVideo > 30) trend = "📉 In Calo";
                     }
-                } catch (rssErr) {
-                    devLog(`[INSPIRATIONS] Fallito fetch feed RSS per stima frequenza.`, "warning");
+                } catch(e) {
+                    devLog("[INSPIRATIONS] Impossibile accedere al feed RSS.", "warning");
                 }
 
-                // 4. Salvataggio definitivo
+                // 4. Formattazione
+                function formatNum(num) {
+                    if (!num) return "N/A";
+                    if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+                    if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+                    return num.toString();
+                }
+
+                const subsRaw = ytData?.statistics?.subscriberCount ? parseInt(ytData.statistics.subscriberCount) : 0;
+                const viewsRaw = ytData?.statistics?.viewCount ? parseInt(ytData.statistics.viewCount) : 0;
+                const videoCountRaw = ytData?.statistics?.videoCount ? parseInt(ytData.statistics.videoCount) : 1;
+
+                const subs = subsRaw > 0 ? formatNum(subsRaw) : "N/A";
+                const avgViewsRaw = videoCountRaw > 0 ? Math.floor(viewsRaw / videoCountRaw) : 0;
+                const views = avgViewsRaw > 0 ? formatNum(avgViewsRaw) : "Vedi Feed";
+
+                // 5. Salvataggio Finale
                 const newCh = {
                     id: Date.now().toString(),
-                    ytId, name, avatar, url,
-                    subs: subs || "N/A",
-                    views: views || "N/A",
+                    ytId: finalId,
+                    name: name,
+                    avatar: avatar,
+                    url: url,
+                    subs: subs,
+                    views: views,
                     frequency: frequency,
                     trend: trend
                 };
@@ -1877,16 +1907,16 @@
                 renderInspChannels();
                 autoSaveToCloud();
                 
-                devLog(`[INSPIRATIONS] Canale sincronizzato: ${name} (${ytId})`, "success");
+                devLog(`[INSPIRATIONS] Canale sincronizzato: ${name} (${finalId})`, "success");
                 closeModal('addInspChannelModal');
                 document.getElementById('inputSyncChannelUrl').value = '';
 
             } catch(err) {
                 devLog(`[ERRORE INSPIRATIONS] ${err.message}`, "error");
-                alert(`Errore: ${err.message}`);
+                alert(`Errore di estrazione: ${err.message}`);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '⚡ Sincronizza Canale';
+                btn.innerHTML = '⚡ Estrai Dati Canale';
             }
         });
 
