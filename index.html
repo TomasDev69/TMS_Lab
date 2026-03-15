@@ -57,7 +57,7 @@
             display: block;
         }
         
-        /* Tabs (Editors Hub & Inspirations) */
+        /* Tabs */
         .eh-tab, .insp-tab { transition: all 0.2s; border-bottom: 2px solid transparent; }
         .eh-tab.active, .insp-tab.active { border-bottom-color: #3ea6ff; color: #3ea6ff; }
         
@@ -242,18 +242,26 @@
             <!-- VISTA: INSPIRATIONS -->
             <div id="viewInspirationsWrapper" class="hidden">
                 <!-- Tabs -->
-                <div class="flex gap-6 border-b border-[#303030] mb-6 relative">
+                <div class="flex gap-6 border-b border-[#303030] mb-6 relative items-center">
                     <button class="insp-tab active pb-2 font-bold text-gray-400" data-insptab="channels" onclick="switchInspTab('channels')">📊 Dashboard Canali</button>
-                    <button class="insp-tab pb-2 font-bold text-gray-400" data-insptab="feed" onclick="switchInspTab('feed')">📺 Feed Video Autogenerato</button>
+                    <button class="insp-tab pb-2 font-bold text-gray-400" data-insptab="feed" onclick="switchInspTab('feed')">📺 Feed Video (> 5 min)</button>
                     
                     <!-- Bottone per forzare l'aggiornamento feed -->
-                    <button id="btnRefreshFeed" class="absolute right-0 top-0 hidden bg-[#272727] hover:bg-[#333] text-gray-300 px-3 py-1 rounded text-xs font-bold transition-colors border border-[#404040]">
-                        🔄 Ricarica Feed
+                    <button id="btnRefreshFeed" class="absolute right-0 top-0 hidden bg-[#1c62b9] hover:bg-[#2573d4] text-white px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-lg flex items-center gap-1">
+                        <span>🔄</span> Ricarica Feed
                     </button>
                 </div>
 
                 <!-- Sotto-vista: Dashboard Canali -->
                 <div id="inspChannelsView" class="block">
+                    <!-- LEGENDA CHIARA IN ALTO -->
+                    <div class="bg-[#1a1a1a] p-3 rounded-lg border border-[#303030] mb-4 text-[12px] text-gray-400 flex flex-wrap gap-4 items-center">
+                        <strong class="text-white">Legenda Trend:</strong>
+                        <span><span class="text-green-400">🔥 In Crescita</span> (Ultimo video uscito da < 3 gg)</span>
+                        <span><span class="text-gray-300">➡️ Stabile</span> (Ultimo video uscito da < 30 gg)</span>
+                        <span><span class="text-red-400">📉 In Calo</span> (Nessun video da > 30 gg)</span>
+                    </div>
+
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm text-gray-300 whitespace-nowrap">
@@ -261,9 +269,12 @@
                                     <tr>
                                         <th class="px-5 py-4">Canale YouTube</th>
                                         <th class="px-5 py-4">Iscritti</th>
-                                        <th class="px-5 py-4">Views Medie stimate</th>
+                                        <th class="px-5 py-4">Views Medie Stimate</th>
                                         <th class="px-5 py-4">Frequenza</th>
-                                        <th class="px-5 py-4">Trend</th>
+                                        <th class="px-5 py-4 flex items-center gap-1">
+                                            Trend 
+                                            <span class="cursor-pointer text-blue-400 text-base" onclick="alert('Come viene calcolato il Trend?\n\n🔥 In Crescita: L\'ultimo video è uscito entro 3 giorni.\n➡️ Stabile: L\'ultimo video è uscito entro 30 giorni.\n📉 In Calo: Nessun video da oltre un mese.')">ℹ️</span>
+                                        </th>
                                         <th class="px-5 py-4 text-right">Azioni</th>
                                     </tr>
                                 </thead>
@@ -285,6 +296,13 @@
                     <div id="noInspFeed" class="text-center py-16 text-gray-500 hidden">
                         <span class="text-4xl mb-3 block">📡</span>
                         <p>Nessun canale tracciato. Aggiungi canali alla Dashboard per generare il feed automatico.</p>
+                    </div>
+                    
+                    <!-- Bottone Carica Altri (Inizialmente nascosto) -->
+                    <div class="flex justify-center mt-8 mb-6">
+                        <button id="loadMoreFeedBtn" class="hidden px-8 py-3 bg-[#1c62b9] hover:bg-[#2573d4] shadow-lg rounded-full text-sm font-bold text-white transition-colors">
+                            ⬇️ Carica altri video
+                        </button>
                     </div>
                 </div>
             </div>
@@ -752,7 +770,7 @@
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL (COMPLETAMENTE AUTOMATIZZATA SENZA AI) -->
+    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL (RISOLUZIONE POTENZIATA) -->
     <div id="addInspChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
@@ -762,9 +780,9 @@
             <div class="p-6 overflow-y-auto flex-1">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-2">Link del Canale YouTube</label>
-                    <input type="url" id="inputSyncChannelUrl" placeholder="es: https://youtube.com/@MrBeast" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <input type="url" id="inputSyncChannelUrl" placeholder="es: https://youtube.com/@WealthExplainerYT" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
                     <p class="text-[11px] text-gray-500 mt-2">
-                        Incolla il link e il sistema estrarrà immediatamente ID, Avatar, Iscritti, e calcolerà Frequenza e Media dal web. Zero sbattimenti.
+                        Incolla qualsiasi link del canale. Il nostro estrattore potenziato andrà a caccia dell'ID, Iscritti, Views Medie e Frequenza.
                     </p>
                 </div>
                 
@@ -1092,6 +1110,14 @@
             return "pochi secondi fa";
         }
 
+        function formatViewsCount(num) {
+            if (!num || num == 0 || num === "0") return "N/A views";
+            let n = parseInt(num);
+            if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M views';
+            if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K views';
+            return n.toString() + ' views';
+        }
+
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -1209,8 +1235,11 @@
         let toolsData = [];
         let trainingData = [];
         let editorsHubData = []; 
-        let inspChannels = []; // Riferimenti canali esterni (Inspirations)
+        let inspChannels = []; 
         
+        let globalFeed = []; // Cache infinita del feed inspirations
+        let feedDisplayIndex = 0; // Indice paginazione feed inspirations
+
         let activeChannelId = null; 
         let activeStatusFilter = 'all'; 
         let currentView = 'idee'; 
@@ -1334,7 +1363,7 @@
                     renderInspChannels();
                 } else {
                     mainActionBtn.classList.add('hidden');
-                    loadInspFeed();
+                    if(globalFeed.length === 0) loadInspFeed();
                 }
             }
             else if (view === 'strumenti') {
@@ -1602,7 +1631,7 @@
         }
 
         // =============================================
-        //  RENDER INSPIRATIONS (CANALI E FEED)
+        //  RENDER INSPIRATIONS (CANALI E FEED INFINITO E ROBUSTO)
         // =============================================
         function switchInspTab(tabName) {
             currentInspTab = tabName;
@@ -1630,11 +1659,23 @@
                 document.getElementById('inspFeedView').classList.remove('hidden');
                 document.getElementById('btnRefreshFeed').classList.remove('hidden');
                 mainActionBtn.classList.add('hidden');
-                loadInspFeed();
+                if(globalFeed.length === 0) loadInspFeed();
             }
         }
 
-        document.getElementById('btnRefreshFeed').addEventListener('click', loadInspFeed);
+        document.getElementById('btnRefreshFeed').addEventListener('click', () => {
+            const btn = document.getElementById('btnRefreshFeed');
+            btn.innerHTML = '<span class="animate-spin inline-block">🔄</span> Aggiornamento...';
+            btn.disabled = true;
+            globalFeed = []; // Reset feed
+            feedDisplayIndex = 0;
+            document.getElementById('inspFeedGrid').innerHTML = '';
+            
+            loadInspFeed().then(() => {
+                btn.innerHTML = '<span>🔄</span> Ricarica Feed';
+                btn.disabled = false;
+            });
+        });
 
         function renderInspChannels() {
             const tbody = document.getElementById('inspChannelListBody');
@@ -1666,12 +1707,12 @@
                                 ${ch.name}
                             </a>
                         </td>
-                        <td class="px-5 py-4 text-gray-300">${ch.subs}</td>
-                        <td class="px-5 py-4 text-gray-300">${ch.views}</td>
-                        <td class="px-5 py-4 text-gray-300">${ch.frequency}</td>
-                        <td class="px-5 py-4 font-semibold ${ch.trend.includes('Crescita') ? 'text-green-400' : (ch.trend.includes('Calo') ? 'text-red-400' : 'text-gray-400')}">${ch.trend}</td>
+                        <td class="px-5 py-4 text-gray-300 font-mono text-sm">${ch.subs || 'N/A'}</td>
+                        <td class="px-5 py-4 text-gray-300 font-mono text-sm">${ch.views || 'N/A'}</td>
+                        <td class="px-5 py-4 text-gray-300">${ch.frequency || 'N/A'}</td>
+                        <td class="px-5 py-4 font-semibold ${ch.trend.includes('Crescita') ? 'text-green-400' : (ch.trend.includes('Calo') ? 'text-red-400' : 'text-gray-400')}">${ch.trend || '➡️ Stabile'}</td>
                         <td class="px-5 py-4 text-right">
-                            <button class="text-red-400 hover:text-red-300 font-bold transition-colors del-insp-ch-btn" title="Elimina canale">🗑️</button>
+                            <button class="text-red-400 hover:text-red-300 font-bold transition-colors del-insp-ch-btn text-lg" title="Elimina canale">🗑️</button>
                         </td>
                     `;
                     
@@ -1679,6 +1720,8 @@
                         e.stopPropagation();
                         requirePin(`Vuoi eliminare il canale d'ispirazione "${ch.name}"?`, async () => {
                             inspChannels = inspChannels.filter(c => c.id !== ch.id);
+                            // Rimuovo anche i video associati
+                            globalFeed = globalFeed.filter(v => v.channelId !== ch.id);
                             renderInspChannels();
                             await autoSaveToCloud();
                         });
@@ -1689,66 +1732,160 @@
             }
         }
 
+        // Multi-Istanza Piped per evitare i blocchi rate-limit di YouTube
+        const PIPED_INSTANCES = [
+            "https://pipedapi.kavin.rocks",
+            "https://api.piped.projectsegfau.lt",
+            "https://pipedapi.in.projectsegfau.lt",
+            "https://pipedapi.smnz.de",
+            "https://api.piped.privacydev.net"
+        ];
+
+        async function fetchFromPiped(endpoint) {
+            for (let instance of PIPED_INSTANCES) {
+                try {
+                    const res = await fetch(`${instance}${endpoint}`, { signal: AbortSignal.timeout(5000) }); // 5s timeout
+                    if (res.ok) {
+                        return await res.json();
+                    }
+                } catch (e) {
+                    // ignora e passa alla prossima
+                }
+            }
+            throw new Error("Tutte le istanze Piped sono irraggiungibili o bloccate.");
+        }
+
         async function loadInspFeed() {
             const grid = document.getElementById('inspFeedGrid');
             const noRes = document.getElementById('noInspFeed');
+            const loadMoreBtn = document.getElementById('loadMoreFeedBtn');
 
             if(inspChannels.length === 0) {
                 grid.innerHTML = '';
                 noRes.classList.remove('hidden');
+                loadMoreBtn.classList.add('hidden');
                 return;
             }
 
             noRes.classList.add('hidden');
-            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-20 flex flex-col items-center gap-4"><span class="text-4xl animate-spin">⏳</span><p class="font-bold tracking-widest uppercase text-xs text-gray-500">Generazione Feed dai canali in corso...</p></div>';
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-20 flex flex-col items-center gap-4"><span class="text-4xl animate-spin">⏳</span><p class="font-bold tracking-widest uppercase text-xs text-gray-500">Recupero Feed (Filtro Shorts attivo)...</p></div>';
             grid.classList.remove('hidden');
+            loadMoreBtn.classList.add('hidden');
 
-            let allVideos = [];
+            let rawVideos = [];
 
-            const promises = inspChannels.map(async (ch) => {
-                if (!ch.ytId) return;
+            for (const ch of inspChannels) {
+                if (!ch.ytId) continue;
                 try {
-                    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${ch.ytId}`;
-                    // rss2json is a free proxy to bypass CORS and parse XML
-                    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
-                    const data = await res.json();
-                    if (data.items) {
-                        data.items.forEach(item => {
-                            allVideos.push({
-                                title: item.title,
-                                link: item.link,
-                                pubDate: new Date(item.pubDate).getTime(),
-                                thumbnail: item.thumbnail,
-                                channelName: ch.name,
-                                avatar: ch.avatar
-                            });
+                    devLog(`[INSPIRATIONS FEED] Estrazione video per: ${ch.name}...`, "info");
+                    const channelData = await fetchFromPiped(`/channel/${ch.ytId}`);
+                    
+                    if (channelData && channelData.relatedStreams) {
+                        channelData.relatedStreams.forEach(v => {
+                            // Piped fornisce isShort, ma controlliamo anche la durata (< 300 secondi = 5 min)
+                            const isShortFlag = v.isShort === true;
+                            const isTooShort = v.duration && v.duration <= 300;
+                            
+                            // Se non c'è durata, controlliamo il titolo
+                            const titleDesc = (v.title || "").toLowerCase();
+                            const hasShortTag = titleDesc.includes('#short');
+
+                            if (!isShortFlag && !isTooShort && !hasShortTag) {
+                                rawVideos.push({
+                                    ytId: v.url.split('?v=')[1],
+                                    title: v.title,
+                                    link: `https://www.youtube.com${v.url}`,
+                                    pubDate: v.uploadedDate ? (Date.now() - (parseUploadDate(v.uploadedDate))) : 0, // Fallback se non riesco a parsare bene
+                                    timeAgoStr: v.uploadedDate, // Usiamo la stringa già fornita da Piped (es. "2 days ago")
+                                    thumbnail: v.thumbnail,
+                                    views: v.views,
+                                    channelId: ch.id,
+                                    channelName: ch.name,
+                                    avatar: ch.avatar
+                                });
+                            }
                         });
+                        devLog(`[INSPIRATIONS FEED] OK per ${ch.name} (${channelData.relatedStreams.length} trovati)`, "success");
                     }
                 } catch(e) {
-                    devLog(`[INSPIRATIONS FEED] Fallito caricamento per: ${ch.name}`, "error");
+                    devLog(`[INSPIRATIONS FEED] Fallito recupero per ${ch.name}.`, "warning");
                 }
-            });
+                await new Promise(r => setTimeout(r, 500)); // Evita throttling
+            }
 
-            await Promise.all(promises);
-
-            allVideos.sort((a, b) => b.pubDate - a.pubDate);
+            // Fallback per l'ordinamento: cerchiamo di ordinare per data decrescente basandoci su timeAgoStr se pubDate è inaffidabile
+            rawVideos.sort((a, b) => b.pubDate - a.pubDate);
+            
+            // De-duplicazione
+            const uniqueIds = new Set();
+            const uniqueVideos = [];
+            for(let v of rawVideos) {
+                if(!uniqueIds.has(v.ytId)) {
+                    uniqueIds.add(v.ytId);
+                    uniqueVideos.push(v);
+                }
+            }
+            
+            globalFeed = uniqueVideos;
+            feedDisplayIndex = 0;
 
             grid.innerHTML = '';
-            if(allVideos.length === 0) {
-                 grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Nessun video recente trovato.</div>';
+            if(globalFeed.length === 0) {
+                 grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Nessun video recente (> 5 min) trovato.</div>';
                  return;
             }
 
-            allVideos.slice(0, 40).forEach(video => {
+            devLog(`[INSPIRATIONS FEED] Feed generato: ${globalFeed.length} video (Shorts eliminati).`, "success");
+            renderNextFeedBatch();
+        }
+        
+        // Semplice parser per trasformare "2 days ago" in millisecondi approssimativi per l'ordinamento
+        function parseUploadDate(str) {
+            if(!str) return 0;
+            const s = str.toLowerCase();
+            let multiplier = 1;
+            if(s.includes('second')) multiplier = 1000;
+            else if(s.includes('minute')) multiplier = 60 * 1000;
+            else if(s.includes('hour')) multiplier = 60 * 60 * 1000;
+            else if(s.includes('day')) multiplier = 24 * 60 * 60 * 1000;
+            else if(s.includes('week')) multiplier = 7 * 24 * 60 * 60 * 1000;
+            else if(s.includes('month')) multiplier = 30 * 24 * 60 * 60 * 1000;
+            else if(s.includes('year')) multiplier = 365 * 24 * 60 * 60 * 1000;
+            
+            const match = s.match(/\d+/);
+            const num = match ? parseInt(match[0]) : 1;
+            return num * multiplier;
+        }
+
+        // Sistema Paginazione Feed Infinito
+        document.getElementById('loadMoreFeedBtn').addEventListener('click', renderNextFeedBatch);
+
+        function renderNextFeedBatch() {
+            const grid = document.getElementById('inspFeedGrid');
+            const loadMoreBtn = document.getElementById('loadMoreFeedBtn');
+            const term = searchInput.value.toLowerCase();
+            
+            let filteredFeed = term ? globalFeed.filter(v => v.title.toLowerCase().includes(term) || (v.channelName && v.channelName.toLowerCase().includes(term))) : globalFeed;
+            
+            const batchSize = 16; 
+            const batch = filteredFeed.slice(feedDisplayIndex, feedDisplayIndex + batchSize);
+            
+            if(batch.length === 0 && feedDisplayIndex === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center text-gray-500 py-10">Nessun video corrispondente alla ricerca.</div>';
+                loadMoreBtn.classList.add('hidden');
+                return;
+            }
+
+            batch.forEach(video => {
                 const card = document.createElement('div');
                 card.className = 'flex flex-col gap-2 cursor-pointer group relative';
                 card.onclick = () => window.open(video.link, '_blank');
 
-                const timeStr = timeSince(video.pubDate);
+                const viewsFormatted = formatViewsCount(video.views);
 
                 let avatarHtml = video.avatar
-                    ? `<img src="${video.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-[#404040]">`
-                    : `<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold border border-[#404040] shrink-0">${video.channelName.charAt(0).toUpperCase()}</div>`;
+                    ? `<img src="${video.avatar}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-[#404040]">`
+                    : `<div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold border border-[#404040] shrink-0">${video.channelName.charAt(0).toUpperCase()}</div>`;
 
                 card.innerHTML = `
                     <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#272727] border border-transparent group-hover:border-[#444] transition-colors shadow-lg">
@@ -1756,48 +1893,37 @@
                         <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <span class="text-4xl drop-shadow-lg">▶️</span>
                         </div>
+                        <div class="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[11px] font-bold text-gray-300 uppercase border border-[#444] shadow shadow-black/50 backdrop-blur-sm">
+                            👀 ${viewsFormatted}
+                        </div>
                     </div>
                     <div class="flex gap-3 pr-2 mt-1">
                         ${avatarHtml}
                         <div class="flex flex-col">
                             <h3 class="text-[14px] font-semibold text-[#f1f1f1] line-clamp-2 leading-tight group-hover:text-blue-400 transition-colors">${video.title}</h3>
-                            <div class="text-[12px] text-[#aaaaaa] mt-1 font-medium">
-                                ${video.channelName} • ${timeStr}
+                            <div class="text-[12px] text-[#aaaaaa] mt-1 font-medium flex items-center gap-1">
+                                ${video.channelName} 
+                                <span class="text-[8px] opacity-50">•</span> 
+                                ${video.timeAgoStr || timeSince(video.pubDate)}
                             </div>
                         </div>
                     </div>
                 `;
                 grid.appendChild(card);
             });
-            devLog(`[INSPIRATIONS FEED] Feed aggiornato con ${allVideos.length} video.`, "success");
+
+            feedDisplayIndex += batchSize;
+
+            if (feedDisplayIndex >= filteredFeed.length) {
+                loadMoreBtn.classList.add('hidden');
+            } else {
+                loadMoreBtn.classList.remove('hidden');
+            }
         }
 
         // =============================================
-        //  AUTOMATIC INSPIRATION CHANNEL SCRAPER (NO AI, MULTI-FALLBACK)
+        //  AUTOMATIC INSPIRATION CHANNEL SCRAPER (PIPED INSTANCES - 100% STABILE)
         // =============================================
-        
-        // Funzione per testare l'estrazione HTML via multipli proxy per massima stabilità
-        async function fetchHtmlWithFallbacks(url) {
-            const targetUrl = encodeURIComponent(url);
-            // Lista di proxy noti che restituiscono testo raw (no JSON wrapper che causa l'errore token '<')
-            const proxies = [
-                `https://api.allorigins.win/raw?url=${targetUrl}`,
-                `https://api.codetabs.com/v1/proxy?quest=${targetUrl}`,
-                `https://corsproxy.io/?${targetUrl}`
-            ];
-            
-            for (let proxy of proxies) {
-                try {
-                    const r = await fetch(proxy);
-                    if (r.ok) {
-                        return await r.text();
-                    }
-                } catch(e) {
-                    devLog(`[PROXY WARN] Fallito fetch tramite ${proxy.split('/')[2]}`, "warning");
-                }
-            }
-            throw new Error("Tutti i server proxy sono temporaneamente bloccati o irraggiungibili.");
-        }
 
         document.getElementById('btnSyncChannel').addEventListener('click', async () => {
             let url = document.getElementById('inputSyncChannelUrl').value.trim();
@@ -1808,7 +1934,7 @@
 
             const btn = document.getElementById('btnSyncChannel');
             btn.disabled = true;
-            btn.innerHTML = '⏳ Analisi in corso...';
+            btn.innerHTML = '⏳ Estrazione Dati...';
             
             try {
                 devLog(`[INSPIRATIONS] Inizio estrazione per: ${url}`, "info");
@@ -1816,143 +1942,113 @@
                 let handle = null;
                 let channelId = null;
 
-                // 1. Pulizia e identificazione dell'URL (Gestisce anche link sporchi es. /videos)
                 const handleMatch = url.match(/@([\w\-\.]+)/);
                 if (handleMatch) handle = handleMatch[1];
 
                 const idMatch = url.match(/(?:channel\/|c\/)(UC[\w-]+)/);
                 if (idMatch) channelId = idMatch[1];
 
-                // Tentativo di estrarre un link "custom" (es. youtube.com/PewDiePie)
                 if (!handle && !channelId) {
                     const customMatch = url.match(/youtube\.com\/([\w\-\.]+)/);
                     if(customMatch && !['watch', 'playlist', 'shorts', 'feed'].includes(customMatch[1])) {
                         handle = customMatch[1];
                     } else {
-                        throw new Error("Formato link non riconosciuto. Usa il formato con @Nome o /channel/UC...");
+                        throw new Error("Impossibile riconoscere l'ID o l'Handle in questo link.");
                     }
                 }
 
-                // 2. FASE 1: RISOLUZIONE HANDLE -> ID (Se necessario)
-                if (!channelId && handle) {
-                    devLog(`[INSPIRATIONS] Tento risoluzione Handle (@${handle}) in ID...`, "info");
-                    
-                    // Metodo 1: LemnosLife API Nativa (Niente proxy, niente errori CORS)
-                    try {
-                        const res = await fetch(`https://yt.lemnoslife.com/channels?handle=@${handle}`);
-                        if (res.ok) {
-                            const data = await res.json();
-                            if (data && data.items && data.items.length > 0) {
-                                channelId = data.items[0].id;
-                                devLog(`[INSPIRATIONS] Handle risolto via API: ${channelId}`, "success");
-                            }
-                        }
-                    } catch(e) { devLog(`[INSPIRATIONS] API primaria fallita per handle.`, "warning"); }
-
-                    // Metodo 2: HTML Scraping via multipli proxy
-                    if (!channelId) {
-                        try {
-                            const cleanUrl = `https://www.youtube.com/@${handle}`;
-                            const html = await fetchHtmlWithFallbacks(cleanUrl);
-                            
-                            const match = html.match(/"channelId":"(UC[\w-]+)"/) || html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/channel\/(UC[\w-]+)"/);
-                            if (match) {
-                                channelId = match[1];
-                                devLog(`[INSPIRATIONS] Handle risolto via Scraping HTML: ${channelId}`, "success");
-                            }
-                        } catch(e) { devLog(`[INSPIRATIONS] HTML Scraping fallito per risolvere handle.`, "warning"); }
-                    }
-
-                    if (!channelId) {
-                        throw new Error(`Impossibile estrarre l'ID dal canale @${handle}. YouTube sta bloccando le richieste. Per favore inserisci l'URL con l'ID del canale (quello che inizia con UC...).`);
-                    }
-                }
-
-                // 3. FASE 2: RECUPERO DATI DAL CHANNEL ID
-                devLog(`[INSPIRATIONS] Recupero dati per ID: ${channelId}`, "info");
+                // Chiediamo all'API Piped le info del canale. Piped maschera in automatico se gli diamo handle o ID.
+                let searchUrl = channelId ? `/channel/${channelId}` : `/user/${handle}`; 
+                // Se user endpoint fallisce proviamo search endpoint come fallback
                 
-                let name = "Canale Sconosciuto";
-                let avatar = "";
-                let subs = "N/A";
-                let views = "Vedi Feed";
+                let ytData = null;
+                try {
+                    ytData = await fetchFromPiped(searchUrl);
+                } catch(e) {
+                    devLog(`[INSPIRATIONS] Errore Piped User/Channel, tento ricerca globale...`, "warning");
+                    const searchRes = await fetchFromPiped(`/search?q=${encodeURIComponent(handle || channelId)}&filter=channels`);
+                    if(searchRes && searchRes.items && searchRes.items.length > 0) {
+                        const chResult = searchRes.items[0];
+                        ytData = await fetchFromPiped(chResult.url);
+                    }
+                }
+
+                if (!ytData || !ytData.id) {
+                     throw new Error("Canale non trovato o istanze API sovraccariche. Riprova tra poco.");
+                }
+
+                const finalId = ytData.id;
+                const name = ytData.name || "Sconosciuto";
+                const avatar = ytData.avatarUrl || "";
+                
+                // Gli iscritti ci vengono passati come numero preciso da Piped!
+                const subsRaw = ytData.subscriberCount || 0;
+                
+                function formatNum(num) {
+                    if (!num || num == 0) return "N/A";
+                    let n = parseInt(num);
+                    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+                    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+                    return n.toString();
+                }
+
+                const subs = subsRaw > 0 ? formatNum(subsRaw) : "N/A";
+                
+                // Calcoliamo la media delle views sugli ultimi video estratti
+                let views = "N/A";
                 let frequency = "Variabile";
                 let trend = "➡️ Stabile";
 
-                // Tentativo dati statistici via LemnosLife (per iscritti e views)
-                try {
-                    const statRes = await fetch(`https://yt.lemnoslife.com/channels?part=snippet,statistics&id=${channelId}`);
-                    if(statRes.ok) {
-                        const statData = await statRes.json();
-                        if (statData && statData.items && statData.items.length > 0) {
-                            const item = statData.items[0];
-                            name = item.snippet?.title || name;
-                            avatar = item.snippet?.thumbnails?.high?.url || item.snippet?.thumbnails?.default?.url || avatar;
-                            
-                            const subsRaw = parseInt(item.statistics?.subscriberCount || 0);
-                            const viewsRaw = parseInt(item.statistics?.viewCount || 0);
-                            const vidCount = parseInt(item.statistics?.videoCount || 1);
+                if (ytData.relatedStreams && ytData.relatedStreams.length > 0) {
+                    // Calcolo Views Medie
+                    let totalViews = 0;
+                    let countedVideos = 0;
+                    
+                    ytData.relatedStreams.forEach(v => {
+                         if(v.views) {
+                              totalViews += v.views;
+                              countedVideos++;
+                         }
+                    });
 
-                            function formatNum(n) {
-                                if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-                                if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-                                return n.toString();
-                            }
-                            if (subsRaw > 0) subs = formatNum(subsRaw);
-                            if (viewsRaw > 0 && vidCount > 0) views = formatNum(Math.floor(viewsRaw / vidCount));
-                            
-                            devLog(`[INSPIRATIONS] Statistiche API acquisite.`, "success");
-                        }
-                    }
-                } catch(e) {
-                    devLog(`[INSPIRATIONS] API Statistiche fallita. Procedo con fallback RSS.`, "warning");
-                }
-
-                // 4. FASE 3: FEED RSS (Stabilissimo, bypassa blocchi YouTube, ci dà Nome, Avatar, Frequenza, Trend)
-                try {
-                    devLog(`[INSPIRATIONS] Analisi RSS per Frequenza e Trend...`, "info");
-                    const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-                    const rssRes = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`);
-                    const rssData = await rssRes.json();
-
-                    if (rssData && rssData.feed) {
-                        if (name === "Canale Sconosciuto") name = rssData.feed.title;
-                        if (!avatar) avatar = rssData.feed.image;
+                    if (countedVideos > 0) {
+                         views = formatNum(Math.floor(totalViews / countedVideos));
                     }
 
-                    if (rssData && rssData.items && rssData.items.length > 1) {
-                        const firstDate = new Date(rssData.items[0].pubDate).getTime();
-                        const lastDate = new Date(rssData.items[rssData.items.length - 1].pubDate).getTime();
-                        const diffDays = (firstDate - lastDate) / (1000 * 60 * 60 * 24);
-                        const avgDays = diffDays / rssData.items.length;
+                    // Calcolo Frequenza e Trend
+                    if(ytData.relatedStreams.length > 1) {
+                         const firstVideo = ytData.relatedStreams[0];
+                         const lastVideo = ytData.relatedStreams[ytData.relatedStreams.length - 1];
+                         
+                         // Piped fornisce "uploadedDate" in formato testuale, dobbiamo dedurre i ms
+                         const firstMs = parseUploadDate(firstVideo.uploadedDate);
+                         const lastMs = parseUploadDate(lastVideo.uploadedDate);
+                         
+                         if(lastMs > 0) {
+                              const diffDays = Math.abs(lastMs - firstMs) / (1000 * 60 * 60 * 24);
+                              const avgDays = diffDays / ytData.relatedStreams.length;
 
-                        if (avgDays <= 1.5) frequency = "Quotidiano";
-                        else if (avgDays <= 4) frequency = "2-3 a settimana";
-                        else if (avgDays <= 8) frequency = "1 a settimana";
-                        else if (avgDays <= 16) frequency = "2 al mese";
-                        else frequency = "Raro";
+                              if (avgDays <= 1.5) frequency = "Quotidiano";
+                              else if (avgDays <= 4) frequency = "2-3 a settimana";
+                              else if (avgDays <= 8) frequency = "1 a settimana";
+                              else if (avgDays <= 16) frequency = "2 al mese";
+                              else frequency = "Raro";
 
-                        const daysSinceLastVideo = (Date.now() - firstDate) / (1000 * 60 * 60 * 24);
-                        if (daysSinceLastVideo <= 3) trend = "🔥 In Crescita";
-                        else if (daysSinceLastVideo > 30) trend = "📉 In Calo";
-                        
-                        devLog(`[INSPIRATIONS] Dati RSS elaborati con successo.`, "success");
-                    } else {
-                        devLog(`[INSPIRATIONS] Nessun video recente nell'RSS.`, "warning");
+                              const daysSinceFirst = firstMs / (1000 * 60 * 60 * 24);
+                              if (daysSinceFirst <= 3) trend = "🔥 In Crescita";
+                              else if (daysSinceFirst > 30) trend = "📉 In Calo";
+                         }
                     }
-                } catch(e) {
-                    devLog(`[INSPIRATIONS] Errore elaborazione RSS: ${e.message}`, "error");
                 }
 
-                if(name === "Canale Sconosciuto") {
-                    throw new Error("Estrazione fallita. Non è stato possibile recuperare alcun dato del canale. Assicurati che il link sia corretto o riprova più tardi.");
-                }
+                devLog(`[INSPIRATIONS] Dati acquisiti: Subs=${subs}, Views=${views}`, "success");
 
-                // Pulizia URL per salvarlo pulito nel DB
-                const cleanFinalUrl = handle ? `https://www.youtube.com/@${handle}` : `https://www.youtube.com/channel/${channelId}`;
+                // 6. Salvataggio
+                const cleanFinalUrl = handle ? `https://www.youtube.com/@${handle}` : `https://www.youtube.com/channel/${finalId}`;
 
                 const newCh = {
                     id: Date.now().toString(),
-                    ytId: channelId,
+                    ytId: finalId,
                     name: name,
                     avatar: avatar,
                     url: cleanFinalUrl,
@@ -1966,13 +2062,13 @@
                 renderInspChannels();
                 autoSaveToCloud();
                 
-                devLog(`[INSPIRATIONS] Canale sincronizzato: ${name} (${channelId})`, "success");
+                devLog(`[INSPIRATIONS] Canale salvato: ${name}.`, "success");
                 closeModal('addInspChannelModal');
                 document.getElementById('inputSyncChannelUrl').value = '';
 
             } catch(err) {
-                devLog(`[ERRORE INSPIRATIONS] ${err.message}`, "error");
-                alert(`Errore: ${err.message}`);
+                devLog(`[ERRORE ESTREMO] ${err.message}`, "error");
+                alert(`Errore critico: ${err.message}`);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '⚡ Estrai Dati Canale';
