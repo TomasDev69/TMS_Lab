@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TMS Lab - Bacheca Idee Video</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         ::-webkit-scrollbar { width: 6px; }
@@ -31,37 +33,23 @@
         .channel-item.active { background: #272727; border-left: 3px solid #3ea6ff; padding-left: 13px; }
         .channel-item:not(.active) { border-left: 3px solid transparent; padding-left: 13px; }
         .channel-item:hover { background: #1e1e1e; }
-        .channel-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
+        .channel-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
         .sidebar-expanded { width: 240px; }
         .sidebar-collapsed { width: 72px; }
         
-        /* Console Sviluppatore & Script Tool scrollbar */
         #consoleOutput::-webkit-scrollbar, #scriptInput::-webkit-scrollbar { width: 4px; }
         #consoleOutput::-webkit-scrollbar-thumb, #scriptInput::-webkit-scrollbar-thumb { background: #555; }
 
-        /* Status Filters */
         .status-filter { transition: all 0.2s; }
         .status-filter.active { background-color: #f1f1f1; color: #0f0f0f; font-weight: bold; }
         .status-filter:not(.active):hover { background-color: #272727; }
         
-        /* Custom Checkbox */
-        .custom-checkbox:checked + div {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
-        }
-        .custom-checkbox:checked + div svg {
-            display: block;
-        }
+        .custom-checkbox:checked + div { background-color: #3b82f6; border-color: #3b82f6; }
+        .custom-checkbox:checked + div svg { display: block; }
         
-        /* Tabs */
         .eh-tab, .insp-tab { transition: all 0.2s; border-bottom: 2px solid transparent; }
         .eh-tab.active, .insp-tab.active { border-bottom-color: #3ea6ff; color: #3ea6ff; }
         
-        /* Progress Bar Animata */
         .progress-bar-fill { transition: width 0.5s ease-in-out; }
     </style>
 </head>
@@ -70,9 +58,7 @@
     <!-- LOGIN OVERLAY -->
     <div id="loginOverlay" class="fixed inset-0 bg-[#0f0f0f] z-[9999] hidden items-center justify-center px-4">
         <div class="bg-[#1a1a1a] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden border border-[#303030] p-8 flex flex-col items-center">
-            <div class="w-16 h-16 bg-[#272727] rounded-full flex items-center justify-center text-3xl border border-[#404040] mb-4 shadow-inner">
-                🔒
-            </div>
+            <div class="w-16 h-16 bg-[#272727] rounded-full flex items-center justify-center text-3xl border border-[#404040] mb-4 shadow-inner">🔒</div>
             <h2 class="text-2xl font-black text-white mb-1 text-center tracking-tight">Accesso TMS Lab</h2>
             <p class="text-gray-500 text-[13px] text-center mb-8">Seleziona il tuo profilo e inserisci la password del team.</p>
             
@@ -97,12 +83,8 @@
                     <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2">Password Principale</label>
                     <input type="password" id="loginPasswordInput" required placeholder="••••••••" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 font-mono tracking-widest text-center text-lg">
                 </div>
-                
                 <p id="loginError" class="text-red-500 text-sm font-bold hidden text-center mt-2">Password errata!</p>
-                
-                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors mt-8 shadow-lg shadow-blue-900/20">
-                    Entra nel Lab
-                </button>
+                <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors mt-8 shadow-lg shadow-blue-900/20">Entra nel Lab</button>
             </form>
         </div>
     </div>
@@ -110,9 +92,7 @@
     <!-- HEADER -->
     <header class="flex items-center justify-between px-4 h-14 bg-[#0f0f0f] shrink-0 sticky top-0 z-50 border-b border-[#303030]">
         <div class="flex items-center gap-4">
-            <button id="sidebarToggle" class="text-2xl p-2 hover:bg-[#272727] rounded-full w-10 h-10 flex items-center justify-center transition-colors">
-                &#9776;
-            </button>
+            <button id="sidebarToggle" class="text-2xl p-2 hover:bg-[#272727] rounded-full w-10 h-10 flex items-center justify-center transition-colors">&#9776;</button>
             <div class="flex items-center gap-1 cursor-pointer">
                 <span class="text-red-600 text-2xl font-bold">&#9654;</span>
                 <span class="text-xl font-bold tracking-tighter">TMS Lab</span>
@@ -139,71 +119,57 @@
 
         <!-- SIDEBAR -->
         <aside id="sidebar" class="sidebar-expanded bg-[#0f0f0f] hidden sm:flex flex-col overflow-hidden transition-all duration-300 pt-3 border-r border-[#303030] shrink-0">
-            
-            <!-- MAIN NAVIGATION -->
-            <div class="px-4 mb-2">
-                <span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500">Navigazione</span>
-            </div>
+            <div class="px-4 mb-2"><span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500">Navigazione</span></div>
             <div id="navIdee" class="channel-item active flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('idee')">
-                <span class="text-xl">💡</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Idee Video</span>
+                <span class="text-xl">💡</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Idee Video</span>
             </div>
             <div id="navInspirations" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('inspirations')">
-                <span class="text-xl">🌟</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Inspirations</span>
+                <span class="text-xl">🌟</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Inspirations</span>
             </div>
             <div id="navStrumenti" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('strumenti')">
-                <span class="text-xl">🛠️</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Risorse & Tools</span>
+                <span class="text-xl">🛠️</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Risorse & Tools</span>
             </div>
             <div id="navFormazione" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('formazione')">
-                <span class="text-xl">🎓</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Formazione</span>
+                <span class="text-xl">🎓</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Formazione</span>
             </div>
             <div id="navEditorsHub" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('editorshub')">
-                <span class="text-xl">🎛️</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Editors Hub</span>
+                <span class="text-xl">🎛️</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Editors Hub</span>
             </div>
             <div id="navScript" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('script')">
-                <span class="text-xl">📝</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Script</span>
+                <span class="text-xl">📝</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Script</span>
             </div>
             <div id="navStats" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('stats')">
-                <span class="text-xl">📊</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
+                <span class="text-xl">📊</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Statistiche</span>
             </div>
             <div id="navDatabase" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="switchView('database')">
-                <span class="text-xl">💾</span>
-                <span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Database</span>
+                <span class="text-xl">💾</span><span class="sidebar-label text-sm font-semibold text-white whitespace-nowrap overflow-hidden">Analisi Database</span>
             </div>
 
+            <!-- SEZIONE EARNINGS SEGRETA -->
+            <div class="mx-4 border-t border-[#303030] my-2"></div>
+            <div id="navEarnings" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1 hover:bg-green-900/20 group" onclick="openEarnings()">
+                <span class="text-xl group-hover:scale-110 transition-transform">💰</span>
+                <span class="sidebar-label text-sm font-semibold text-green-500 whitespace-nowrap overflow-hidden">Earnings (Private)</span>
+            </div>
             <div class="mx-4 border-t border-[#303030] my-2"></div>
 
-            <!-- FILTRO TUTTE IDEE -->
             <div id="filterAll" class="channel-item flex items-center gap-3 py-2.5 mx-2 rounded-lg cursor-pointer mb-1" onclick="setActiveFilter(null)">
-                <span class="text-xl">&#127968;</span>
-                <span class="sidebar-label text-sm font-semibold text-blue-400 whitespace-nowrap overflow-hidden">Tutte le idee</span>
+                <span class="text-xl">&#127968;</span><span class="sidebar-label text-sm font-semibold text-blue-400 whitespace-nowrap overflow-hidden">Tutte le idee</span>
             </div>
 
-            <!-- Sezione CANALI -->
             <div class="flex items-center justify-between px-4 mb-2 mt-2">
                 <span class="sidebar-label text-[11px] font-bold uppercase tracking-widest text-gray-500 whitespace-nowrap">I tuoi Canali</span>
                 <button id="addChannelBtn" class="sidebar-label text-gray-400 hover:text-white w-6 h-6 flex items-center justify-center rounded hover:bg-[#303030] transition-colors text-lg leading-none" title="Aggiungi canale">+</button>
             </div>
 
-            <div id="channelList" class="flex flex-col gap-0.5 overflow-y-auto flex-1 px-2 pb-2 border-b border-[#303030] mb-2">
-                <!-- Canali renderizzati qui. Drag & drop supportato -->
-            </div>
+            <div id="channelList" class="flex flex-col gap-0.5 overflow-y-auto flex-1 px-2 pb-2 border-b border-[#303030] mb-2"></div>
 
-            <!-- Developer Tools & Console -->
             <div class="mt-auto mb-2 px-2 flex flex-col gap-1">
                 <button id="openConsoleBtn" class="flex items-center gap-2 w-full text-left px-2 py-1.5 rounded hover:bg-[#272727] transition-colors group">
                     <span class="text-gray-400 group-hover:text-green-400 transition-colors">👨‍💻</span>
                     <span class="sidebar-label text-xs font-mono text-gray-400 group-hover:text-green-400 transition-colors">Apri Console Dev</span>
                 </button>
-                <div class="px-2 sidebar-label mt-1">
-                    <p class="text-[11px] text-gray-600">💡 Dati sincronizzati su Drive.</p>
-                </div>
+                <div class="px-2 sidebar-label mt-1"><p class="text-[11px] text-gray-600">💡 Dati sincronizzati su Drive.</p></div>
             </div>
         </aside>
 
@@ -223,7 +189,6 @@
 
             <!-- VISTA: IDEE VIDEO -->
             <div id="viewIdeeWrapper" class="block">
-                <!-- STATUS FILTERS -->
                 <div class="flex gap-2 overflow-x-auto pb-4 mb-2 border-b border-[#303030] scrollbar-hide text-sm">
                     <button class="status-filter active px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap" data-status="all">Tutte le idee</button>
                     <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="new"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Nuove Idee (<span id="countNew">0</span>)</button>
@@ -231,35 +196,30 @@
                     <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="progress"><span class="w-2 h-2 rounded-full bg-purple-500"></span> In Progress (<span id="countProgress">0</span>)</button>
                     <button class="status-filter px-4 py-1.5 rounded-full border border-[#404040] text-gray-300 whitespace-nowrap flex items-center gap-1" data-status="completed"><span class="w-2 h-2 rounded-full bg-green-500"></span> Completed (<span id="countCompleted">0</span>)</button>
                 </div>
-
                 <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8 hidden mt-6"></div>
                 <div id="noResults" class="text-center py-20 text-gray-400 flex flex-col items-center hidden">
-                    <span class="text-4xl mb-3">☁️</span>
-                    <p>Nessuna idea in questa categoria.</p>
+                    <span class="text-4xl mb-3">☁️</span><p>Nessuna idea in questa categoria.</p>
                 </div>
             </div>
 
             <!-- VISTA: INSPIRATIONS -->
             <div id="viewInspirationsWrapper" class="hidden">
-                <!-- Tabs -->
                 <div class="flex gap-6 border-b border-[#303030] mb-6 relative items-center">
                     <button class="insp-tab active pb-2 font-bold text-gray-400" data-insptab="channels" onclick="switchInspTab('channels')">📊 Dashboard Canali</button>
                     <button class="insp-tab pb-2 font-bold text-gray-400" data-insptab="feed" onclick="switchInspTab('feed')">📺 Feed Video (> 5 min)</button>
                     
-                    <!-- Bottone per forzare l'aggiornamento feed -->
                     <button id="btnRefreshFeed" class="absolute right-0 top-0 hidden bg-[#1c62b9] hover:bg-[#2573d4] text-white px-3 py-1.5 rounded text-xs font-bold transition-colors shadow-lg flex items-center gap-1">
                         <span>🔄</span> Ricarica Feed
                     </button>
                 </div>
 
-                <!-- Sotto-vista: Dashboard Canali -->
                 <div id="inspChannelsView" class="block">
                     <!-- LEGENDA CHIARA IN ALTO -->
                     <div class="bg-[#1a1a1a] p-3 rounded-lg border border-[#303030] mb-4 text-[12px] text-gray-400 flex flex-wrap gap-4 items-center">
-                        <strong class="text-white">Legenda Trend:</strong>
-                        <span><span class="text-green-400">🔥 In Crescita</span> (Ultimo video uscito da < 3 gg)</span>
-                        <span><span class="text-gray-300">➡️ Stabile</span> (Ultimo video uscito da < 30 gg)</span>
-                        <span><span class="text-red-400">📉 In Calo</span> (Nessun video da > 30 gg)</span>
+                        <strong class="text-white">Come viene calcolato il Trend?</strong>
+                        <span><span class="text-green-400">🔥 In Crescita</span> (Views recenti > Media storica)</span>
+                        <span><span class="text-gray-300">➡️ Stabile</span> (Views in linea con la media)</span>
+                        <span><span class="text-red-400">📉 In Calo</span> (Views recenti < Media storica)</span>
                     </div>
 
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
@@ -269,36 +229,29 @@
                                     <tr>
                                         <th class="px-5 py-4">Canale YouTube</th>
                                         <th class="px-5 py-4">Iscritti</th>
-                                        <th class="px-5 py-4">Views Medie Stimate</th>
-                                        <th class="px-5 py-4">Frequenza</th>
+                                        <th class="px-5 py-4">Media Views Storica</th>
+                                        <th class="px-5 py-4">Frequenza (Mese)</th>
                                         <th class="px-5 py-4 flex items-center gap-1">
                                             Trend 
-                                            <span class="cursor-pointer text-blue-400 text-base" onclick="alert('Come viene calcolato il Trend?\n\n🔥 In Crescita: L\'ultimo video è uscito entro 3 giorni.\n➡️ Stabile: L\'ultimo video è uscito entro 30 giorni.\n📉 In Calo: Nessun video da oltre un mese.')">ℹ️</span>
+                                            <span class="cursor-pointer text-blue-400 text-base" onclick="alert('Come viene calcolato il Trend?\n\nIl sistema scarica i video recenti e ne fa una media.\n\n🔥 In Crescita: I video recenti hanno un +15% di views rispetto alla media storica del canale.\n➡️ Stabile: Le views sono in linea con la media.\n📉 In Calo: I video recenti hanno meno views della media o il canale non posta da oltre 1 mese.')">ℹ️</span>
                                         </th>
                                         <th class="px-5 py-4 text-right">Azioni</th>
                                     </tr>
                                 </thead>
-                                <tbody id="inspChannelListBody" class="divide-y divide-[#303030]">
-                                    <!-- Popolato dinamicamente -->
-                                </tbody>
+                                <tbody id="inspChannelListBody" class="divide-y divide-[#303030]"></tbody>
                             </table>
                         </div>
                         <div id="noInspChannels" class="text-center py-16 text-gray-500 hidden">
-                            <span class="text-4xl mb-3 block">📊</span>
-                            <p>Nessun canale monitorato. Aggiungine uno per iniziare a generare il feed.</p>
+                            <span class="text-4xl mb-3 block">📊</span><p>Nessun canale monitorato. Aggiungine uno per iniziare a generare il feed.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Sotto-vista: Feed Video -->
                 <div id="inspFeedView" class="hidden">
                     <div id="inspFeedGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8"></div>
                     <div id="noInspFeed" class="text-center py-16 text-gray-500 hidden">
-                        <span class="text-4xl mb-3 block">📡</span>
-                        <p>Nessun canale tracciato. Aggiungi canali alla Dashboard per generare il feed automatico.</p>
+                        <span class="text-4xl mb-3 block">📡</span><p>Nessun canale tracciato o feed in caricamento. Aggiungi canali alla Dashboard.</p>
                     </div>
-                    
-                    <!-- Bottone Carica Altri (Inizialmente nascosto) -->
                     <div class="flex justify-center mt-8 mb-6">
                         <button id="loadMoreFeedBtn" class="hidden px-8 py-3 bg-[#1c62b9] hover:bg-[#2573d4] shadow-lg rounded-full text-sm font-bold text-white transition-colors">
                             ⬇️ Carica altri video
@@ -311,8 +264,7 @@
             <div id="viewStrumentiWrapper" class="hidden">
                 <div id="toolsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
                 <div id="noToolsResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
-                    <span class="text-4xl mb-3">🛠️</span>
-                    <p>Nessuno strumento salvato. Aggiungine uno!</p>
+                    <span class="text-4xl mb-3">🛠️</span><p>Nessuno strumento salvato. Aggiungine uno!</p>
                 </div>
             </div>
 
@@ -320,22 +272,20 @@
             <div id="viewFormazioneWrapper" class="hidden">
                 <div id="trainingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
                 <div id="noTrainingResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
-                    <span class="text-4xl mb-3">🎓</span>
-                    <p>Nessun video di formazione salvato. Aggiungine uno!</p>
+                    <span class="text-4xl mb-3">🎓</span><p>Nessun video di formazione salvato. Aggiungine uno!</p>
                 </div>
             </div>
 
             <!-- VISTA: EDITORS HUB -->
             <div id="viewEditorsHubWrapper" class="hidden">
-                <!-- SFX / Music Tabs -->
                 <div class="flex gap-6 border-b border-[#303030] mb-6">
                     <button class="eh-tab active pb-2 font-bold text-gray-400" data-ehtab="sfx" onclick="switchEHTab('sfx')">🔊 Sound Effects (SFX)</button>
                     <button class="eh-tab pb-2 font-bold text-gray-400" data-ehtab="music" onclick="switchEHTab('music')">🎵 Musica</button>
+                    <button class="eh-tab pb-2 font-bold text-gray-400" data-ehtab="icons" onclick="switchEHTab('icons')">🖼️ Icone/Immagini</button>
                 </div>
                 <div id="ehGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
                 <div id="noEHResults" class="text-center py-20 text-gray-400 flex flex-col items-center">
-                    <span class="text-4xl mb-3">🎛️</span>
-                    <p>Nessun file presente in questa libreria.</p>
+                    <span class="text-4xl mb-3">🎛️</span><p>Nessun file presente in questa libreria.</p>
                 </div>
             </div>
             
@@ -346,7 +296,6 @@
                         <div class="flex-1 p-6 flex flex-col bg-[#121212]">
                             <textarea id="scriptInput" class="w-full flex-1 bg-transparent text-gray-200 resize-none outline-none text-lg leading-relaxed placeholder-gray-600" placeholder="Incolla o scrivi qui il tuo script per analizzarlo in tempo reale..."></textarea>
                         </div>
-                        
                         <div class="w-full md:w-80 bg-[#1a1a1a] border-t md:border-t-0 md:border-l border-[#303030] p-6 flex flex-col gap-6 shrink-0 overflow-y-auto">
                             <div>
                                 <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Statistiche Testo</h3>
@@ -389,57 +338,35 @@
             <!-- VISTA: STATISTICHE E TIMELINE -->
             <div id="viewStatsWrapper" class="hidden">
                 <div class="flex flex-col gap-6">
-                    
-                    <!-- Top Cards -->
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Idee Totali</p>
-                                <h3 class="text-3xl font-black text-white mt-1" id="statTotalIdeas">0</h3>
-                            </div>
-                            <div class="text-4xl">💡</div>
+                            <div><p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Idee Totali</p><h3 class="text-3xl font-black text-white mt-1" id="statTotalIdeas">0</h3></div><div class="text-4xl">💡</div>
                         </div>
                         <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Nuove (48h)</p>
-                                <h3 class="text-3xl font-black text-blue-400 mt-1" id="statNewIdeas">0</h3>
-                            </div>
-                            <div class="text-4xl">✨</div>
+                            <div><p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Nuove (48h)</p><h3 class="text-3xl font-black text-blue-400 mt-1" id="statNewIdeas">0</h3></div><div class="text-4xl">✨</div>
                         </div>
                         <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">In Lavorazione</p>
-                                <h3 class="text-3xl font-black text-purple-400 mt-1" id="statProgressIdeas">0</h3>
-                            </div>
-                            <div class="text-4xl">🛠️</div>
+                            <div><p class="text-gray-400 text-xs font-bold uppercase tracking-wider">In Lavorazione</p><h3 class="text-3xl font-black text-purple-400 mt-1" id="statProgressIdeas">0</h3></div><div class="text-4xl">🛠️</div>
                         </div>
                         <div class="bg-[#1a1a1a] border border-[#303030] p-5 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Video Prodotti</p>
-                                <h3 class="text-3xl font-black text-green-400 mt-1" id="statCompletedIdeas">0</h3>
-                            </div>
-                            <div class="text-4xl">🚀</div>
+                            <div><p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Video Prodotti</p><h3 class="text-3xl font-black text-green-400 mt-1" id="statCompletedIdeas">0</h3></div><div class="text-4xl">🚀</div>
                         </div>
                     </div>
 
-                    <!-- Layout: Insight & Performance / Timeline -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- Left Column: Insights & Team -->
                         <div class="lg:col-span-2 flex flex-col gap-6">
-                            
-                            <!-- Insights Box -->
                             <div class="bg-gradient-to-br from-[#1a1a1a] to-[#222] border border-[#303030] p-6 rounded-xl">
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2 mb-4">🧠 Analisi & Consigli</h2>
-                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300">
-                                    <!-- Populated dynamically -->
-                                </ul>
+                                <ul id="statsInsightsList" class="space-y-3 text-sm text-gray-300"></ul>
                             </div>
-
-                            <!-- Team Performance -->
                             <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
-                                <div class="p-4 border-b border-[#303030] bg-[#222]">
+                                <div class="p-4 border-b border-[#303030] bg-[#222] flex justify-between items-center">
                                     <h2 class="text-lg font-bold text-white flex items-center gap-2">👥 Performance del Team</h2>
+                                    <select id="teamSortSelect" class="bg-[#0f0f0f] border border-[#404040] text-gray-300 text-xs rounded px-2 py-1 outline-none focus:border-blue-500">
+                                        <option value="completed">Ordina per: Finiti</option>
+                                        <option value="inProgress">Ordina per: In Corso</option>
+                                        <option value="total">Ordina per: Totali</option>
+                                    </select>
                                 </div>
                                 <div class="overflow-x-auto">
                                     <table class="w-full text-left text-sm text-gray-300">
@@ -451,26 +378,19 @@
                                                 <th class="px-4 py-3">Totale Prese in Carico</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]">
-                                            <!-- Populated dynamically -->
-                                        </tbody>
+                                        <tbody id="teamPerformanceBody" class="divide-y divide-[#303030]"></tbody>
                                     </table>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Right Column: Timeline -->
                         <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden flex flex-col h-[500px]">
                             <div class="p-4 border-b border-[#303030] bg-[#222] shrink-0">
                                 <h2 class="text-lg font-bold text-white flex items-center gap-2">⏱️ Timeline Recente</h2>
                             </div>
                             <div class="p-4 overflow-y-auto flex-1">
-                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer">
-                                    <!-- Populated dynamically -->
-                                </div>
+                                <div class="relative border-l border-[#404040] ml-3" id="timelineContainer"></div>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -478,8 +398,6 @@
             <!-- VISTA: DATABASE ANALYZER -->
             <div id="viewDatabaseWrapper" class="hidden">
                 <div class="flex flex-col gap-6">
-                    
-                    <!-- Overview Database -->
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl p-6 relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
                         <h2 class="text-2xl font-black text-white mb-1 relative z-10">Stato Database JSON</h2>
@@ -496,12 +414,11 @@
                             
                             <div class="md:col-span-2 bg-[#222] border border-[#404040] p-5 rounded-lg flex flex-col justify-center">
                                 <span class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-3">Distribuzione Spazio</span>
-                                <!-- Barra di progresso divisa -->
                                 <div class="w-full h-4 bg-[#111] rounded-full overflow-hidden flex shadow-inner">
                                     <div id="dbBarIdeas" class="h-full bg-[#3ea6ff] progress-bar-fill" style="width: 0%" title="Idee"></div>
                                     <div id="dbBarTools" class="h-full bg-[#a855f7] progress-bar-fill" style="width: 0%" title="Strumenti"></div>
                                     <div id="dbBarChannels" class="h-full bg-[#facc15] progress-bar-fill" style="width: 0%" title="Canali"></div>
-                                    <div id="dbBarOther" class="h-full bg-[#4ade80] progress-bar-fill" style="width: 0%" title="Altro (Formazione, EH)"></div>
+                                    <div id="dbBarOther" class="h-full bg-[#4ade80] progress-bar-fill" style="width: 0%" title="Altro"></div>
                                 </div>
                                 <div class="flex flex-wrap gap-4 mt-3 text-[11px] font-bold text-gray-400">
                                     <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#3ea6ff]"></span> Idee: <span id="dbSizeIdeas" class="text-gray-200">0 KB</span></div>
@@ -513,12 +430,11 @@
                         </div>
                     </div>
                     
-                    <!-- Rilevatore Mattoni Base64 -->
                     <div class="bg-[#1a1a1a] border border-[#303030] rounded-xl overflow-hidden">
                         <div class="p-5 border-b border-[#303030] bg-red-900/10 flex justify-between items-center">
                             <div>
                                 <h2 class="text-lg font-bold text-red-400 flex items-center gap-2">⚠️ Rilevatore Elementi Pesanti (Base64)</h2>
-                                <p class="text-xs text-gray-400 mt-1">Questi elementi contengono immagini salvate direttamente nel testo del database. Cerca di eliminarli o sostituirli con URL normali per velocizzare il sito.</p>
+                                <p class="text-xs text-gray-400 mt-1">Questi elementi contengono immagini salvate direttamente nel testo. Eliminali o sostituiscili con URL normali.</p>
                             </div>
                             <button onclick="renderDatabaseStats()" class="px-4 py-2 bg-[#303030] hover:bg-[#404040] text-white rounded text-sm transition-colors">Aggiorna Analisi</button>
                         </div>
@@ -532,18 +448,24 @@
                                         <th class="px-5 py-3 text-right">Azione Ràpida</th>
                                     </tr>
                                 </thead>
-                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]">
-                                    <!-- Populated dynamically via JS -->
-                                </tbody>
+                                <tbody id="dbHeavyItemsBody" class="divide-y divide-[#303030]"></tbody>
                             </table>
                             <div id="dbNoHeavyItems" class="text-center py-10 text-gray-500 hidden">
                                 <span class="text-3xl block mb-2">🎉</span>
                                 <p class="font-bold text-green-400">Nessun elemento pesante rilevato!</p>
-                                <p class="text-sm mt-1">Il tuo database è pulito e ottimizzato.</p>
                             </div>
                         </div>
                     </div>
-                    
+                </div>
+            </div>
+
+            <!-- VISTA: EARNINGS SEGRETA -->
+            <div id="viewEarningsWrapper" class="hidden">
+                <div class="bg-[#1a1a1a] rounded-xl border border-green-900/50 p-10 text-center flex flex-col items-center justify-center min-h-[400px]">
+                    <span class="text-6xl mb-4">💰</span>
+                    <h2 class="text-2xl font-black text-white mb-2">Earnings Dashboard</h2>
+                    <p class="text-gray-400 max-w-md mx-auto">Questa sezione è attualmente in fase di sviluppo. In futuro mostrerà metriche finanziarie, RPM, CPM e proiezioni di guadagno del network.</p>
+                    <div class="mt-8 px-6 py-2 bg-green-900/20 text-green-400 rounded-full border border-green-500/30 text-sm font-bold">Lavori in corso... 🚧</div>
                 </div>
             </div>
 
@@ -557,7 +479,6 @@
                 <img id="dashThumb" src="" alt="Copertina" class="w-full h-full object-cover opacity-60">
                 <div class="absolute inset-0 bg-gradient-to-t from-[#1a1a1a] to-transparent"></div>
                 <button id="closeDashBtn" class="absolute top-3 right-4 bg-black/50 text-white hover:text-red-400 hover:bg-black/80 w-8 h-8 flex items-center justify-center rounded-full text-xl leading-none transition-all">&times;</button>
-                
                 <div class="absolute bottom-4 left-6 right-6">
                     <div class="flex items-center gap-2 mb-1">
                         <span id="dashChannelBadge" class="bg-black/60 text-xs px-2 py-0.5 rounded border border-[#404040]">Canale</span>
@@ -616,50 +537,30 @@
                         <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
                             <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
                                 <input type="checkbox" id="chkScript" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400"><svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Script</span>
-                                <span class="text-[11px] text-gray-500">+25% completamento</span>
-                            </div>
+                            <div class="flex flex-col"><span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Script</span><span class="text-[11px] text-gray-500">+25% completamento</span></div>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
                             <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
                                 <input type="checkbox" id="chkAudio" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400"><svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Traccia Audio</span>
-                                <span class="text-[11px] text-gray-500">+25% completamento</span>
-                            </div>
+                            <div class="flex flex-col"><span class="text-sm font-semibold text-gray-200 group-hover:text-white">Creazione Traccia Audio</span><span class="text-[11px] text-gray-500">+25% completamento</span></div>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
                             <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
                                 <input type="checkbox" id="chkVideo" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400"><svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Generazione Traccia Video</span>
-                                <span class="text-[11px] text-gray-500">+25% completamento</span>
-                            </div>
+                            <div class="flex flex-col"><span class="text-sm font-semibold text-gray-200 group-hover:text-white">Generazione Traccia Video</span><span class="text-[11px] text-gray-500">+25% completamento</span></div>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group bg-[#1a1a1a] p-3 rounded border border-[#303030] hover:border-[#555] transition-colors">
                             <div class="relative flex items-center justify-center w-6 h-6 shrink-0">
                                 <input type="checkbox" id="chkFinal" class="custom-checkbox opacity-0 absolute w-full h-full cursor-pointer z-10">
-                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400">
-                                    <svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
+                                <div class="w-6 h-6 border-2 border-gray-500 rounded flex items-center justify-center transition-colors group-hover:border-blue-400"><svg class="hidden w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-gray-200 group-hover:text-white">Rifinitura</span>
-                                <span class="text-[11px] text-gray-500">Finale per 100%</span>
-                            </div>
+                            <div class="flex flex-col"><span class="text-sm font-semibold text-gray-200 group-hover:text-white">Rifinitura</span><span class="text-[11px] text-gray-500">Finale per 100%</span></div>
                         </label>
                     </div>
                 </div>
@@ -667,7 +568,9 @@
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI IDEA -->
+    <!-- MODALS AGGIUNTA & MODIFICA (Idee, Tools, Formazione, EH, Canali) -->
+    
+    <!-- Aggiungi Idea -->
     <div id="addModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
@@ -700,16 +603,14 @@
                     </div>
                     <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
                         <button type="button" onclick="closeModal('addModal', 'ideaForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
-                        <button type="submit" class="px-4 py-2 bg-white text-black rounded text-sm font-bold hover:bg-gray-200 transition-colors flex items-center gap-2">
-                            Aggiungi e Salva ⚡
-                        </button>
+                        <button type="submit" class="px-4 py-2 bg-white text-black rounded text-sm font-bold hover:bg-gray-200 transition-colors flex items-center gap-2">Aggiungi e Salva ⚡</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
     
-    <!-- MODAL MODIFICA IDEA -->
+    <!-- Modifica Idea -->
     <div id="editIdeaModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
@@ -761,16 +662,14 @@
                     </div>
                     <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
                         <button type="button" onclick="closeModal('editIdeaModal', 'editIdeaForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-bold transition-colors">
-                            Salva Modifiche ⚡
-                        </button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-bold transition-colors">Salva Modifiche ⚡</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI INSPIRATION CHANNEL (RISOLUZIONE POTENZIATA) -->
+    <!-- Aggiungi Canale d'Ispirazione (DECENTRALIZZATA E SICURA) -->
     <div id="addInspChannelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
@@ -781,11 +680,8 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-300 mb-2">Link del Canale YouTube</label>
                     <input type="url" id="inputSyncChannelUrl" placeholder="es: https://youtube.com/@WealthExplainerYT" class="w-full bg-[#0f0f0f] border border-[#404040] rounded-xl p-3.5 text-white focus:outline-none focus:border-blue-500 transition-colors">
-                    <p class="text-[11px] text-gray-500 mt-2">
-                        Incolla qualsiasi link del canale. Il nostro estrattore potenziato andrà a caccia dell'ID, Iscritti, Views Medie e Frequenza.
-                    </p>
+                    <p class="text-[11px] text-gray-500 mt-2">Incolla qualsiasi link del canale. Il nuovo estrattore Piped andrà a caccia dell'ID, Iscritti, Views Medie e Frequenza senza farsi bloccare.</p>
                 </div>
-                
                 <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-6">
                     <button type="button" onclick="closeModal('addInspChannelModal')" class="px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-[#303030] transition-colors text-gray-300">Annulla</button>
                     <button type="button" id="btnSyncChannel" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-900/20 flex items-center gap-2">
@@ -796,15 +692,16 @@
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI STRUMENTO -->
+    <!-- Aggiungi Strumento -->
     <div id="addToolModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
-                <h2 class="text-lg font-bold">Aggiungi Strumento/Risorsa</h2>
+                <h2 class="text-lg font-bold" id="toolModalTitle">Aggiungi Strumento/Risorsa</h2>
                 <button onclick="closeModal('addToolModal', 'toolForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
             </div>
             <div class="p-4 overflow-y-auto flex-1">
                 <form id="toolForm" class="space-y-4">
+                    <input type="hidden" id="inputToolId">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Nome Strumento</label>
                         <input type="text" id="inputToolTitle" required placeholder="Es: Notion, ChatGPT, Epidemic Sound..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
@@ -830,43 +727,94 @@
                     </div>
                     <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
                         <button type="button" onclick="closeModal('addToolModal', 'toolForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-500 transition-colors">
-                            Salva Strumento
-                        </button>
+                        <button type="submit" id="btnSubmitTool" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-500 transition-colors">Salva Strumento</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- MODAL AGGIUNGI FORMAZIONE -->
+    <!-- Aggiungi Formazione Ibrida -->
     <div id="addTrainingModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
         <div class="bg-[#212121] rounded-xl w-full max-w-md shadow-2xl overflow-hidden border border-[#303030] max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center p-4 border-b border-[#303030] shrink-0">
-                <h2 class="text-lg font-bold">Aggiungi Video Formazione</h2>
+                <h2 class="text-lg font-bold" id="trainingModalTitle">Aggiungi Video Formazione</h2>
                 <button onclick="closeModal('addTrainingModal', 'trainingForm')" class="text-gray-400 hover:text-white text-2xl leading-none">&times;</button>
             </div>
             <div class="p-4 overflow-y-auto flex-1">
                 <form id="trainingForm" class="space-y-4">
+                    <input type="hidden" id="inputTrainingId">
+                    
+                    <div class="flex gap-4 mb-2">
+                        <label class="flex items-center gap-2 cursor-pointer text-sm">
+                            <input type="radio" name="trainingType" value="youtube" checked onchange="toggleTrainingType()"> 
+                            <span class="text-gray-300">YouTube Video</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm">
+                            <input type="radio" name="trainingType" value="custom" onchange="toggleTrainingType()"> 
+                            <span class="text-gray-300">Risorsa Esterna</span>
+                        </label>
+                    </div>
+
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Titolo Lezione</label>
                         <input type="text" id="inputTrainingTitle" required placeholder="Es: Come migliorare la retention..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Link Video YouTube</label>
-                        <input type="url" id="inputTrainingLink" required placeholder="https://youtube.com/watch?v=..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
-                        <p class="text-[11px] text-gray-500 mt-1">La copertina verrà estratta automaticamente da YouTube.</p>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Link (YouTube o Esterno)</label>
+                        <input type="url" id="inputTrainingLink" required placeholder="https://..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
                     </div>
+                    
+                    <div id="trainingCustomImageBlock" class="hidden">
+                        <label class="block text-sm font-medium text-gray-300 mb-1">Immagine Copertina</label>
+                        <div id="trainingDropZone" class="relative w-full aspect-video rounded-lg border-2 border-dashed border-[#404040] bg-[#0f0f0f] flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all group overflow-hidden">
+                            <img id="trainingPreview" src="" alt="" class="absolute inset-0 w-full h-full object-cover rounded-lg hidden">
+                            <div id="trainingDropHint" class="flex flex-col items-center gap-2 text-gray-500 group-hover:text-gray-300 transition-colors z-10 pointer-events-none">
+                                <span class="text-3xl">🖼️</span>
+                                <span class="text-sm font-medium">Carica Immagine</span>
+                            </div>
+                            <input type="file" id="inputTrainingFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        </div>
+                    </div>
+
                     <div class="pt-4 flex justify-end gap-2 border-t border-[#303030] mt-4">
                         <button type="button" onclick="closeModal('addTrainingModal', 'trainingForm')" class="px-4 py-2 rounded text-sm font-medium hover:bg-[#303030] transition-colors">Annulla</button>
-                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded text-sm font-bold hover:bg-purple-500 transition-colors">
-                            Salva Video
-                        </button>
+                        <button type="submit" id="btnSubmitTraining" class="px-4 py-2 bg-purple-600 text-white rounded text-sm font-bold hover:bg-purple-500 transition-colors">Salva Risorsa</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleTrainingType() {
+            const type = document.querySelector('input[name="trainingType"]:checked').value;
+            const imgBlock = document.getElementById('trainingCustomImageBlock');
+            const fileInput = document.getElementById('inputTrainingFile');
+            if(type === 'custom') {
+                imgBlock.classList.remove('hidden');
+                // Se è una modifica e c'è già un'immagine non è required, ma nel form non usiamo html5 required per custom image
+            } else {
+                imgBlock.classList.add('hidden');
+                fileInput.value = '';
+                document.getElementById('trainingPreview').classList.add('hidden');
+                document.getElementById('trainingDropHint').classList.remove('hidden');
+            }
+        }
+
+        let selectedTrainingFile = null;
+        document.getElementById('inputTrainingFile').addEventListener('change', (e) => {
+            const file = e.target.files[0]; if (!file) return;
+            selectedTrainingFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('trainingPreview').src = ev.target.result;
+                document.getElementById('trainingPreview').classList.remove('hidden');
+                document.getElementById('trainingDropHint').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
 
     <!-- MODAL AGGIUNGI EDITORS HUB FILE -->
     <div id="addEHModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[100] px-4">
@@ -879,23 +827,27 @@
                 <form id="ehForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Nome File</label>
-                        <input type="text" id="inputEHTitle" required placeholder="Es: Whoosh Cinematic, Background Lofi..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
+                        <input type="text" id="inputEHTitle" required placeholder="Es: Whoosh Cinematic, Icona Frecce..." class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-300 mb-1">Categoria</label>
                         <select id="inputEHCategory" required class="w-full bg-[#0f0f0f] border border-[#303030] rounded p-2 text-white focus:outline-none focus:border-blue-500 appearance-none cursor-pointer">
                             <option value="sfx">🔊 Sound Effects (SFX)</option>
                             <option value="music">🎵 Musica</option>
+                            <option value="icons">🖼️ Icone/Immagini</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">File Audio (Trascina dal PC)</label>
+                        <label class="block text-sm font-medium text-gray-300 mb-1">File (Audio o Immagine)</label>
                         <div id="ehDropZone" class="relative w-full h-24 rounded-lg border-2 border-dashed border-[#404040] bg-[#0f0f0f] flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-all group overflow-hidden">
+                            <!-- Preview Image specifically for icons -->
+                            <img id="ehIconPreview" src="" class="absolute inset-0 w-full h-full object-contain p-2 hidden">
+                            
                             <div id="ehDropHint" class="flex flex-col items-center gap-1 text-gray-500 group-hover:text-gray-300 transition-colors z-10 pointer-events-none">
-                                <span class="text-2xl">🎵</span>
-                                <span class="text-xs font-medium">Clicca o trascina il file audio qui</span>
+                                <span class="text-2xl">📁</span>
+                                <span class="text-xs font-medium">Clicca o trascina il file qui</span>
                             </div>
-                            <input type="file" id="inputEHFile" accept="audio/*,.zip,.rar" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            <input type="file" id="inputEHFile" accept="audio/*,image/*,.zip,.rar" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                         </div>
                         <p id="ehFileName" class="text-[11px] text-blue-400 font-bold mt-1 hidden"></p>
                     </div>
@@ -1002,32 +954,21 @@
     <!-- ADMIN DASHBOARD MODAL -->
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[150] px-4 backdrop-blur-sm">
         <div class="bg-[#1a1a1a] rounded-xl w-full max-w-3xl shadow-2xl overflow-hidden border border-[#444] flex flex-col max-h-[90vh]">
-            
             <div class="flex justify-between items-center p-4 border-b border-[#303030] bg-[#222]">
-                <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                    🛠️ Pannello di Amministrazione
-                </h2>
+                <h2 class="text-xl font-bold text-white flex items-center gap-2">🛠️ Pannello di Amministrazione</h2>
                 <button onclick="closeModal('adminModal')" class="text-gray-400 hover:text-white text-3xl leading-none px-2">&times;</button>
             </div>
-            
             <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-8">
-                
-                <!-- SEZIONE: Gestione Canali Avanzata -->
                 <div class="bg-[#212121] border border-[#303030] rounded-xl p-5">
                     <div class="flex justify-between items-center border-b border-[#303030] pb-2 mb-4">
                         <h3 class="text-lg font-bold text-blue-400">📺 Gestione Canali YouTube</h3>
                     </div>
                     <p class="text-sm text-gray-400 mb-4">Modifica il nome, cambia l'immagine del profilo o elimina i canali esistenti. Attenzione: eliminare un canale dissocerà le idee ad esso collegate.</p>
-                    
                     <div class="bg-[#0f0f0f] border border-[#303030] rounded-lg overflow-hidden">
-                        <ul id="adminChannelList" class="divide-y divide-[#303030]">
-                            <!-- Generato dinamicamente via JS -->
-                        </ul>
+                        <ul id="adminChannelList" class="divide-y divide-[#303030]"></ul>
                     </div>
                     <div id="adminNoChannels" class="text-center py-6 text-gray-500 hidden">Nessun canale presente nel database.</div>
                 </div>
-
-                <!-- SEZIONE LOGOUT -->
                 <div class="flex justify-center border-t border-[#303030] pt-6">
                     <button id="logoutBtn" class="px-6 py-3 bg-red-900/30 text-red-400 hover:bg-red-900/60 border border-red-900/50 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
                         🚪 Logout (Cambia Utente)
@@ -1227,6 +1168,12 @@
             document.getElementById('pinModal').classList.remove('flex');
         }
 
+        function openEarnings() {
+            requirePin("Inserisci il PIN di sicurezza per accedere alla Dashboard Finanziaria.", () => {
+                switchView('earnings');
+            });
+        }
+
         // =============================================
         //  STATE & DATA STRUCTURE
         // =============================================
@@ -1325,6 +1272,7 @@
             document.getElementById('navScript').classList.remove('active');
             document.getElementById('navStats').classList.remove('active');
             document.getElementById('navDatabase').classList.remove('active');
+            document.getElementById('navEarnings').classList.remove('bg-green-900/40');
             
             document.getElementById('viewIdeeWrapper').classList.add('hidden');
             document.getElementById('viewInspirationsWrapper').classList.add('hidden');
@@ -1334,6 +1282,7 @@
             document.getElementById('viewScriptWrapper').classList.add('hidden');
             document.getElementById('viewStatsWrapper').classList.add('hidden');
             document.getElementById('viewDatabaseWrapper').classList.add('hidden');
+            document.getElementById('viewEarningsWrapper').classList.add('hidden');
             
             if(!globalAudioPlayer.paused) {
                 globalAudioPlayer.pause();
@@ -1373,7 +1322,19 @@
                 pageSubtitle.textContent = 'Tutti i tool utili al tuo flusso di lavoro (Trascina le card per riordinarle).';
                 mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Aggiungi Strumento';
-                mainActionBtn.onclick = () => { document.getElementById('addToolModal').classList.remove('hidden'); document.getElementById('addToolModal').classList.add('flex'); };
+                mainActionBtn.onclick = () => { 
+                    document.getElementById('toolModalTitle').textContent = 'Aggiungi Strumento/Risorsa';
+                    document.getElementById('inputToolId').value = '';
+                    document.getElementById('inputToolTitle').value = '';
+                    document.getElementById('inputToolDesc').value = '';
+                    document.getElementById('inputToolLink').value = '';
+                    document.getElementById('toolPreview').src = '';
+                    document.getElementById('toolPreview').classList.add('hidden');
+                    document.getElementById('toolDropHint').classList.remove('hidden');
+                    document.getElementById('btnSubmitTool').textContent = 'Salva Strumento';
+                    document.getElementById('addToolModal').classList.remove('hidden'); 
+                    document.getElementById('addToolModal').classList.add('flex'); 
+                };
                 renderTools();
             } 
             else if (view === 'formazione') {
@@ -1382,18 +1343,36 @@
                 pageTitle.textContent = 'Video Formazione';
                 pageSubtitle.textContent = 'Lezioni e tutorial da studiare (Trascina le card per riordinarle).';
                 mainActionBtn.classList.remove('hidden');
-                mainActionText.textContent = 'Aggiungi Video';
-                mainActionBtn.onclick = () => { document.getElementById('addTrainingModal').classList.remove('hidden'); document.getElementById('addTrainingModal').classList.add('flex'); };
+                mainActionText.textContent = 'Aggiungi Risorsa';
+                mainActionBtn.onclick = () => { 
+                    document.getElementById('trainingModalTitle').textContent = 'Aggiungi Video Formazione';
+                    document.getElementById('inputTrainingId').value = '';
+                    document.getElementById('inputTrainingTitle').value = '';
+                    document.getElementById('inputTrainingLink').value = '';
+                    document.querySelector('input[name="trainingType"][value="youtube"]').checked = true;
+                    toggleTrainingType();
+                    document.getElementById('btnSubmitTraining').textContent = 'Salva Risorsa';
+                    document.getElementById('addTrainingModal').classList.remove('hidden'); 
+                    document.getElementById('addTrainingModal').classList.add('flex'); 
+                };
                 renderTraining();
             }
             else if (view === 'editorshub') {
                 document.getElementById('navEditorsHub').classList.add('active');
                 document.getElementById('viewEditorsHubWrapper').classList.remove('hidden');
                 pageTitle.textContent = 'Editors Hub';
-                pageSubtitle.textContent = 'Libreria centralizzata per Effetti Sonori e Musica.';
+                pageSubtitle.textContent = 'Libreria centralizzata per Effetti Sonori, Musica e Immagini.';
                 mainActionBtn.classList.remove('hidden');
                 mainActionText.textContent = 'Aggiungi File';
-                mainActionBtn.onclick = () => { document.getElementById('addEHModal').classList.remove('hidden'); document.getElementById('addEHModal').classList.add('flex'); };
+                mainActionBtn.onclick = () => { 
+                    document.getElementById('addEHModal').classList.remove('hidden'); 
+                    document.getElementById('addEHModal').classList.add('flex'); 
+                    
+                    // Mostra icon preview logic reset
+                    document.getElementById('ehIconPreview').classList.add('hidden');
+                    document.getElementById('ehIconPreview').src = '';
+                    document.getElementById('ehDropHint').classList.remove('hidden');
+                };
                 renderEditorsHub();
             }
             else if (view === 'script') {
@@ -1429,6 +1408,13 @@
                 mainActionBtn.onclick = () => { alert("Consiglio: elimina manualmente gli elementi pesanti listati qui sotto per velocizzare i salvataggi."); };
                 renderDatabaseStats();
             }
+            else if (view === 'earnings') {
+                document.getElementById('navEarnings').classList.add('bg-green-900/40');
+                document.getElementById('viewEarningsWrapper').classList.remove('hidden');
+                pageTitle.textContent = 'Earnings & Finance';
+                pageSubtitle.textContent = 'Dati finanziari privati del network.';
+                mainActionBtn.classList.add('hidden');
+            }
         }
         
         function closeModal(modalId, formId) {
@@ -1444,6 +1430,10 @@
                 document.getElementById('toolPreview').classList.add('hidden');
                 document.getElementById('toolDropHint').classList.remove('hidden');
             }
+            if(modalId === 'addTrainingModal') {
+                document.getElementById('trainingPreview').classList.add('hidden');
+                document.getElementById('trainingDropHint').classList.remove('hidden');
+            }
             if(modalId === 'editChannelModal') {
                 document.getElementById('editChannelAvatarPreview').innerHTML = '📺';
                 document.getElementById('editChannelAvatarName').classList.add('hidden');
@@ -1451,6 +1441,7 @@
             if(modalId === 'addEHModal') {
                 document.getElementById('ehFileName').classList.add('hidden');
                 document.getElementById('ehDropHint').classList.remove('hidden');
+                document.getElementById('ehIconPreview').classList.add('hidden');
                 selectedEHFile = null;
             }
             if(modalId === 'editIdeaModal') {
@@ -1667,9 +1658,10 @@
             const btn = document.getElementById('btnRefreshFeed');
             btn.innerHTML = '<span class="animate-spin inline-block">🔄</span> Aggiornamento...';
             btn.disabled = true;
-            globalFeed = []; // Reset feed
+            globalFeed = []; // Svuota cache infinita per resettare tutto
             feedDisplayIndex = 0;
             document.getElementById('inspFeedGrid').innerHTML = '';
+            document.getElementById('loadMoreFeedBtn').classList.add('hidden');
             
             loadInspFeed().then(() => {
                 btn.innerHTML = '<span>🔄</span> Ricarica Feed';
@@ -1697,7 +1689,7 @@
                     tr.className = 'hover:bg-[#272727] transition-colors';
                     
                     let avatarHtml = ch.avatar 
-                        ? `<img src="${ch.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-[#404040]">`
+                        ? `<img src="${ch.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.src='https://ui-avatars.com/api/?name=${ch.name}&background=random'">`
                         : `<div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold border border-[#444]">${ch.name.charAt(0).toUpperCase()}</div>`;
 
                     tr.innerHTML = `
@@ -1720,7 +1712,7 @@
                         e.stopPropagation();
                         requirePin(`Vuoi eliminare il canale d'ispirazione "${ch.name}"?`, async () => {
                             inspChannels = inspChannels.filter(c => c.id !== ch.id);
-                            // Rimuovo anche i video associati
+                            // Rimuovo anche i video associati in background
                             globalFeed = globalFeed.filter(v => v.channelId !== ch.id);
                             renderInspChannels();
                             await autoSaveToCloud();
@@ -1732,27 +1724,104 @@
             }
         }
 
-        // Multi-Istanza Piped per evitare i blocchi rate-limit di YouTube
-        const PIPED_INSTANCES = [
-            "https://pipedapi.kavin.rocks",
-            "https://api.piped.projectsegfau.lt",
-            "https://pipedapi.in.projectsegfau.lt",
-            "https://pipedapi.smnz.de",
-            "https://api.piped.privacydev.net"
-        ];
+        // =============================================
+        //  YT DATA PARSER - 100% STABLE FETCHING
+        // =============================================
 
-        async function fetchFromPiped(endpoint) {
-            for (let instance of PIPED_INSTANCES) {
-                try {
-                    const res = await fetch(`${instance}${endpoint}`, { signal: AbortSignal.timeout(5000) }); // 5s timeout
-                    if (res.ok) {
-                        return await res.json();
-                    }
-                } catch (e) {
-                    // ignora e passa alla prossima
+        // Fetching YT Initial Data directly via proxy for guaranteed precision.
+        async function fetchYTProxy(url) {
+            const encodedUrl = encodeURIComponent(url);
+            // AllOrigins bypassa bene i blocchi e restituisce json. Contents contiene l'html grezzo.
+            const proxy = `https://api.allorigins.win/get?url=${encodedUrl}`;
+            
+            devLog(`[YT-PROXY] Contatto server per: ${url.split('.com/')[1] || url}`, 'info');
+            try {
+                const res = await fetch(proxy, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+                if(res.ok) {
+                    const data = await res.json();
+                    if(data.contents) return data.contents;
                 }
+            } catch(e) {
+                devLog(`[YT-PROXY] Errore di rete: ${e.message}`, 'warning');
             }
-            throw new Error("Tutte le istanze Piped sono irraggiungibili o bloccate.");
+            throw new Error("Impossibile connettersi al proxy. YouTube sta bloccando le richieste.");
+        }
+
+        function extractVideosFromYtData(ytData, channelId, channelName, avatarUrl) {
+            let videos = [];
+            try {
+                const tabs = ytData.contents.twoColumnBrowseResultsRenderer.tabs;
+                // Trova il tab "Video" (che esclude i tab "Shorts" o "Live")
+                const videosTab = tabs.find(t => t.tabRenderer && (t.tabRenderer.title.toLowerCase().includes('video') || t.tabRenderer.endpoint.commandMetadata.webCommandMetadata.url.includes('/videos'))); 
+                
+                if (!videosTab || !videosTab.tabRenderer.content || !videosTab.tabRenderer.content.richGridRenderer) {
+                    devLog(`[YT-PARSER] Nessun video trovato per ${channelName}. (Forse ha solo Shorts?)`, 'warning');
+                    return videos;
+                }
+
+                const list = videosTab.tabRenderer.content.richGridRenderer.contents;
+                
+                for (let item of list) {
+                    if (item.richItemRenderer && item.richItemRenderer.content.videoRenderer) {
+                        const v = item.richItemRenderer.content.videoRenderer;
+                        
+                        // PARSE DURATA IN SECONDI (Fondamentale per scartare gli shorts)
+                        const lengthText = v.lengthText ? v.lengthText.simpleText : "0:00"; // es: "4:30" o "1:02:10"
+                        const timeParts = lengthText.split(':').reverse();
+                        let durationSecs = 0;
+                        if (timeParts[0]) durationSecs += parseInt(timeParts[0]); // secondi
+                        if (timeParts[1]) durationSecs += parseInt(timeParts[1]) * 60; // minuti
+                        if (timeParts[2]) durationSecs += parseInt(timeParts[2]) * 3600; // ore
+
+                        // ⭐ SCUDO ANTI-SHORTS: Se durata <= 5 minuti (300 sec), SKIP ASSOLUTO.
+                        if (durationSecs <= 300) {
+                             // devLog(`[FILTRO] Scartato Short: ${v.title.runs[0].text} (${lengthText})`, 'info');
+                             continue;
+                        }
+
+                        const title = v.title.runs[0].text;
+                        const videoId = v.videoId;
+                        
+                        // Parsing Views
+                        const viewsText = v.viewCountText ? v.viewCountText.simpleText : "0 views"; // es "1.2M views"
+                        let viewsNum = 0;
+                        if (viewsText) {
+                            let clean = viewsText.replace(/[^0-9.,KMB]/ig, '').replace(',', '.');
+                            if(clean.includes('K') || clean.includes('k')) viewsNum = parseFloat(clean) * 1000;
+                            else if(clean.includes('M') || clean.includes('m')) viewsNum = parseFloat(clean) * 1000000;
+                            else if(clean.includes('B') || clean.includes('b')) viewsNum = parseFloat(clean) * 1000000000;
+                            else viewsNum = parseInt(clean.replace(/\./g, ''));
+                        }
+
+                        // Parsing Date (approssimata da "3 days ago")
+                        const pubTimeText = v.publishedTimeText ? v.publishedTimeText.simpleText : "";
+                        const pubDateMs = Date.now() - parseUploadDate(pubTimeText);
+
+                        let thumb = '';
+                        if(v.thumbnail && v.thumbnail.thumbnails && v.thumbnail.thumbnails.length > 0) {
+                             thumb = v.thumbnail.thumbnails[v.thumbnail.thumbnails.length - 1].url;
+                        }
+
+                        videos.push({
+                            ytId: videoId,
+                            title: title,
+                            link: `https://www.youtube.com/watch?v=${videoId}`,
+                            thumbnail: thumb,
+                            views: isNaN(viewsNum) ? 0 : viewsNum,
+                            viewsFormatted: formatViewsCount(isNaN(viewsNum) ? 0 : viewsNum),
+                            timeAgoStr: pubTimeText,
+                            pubDateMs: pubDateMs,
+                            duration: durationSecs,
+                            channelId: channelId,
+                            channelName: channelName,
+                            avatar: avatarUrl
+                        });
+                    }
+                }
+            } catch(e) {
+                devLog("[YT-PARSER] Errore lettura video HTML: " + e.message, "error");
+            }
+            return videos;
         }
 
         async function loadInspFeed() {
@@ -1768,55 +1837,39 @@
             }
 
             noRes.classList.add('hidden');
-            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-20 flex flex-col items-center gap-4"><span class="text-4xl animate-spin">⏳</span><p class="font-bold tracking-widest uppercase text-xs text-gray-500">Recupero Feed (Filtro Shorts attivo)...</p></div>';
+            grid.innerHTML = '<div class="col-span-full text-center text-gray-400 py-20 flex flex-col items-center gap-4"><span class="text-4xl animate-spin">⏳</span><p class="font-bold tracking-widest uppercase text-xs text-gray-500">Recupero Feed (> 5 min) in corso... Attendi.</p></div>';
             grid.classList.remove('hidden');
             loadMoreBtn.classList.add('hidden');
 
             let rawVideos = [];
 
+            // Ciclo sequenziale e lento per eludere i blocchi
             for (const ch of inspChannels) {
                 if (!ch.ytId) continue;
                 try {
-                    devLog(`[INSPIRATIONS FEED] Estrazione video per: ${ch.name}...`, "info");
-                    const channelData = await fetchFromPiped(`/channel/${ch.ytId}`);
+                    devLog(`[FEED] Analizzo i video di ${ch.name}...`, "info");
                     
-                    if (channelData && channelData.relatedStreams) {
-                        channelData.relatedStreams.forEach(v => {
-                            // Piped fornisce isShort, ma controlliamo anche la durata (< 300 secondi = 5 min)
-                            const isShortFlag = v.isShort === true;
-                            const isTooShort = v.duration && v.duration <= 300;
-                            
-                            // Se non c'è durata, controlliamo il titolo
-                            const titleDesc = (v.title || "").toLowerCase();
-                            const hasShortTag = titleDesc.includes('#short');
-
-                            if (!isShortFlag && !isTooShort && !hasShortTag) {
-                                rawVideos.push({
-                                    ytId: v.url.split('?v=')[1],
-                                    title: v.title,
-                                    link: `https://www.youtube.com${v.url}`,
-                                    pubDate: v.uploadedDate ? (Date.now() - (parseUploadDate(v.uploadedDate))) : 0, // Fallback se non riesco a parsare bene
-                                    timeAgoStr: v.uploadedDate, // Usiamo la stringa già fornita da Piped (es. "2 days ago")
-                                    thumbnail: v.thumbnail,
-                                    views: v.views,
-                                    channelId: ch.id,
-                                    channelName: ch.name,
-                                    avatar: ch.avatar
-                                });
-                            }
-                        });
-                        devLog(`[INSPIRATIONS FEED] OK per ${ch.name} (${channelData.relatedStreams.length} trovati)`, "success");
+                    // Fetch /videos page
+                    const html = await fetchYTProxy(`https://www.youtube.com/channel/${ch.ytId}/videos`);
+                    const ytDataStr = html.match(/var ytInitialData = (\{.*?\});<\/script>/);
+                    if (ytDataStr) {
+                         const ytData = JSON.parse(ytDataStr[1]);
+                         const vids = extractVideosFromYtData(ytData, ch.id, ch.name, ch.avatar);
+                         rawVideos.push(...vids);
+                         devLog(`[FEED] ✅ Estratti ${vids.length} video validi da ${ch.name}.`, "success");
+                    } else {
+                         devLog(`[FEED] ⚠️ Struttura ytInitialData assente per ${ch.name}.`, "warning");
                     }
                 } catch(e) {
-                    devLog(`[INSPIRATIONS FEED] Fallito recupero per ${ch.name}.`, "warning");
+                    devLog(`[FEED] ❌ Errore fetch per ${ch.name}: ${e.message}`, "error");
                 }
-                await new Promise(r => setTimeout(r, 500)); // Evita throttling
+                await new Promise(r => setTimeout(r, 800)); // Fondamentale per non crashare i proxy
             }
 
-            // Fallback per l'ordinamento: cerchiamo di ordinare per data decrescente basandoci su timeAgoStr se pubDate è inaffidabile
-            rawVideos.sort((a, b) => b.pubDate - a.pubDate);
+            // Ordinamento globale cronologico inverso
+            rawVideos.sort((a, b) => b.pubDateMs - a.pubDateMs);
             
-            // De-duplicazione
+            // De-duplicazione array per sicurezza totale
             const uniqueIds = new Set();
             const uniqueVideos = [];
             for(let v of rawVideos) {
@@ -1835,26 +1888,8 @@
                  return;
             }
 
-            devLog(`[INSPIRATIONS FEED] Feed generato: ${globalFeed.length} video (Shorts eliminati).`, "success");
+            devLog(`[FEED] Generazione conclusa: ${globalFeed.length} video disponibili. Tutti gli shorts sono stati distrutti.`, "success");
             renderNextFeedBatch();
-        }
-        
-        // Semplice parser per trasformare "2 days ago" in millisecondi approssimativi per l'ordinamento
-        function parseUploadDate(str) {
-            if(!str) return 0;
-            const s = str.toLowerCase();
-            let multiplier = 1;
-            if(s.includes('second')) multiplier = 1000;
-            else if(s.includes('minute')) multiplier = 60 * 1000;
-            else if(s.includes('hour')) multiplier = 60 * 60 * 1000;
-            else if(s.includes('day')) multiplier = 24 * 60 * 60 * 1000;
-            else if(s.includes('week')) multiplier = 7 * 24 * 60 * 60 * 1000;
-            else if(s.includes('month')) multiplier = 30 * 24 * 60 * 60 * 1000;
-            else if(s.includes('year')) multiplier = 365 * 24 * 60 * 60 * 1000;
-            
-            const match = s.match(/\d+/);
-            const num = match ? parseInt(match[0]) : 1;
-            return num * multiplier;
         }
 
         // Sistema Paginazione Feed Infinito
@@ -1881,10 +1916,8 @@
                 card.className = 'flex flex-col gap-2 cursor-pointer group relative';
                 card.onclick = () => window.open(video.link, '_blank');
 
-                const viewsFormatted = formatViewsCount(video.views);
-
                 let avatarHtml = video.avatar
-                    ? `<img src="${video.avatar}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-[#404040]">`
+                    ? `<img src="${video.avatar}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-[#404040]" onerror="this.src='https://ui-avatars.com/api/?name=${video.channelName}&background=random'">`
                     : `<div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold border border-[#404040] shrink-0">${video.channelName.charAt(0).toUpperCase()}</div>`;
 
                 card.innerHTML = `
@@ -1894,7 +1927,10 @@
                             <span class="text-4xl drop-shadow-lg">▶️</span>
                         </div>
                         <div class="absolute top-2 left-2 bg-black/80 px-2 py-0.5 rounded text-[11px] font-bold text-gray-300 uppercase border border-[#444] shadow shadow-black/50 backdrop-blur-sm">
-                            👀 ${viewsFormatted}
+                            👀 ${video.viewsFormatted}
+                        </div>
+                        <div class="absolute bottom-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold text-white border border-[#444]">
+                            ${Math.floor(video.duration/60)}:${(video.duration%60).toString().padStart(2, '0')}
                         </div>
                     </div>
                     <div class="flex gap-3 pr-2 mt-1">
@@ -1904,7 +1940,7 @@
                             <div class="text-[12px] text-[#aaaaaa] mt-1 font-medium flex items-center gap-1">
                                 ${video.channelName} 
                                 <span class="text-[8px] opacity-50">•</span> 
-                                ${video.timeAgoStr || timeSince(video.pubDate)}
+                                ${video.timeAgoStr}
                             </div>
                         </div>
                     </div>
@@ -1922,9 +1958,9 @@
         }
 
         // =============================================
-        //  AUTOMATIC INSPIRATION CHANNEL SCRAPER (PIPED INSTANCES - 100% STABILE)
+        //  AUTOMATIC INSPIRATION CHANNEL SCRAPER (HTML SCRAPING PURO E POTENTE)
         // =============================================
-
+        
         document.getElementById('btnSyncChannel').addEventListener('click', async () => {
             let url = document.getElementById('inputSyncChannelUrl').value.trim();
             if(!url) {
@@ -1934,10 +1970,10 @@
 
             const btn = document.getElementById('btnSyncChannel');
             btn.disabled = true;
-            btn.innerHTML = '⏳ Estrazione Dati...';
+            btn.innerHTML = '⏳ Analisi in corso...';
             
             try {
-                devLog(`[INSPIRATIONS] Inizio estrazione per: ${url}`, "info");
+                devLog(`[SYNC] Inizio estrazione per: ${url}`, "info");
 
                 let handle = null;
                 let channelId = null;
@@ -1953,80 +1989,90 @@
                     if(customMatch && !['watch', 'playlist', 'shorts', 'feed'].includes(customMatch[1])) {
                         handle = customMatch[1];
                     } else {
-                        throw new Error("Impossibile riconoscere l'ID o l'Handle in questo link.");
+                        throw new Error("Formato link non riconosciuto. Assicurati che contenga l'Handle (@Nome).");
                     }
                 }
 
-                // Chiediamo all'API Piped le info del canale. Piped maschera in automatico se gli diamo handle o ID.
-                let searchUrl = channelId ? `/channel/${channelId}` : `/user/${handle}`; 
-                // Se user endpoint fallisce proviamo search endpoint come fallback
+                // Controlla se il canale esiste già nelle inspirations
+                const cleanFinalUrl = handle ? `https://www.youtube.com/@${handle}` : `https://www.youtube.com/channel/${channelId}`;
+                if (inspChannels.some(c => c.url.toLowerCase() === cleanFinalUrl.toLowerCase() || (channelId && c.ytId === channelId))) {
+                    throw new Error("Questo canale è già presente nella Dashboard!");
+                }
+
+                // Usiamo /videos perché ci serve analizzare i video veri (no shorts) per fare le medie
+                const fetchUrl = handle ? `https://www.youtube.com/@${handle}/videos` : `https://www.youtube.com/channel/${channelId}/videos`;
+                const html = await fetchYTProxy(fetchUrl);
                 
-                let ytData = null;
+                const ytDataStr = html.match(/var ytInitialData = (\{.*?\});<\/script>/);
+                if (!ytDataStr) throw new Error("Impossibile estrarre i dati della pagina (ytInitialData non trovato).");
+                const ytData = JSON.parse(ytDataStr[1]);
+
+                // Estrazione Dati Canale
+                let name = "Canale Sconosciuto";
+                let avatar = "";
+                let finalId = channelId;
+                let subs = "N/A";
+                
                 try {
-                    ytData = await fetchFromPiped(searchUrl);
+                     const header = ytData.header?.c4TabbedHeaderRenderer || ytData.header?.pageHeaderRenderer;
+                     if(header) {
+                          name = header.title || header.pageTitle || name;
+                          if(!finalId && header.channelId) finalId = header.channelId;
+                          
+                          if (header.avatar?.thumbnails?.length > 0) {
+                              avatar = header.avatar.thumbnails[header.avatar.thumbnails.length - 1].url;
+                          } else if (header.content?.pageHeaderViewModel?.image?.decoratedAvatarViewModel?.avatar?.avatarViewModel?.image?.sources?.length > 0) {
+                              const sources = header.content.pageHeaderViewModel.image.decoratedAvatarViewModel.avatar.avatarViewModel.image.sources;
+                              avatar = sources[sources.length - 1].url;
+                          }
+                          
+                          // Iscritti: Cerchiamo in tutti i possibili branch di YouTube
+                          try {
+                               subs = header.subscriberCountText.simpleText.split(' ')[0];
+                          } catch(e) {
+                               try {
+                                   const metaRows = header.content.pageHeaderViewModel.metadata.contentMetadataViewModel.metadataRows;
+                                   subs = metaRows.find(r => r.metadataParts.some(p => p.text.content.includes('iscritti') || p.text.content.includes('subscribers')))
+                                          ?.metadataParts.find(p => p.text.content.includes('iscritti') || p.text.content.includes('subscribers'))
+                                          ?.text.content.split(' ')[0] || "N/A";
+                               } catch(e2) {}
+                          }
+                     }
                 } catch(e) {
-                    devLog(`[INSPIRATIONS] Errore Piped User/Channel, tento ricerca globale...`, "warning");
-                    const searchRes = await fetchFromPiped(`/search?q=${encodeURIComponent(handle || channelId)}&filter=channels`);
-                    if(searchRes && searchRes.items && searchRes.items.length > 0) {
-                        const chResult = searchRes.items[0];
-                        ytData = await fetchFromPiped(chResult.url);
-                    }
+                     devLog(`[SYNC] Parsing Header fallito.`, "warning");
                 }
 
-                if (!ytData || !ytData.id) {
-                     throw new Error("Canale non trovato o istanze API sovraccariche. Riprova tra poco.");
-                }
+                if(!finalId) throw new Error("Non sono riuscito a ricavare l'ID UC del canale.");
 
-                const finalId = ytData.id;
-                const name = ytData.name || "Sconosciuto";
-                const avatar = ytData.avatarUrl || "";
-                
-                // Gli iscritti ci vengono passati come numero preciso da Piped!
-                const subsRaw = ytData.subscriberCount || 0;
-                
-                function formatNum(num) {
-                    if (!num || num == 0) return "N/A";
-                    let n = parseInt(num);
-                    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-                    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-                    return n.toString();
-                }
+                devLog(`[SYNC] Canale identificato: ${name} (${finalId}). Iscritti: ${subs}`, "success");
 
-                const subs = subsRaw > 0 ? formatNum(subsRaw) : "N/A";
-                
-                // Calcoliamo la media delle views sugli ultimi video estratti
+                // Estrazione Video e Statistiche Complesse (Solo video > 5 min)
                 let views = "N/A";
                 let frequency = "Variabile";
                 let trend = "➡️ Stabile";
 
-                if (ytData.relatedStreams && ytData.relatedStreams.length > 0) {
-                    // Calcolo Views Medie
+                const vids = extractVideosFromYtData(ytData, finalId, name, avatar);
+                
+                if (vids.length > 0) {
+                    // CALCOLO TREND VERO: Media ultime vs Media Storica
                     let totalViews = 0;
-                    let countedVideos = 0;
-                    
-                    ytData.relatedStreams.forEach(v => {
-                         if(v.views) {
-                              totalViews += v.views;
-                              countedVideos++;
-                         }
-                    });
+                    vids.forEach(v => totalViews += v.views);
+                    const globalAvg = Math.floor(totalViews / vids.length);
+                    views = formatViewsCount(globalAvg);
 
-                    if (countedVideos > 0) {
-                         views = formatNum(Math.floor(totalViews / countedVideos));
-                    }
+                    // Calcolo sulle ultime recenti (max 15 o tutte se < 15)
+                    const recentVids = vids.slice(0, 15);
+                    let recentViews = 0;
+                    recentVids.forEach(v => recentViews += v.views);
+                    const recentAvg = recentVids.length > 0 ? Math.floor(recentViews / recentVids.length) : 0;
 
-                    // Calcolo Frequenza e Trend
-                    if(ytData.relatedStreams.length > 1) {
-                         const firstVideo = ytData.relatedStreams[0];
-                         const lastVideo = ytData.relatedStreams[ytData.relatedStreams.length - 1];
+                    if (vids.length > 1) {
+                         const firstMs = vids[0].pubDateMs; 
+                         const lastMs = vids[vids.length - 1].pubDateMs;
                          
-                         // Piped fornisce "uploadedDate" in formato testuale, dobbiamo dedurre i ms
-                         const firstMs = parseUploadDate(firstVideo.uploadedDate);
-                         const lastMs = parseUploadDate(lastVideo.uploadedDate);
-                         
-                         if(lastMs > 0) {
-                              const diffDays = Math.abs(lastMs - firstMs) / (1000 * 60 * 60 * 24);
-                              const avgDays = diffDays / ytData.relatedStreams.length;
+                         if(lastMs > 0 && firstMs > 0) {
+                              const diffDays = Math.abs(firstMs - lastMs) / (1000 * 60 * 60 * 24);
+                              const avgDays = diffDays / vids.length;
 
                               if (avgDays <= 1.5) frequency = "Quotidiano";
                               else if (avgDays <= 4) frequency = "2-3 a settimana";
@@ -2034,18 +2080,24 @@
                               else if (avgDays <= 16) frequency = "2 al mese";
                               else frequency = "Raro";
 
-                              const daysSinceFirst = firstMs / (1000 * 60 * 60 * 24);
-                              if (daysSinceFirst <= 3) trend = "🔥 In Crescita";
-                              else if (daysSinceFirst > 30) trend = "📉 In Calo";
+                              const daysSinceLastVideo = (Date.now() - firstMs) / (1000 * 60 * 60 * 24);
+                              
+                              if (daysSinceLastVideo > 30) {
+                                  trend = "📉 In Calo"; // Muto da 1 mese
+                              } else {
+                                  if (recentAvg > globalAvg * 1.15) trend = "🔥 In Crescita";
+                                  else if (recentAvg < globalAvg * 0.85) trend = "📉 In Calo";
+                                  else trend = "➡️ Stabile";
+                              }
                          }
                     }
+                } else {
+                    devLog(`[SYNC] Nessun video (esclusi shorts) trovato per calcolare le stime.`, "warning");
                 }
 
-                devLog(`[INSPIRATIONS] Dati acquisiti: Subs=${subs}, Views=${views}`, "success");
+                devLog(`[SYNC] Statistiche: MedViews=${views}, Freq=${frequency}, Trend=${trend}`, "info");
 
                 // 6. Salvataggio
-                const cleanFinalUrl = handle ? `https://www.youtube.com/@${handle}` : `https://www.youtube.com/channel/${finalId}`;
-
                 const newCh = {
                     id: Date.now().toString(),
                     ytId: finalId,
@@ -2062,13 +2114,13 @@
                 renderInspChannels();
                 autoSaveToCloud();
                 
-                devLog(`[INSPIRATIONS] Canale salvato: ${name}.`, "success");
+                devLog(`[SYNC] Magia! Canale aggiunto con successo.`, "success");
                 closeModal('addInspChannelModal');
                 document.getElementById('inputSyncChannelUrl').value = '';
 
             } catch(err) {
-                devLog(`[ERRORE ESTREMO] ${err.message}`, "error");
-                alert(`Errore critico: ${err.message}`);
+                devLog(`[ERRORE SYNC] ${err.message}`, "error");
+                alert(`Errore: ${err.message}`);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '⚡ Estrai Dati Canale';
@@ -2535,7 +2587,9 @@
                 editBtn.title = 'Modifica Idea';
                 editBtn.onclick = (e) => {
                     e.stopPropagation();
-                    openEditIdeaModal(video);
+                    requirePin(`Vuoi modificare l'idea "${video.title}"?`, () => {
+                        openEditIdeaModal(video);
+                    });
                 };
 
                 const deleteBtn = document.createElement('button');
@@ -2587,7 +2641,7 @@
             if (currentView === 'idee') renderVideos(getFilteredIdeas());
             if (currentView === 'inspirations') {
                 if(currentInspTab === 'channels') renderInspChannels();
-                else renderInspFeed(); // Aggiorna feed visivamente se il search input cambia
+                else renderInspFeed();
             }
             if (currentView === 'strumenti') renderTools();
             if (currentView === 'formazione') renderTraining();
@@ -2734,9 +2788,37 @@
                 });
                 // ---------------------------
 
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-10';
+
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '✏️';
+                editBtn.className = 'bg-blue-600/90 hover:bg-blue-500 text-white text-xs w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi modificare lo strumento "${tool.title}"?`, () => {
+                        document.getElementById('inputToolId').value = tool.id;
+                        document.getElementById('inputToolTitle').value = tool.title;
+                        document.getElementById('inputToolDesc').value = tool.description;
+                        document.getElementById('inputToolLink').value = tool.link;
+                        document.getElementById('toolPreview').src = tool.image;
+                        document.getElementById('toolPreview').classList.remove('hidden');
+                        document.getElementById('toolDropHint').classList.add('hidden');
+                        
+                        // Rendi l'immagine non obbligatoria se esiste già
+                        document.getElementById('inputToolFile').required = false;
+
+                        document.getElementById('toolModalTitle').textContent = 'Modifica Strumento';
+                        document.getElementById('btnSubmitTool').textContent = 'Salva Modifiche';
+                        
+                        document.getElementById('addToolModal').classList.remove('hidden');
+                        document.getElementById('addToolModal').classList.add('flex');
+                    });
+                };
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
-                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center shadow-lg transform hover:scale-110';
+                deleteBtn.className = 'bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare lo strumento "${tool.title}"?`, async () => {
@@ -2746,6 +2828,9 @@
                         await autoSaveToCloud();
                     });
                 };
+                
+                actionsContainer.appendChild(editBtn);
+                actionsContainer.appendChild(deleteBtn);
 
                 card.innerHTML = `
                     <img src="${tool.image}" class="w-full h-32 object-cover bg-[#111] pointer-events-none">
@@ -2757,7 +2842,7 @@
                         </button>
                     </div>
                 `;
-                card.appendChild(deleteBtn);
+                card.appendChild(actionsContainer);
                 toolsGrid.appendChild(card);
             });
         }
@@ -2778,55 +2863,70 @@
         document.getElementById('toolForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type=submit]');
-            if (!selectedToolFile) { alert('Carica un logo o un\'immagine per lo strumento.'); return; }
             
-            submitBtn.disabled = true; 
-            submitBtn.textContent = '🔄 Ottimizzazione...';
-
+            const id = document.getElementById('inputToolId').value;
             const title = document.getElementById('inputToolTitle').value.trim();
             const description = document.getElementById('inputToolDesc').value.trim();
             const link = document.getElementById('inputToolLink').value.trim();
 
-            let finalImageUrl = "";
-            const ext = selectedToolFile.name.split('.').pop().toLowerCase();
-            const compressedImg = await compressImage(selectedToolFile, 500, 0.85, 'image/webp');
+            if (!id && !selectedToolFile) { alert('Carica un logo o un\'immagine per lo strumento.'); return; }
+            
+            submitBtn.disabled = true; 
+            submitBtn.textContent = '🔄 Salvataggio...';
 
-            if (SCRIPT_URL) {
-                try {
-                    submitBtn.textContent = '🚀 Upload Logo su Drive...';
-                    const res = await callScriptAction({ 
-                        action: 'uploadEHFile', 
-                        base64: compressedImg.base64, 
-                        mimeType: 'image/webp', 
-                        fileName: `tool_logo_${Date.now()}.${ext}` 
-                    });
-                    if(res.fileId) {
-                        finalImageUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w400`;
-                        devLog(`[TOOL] Logo caricato su Drive, il database rimarrà leggerissimo!`, "success");
+            let finalImageUrl = "";
+            
+            if (selectedToolFile) {
+                const ext = selectedToolFile.name.split('.').pop().toLowerCase();
+                const compressedImg = await compressImage(selectedToolFile, 500, 0.85, 'image/webp');
+
+                if (SCRIPT_URL) {
+                    try {
+                        submitBtn.textContent = '🚀 Upload Logo su Drive...';
+                        const res = await callScriptAction({ 
+                            action: 'uploadEHFile', 
+                            base64: compressedImg.base64, 
+                            mimeType: 'image/webp', 
+                            fileName: `tool_logo_${Date.now()}.${ext}` 
+                        });
+                        if(res.fileId) {
+                            finalImageUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w400`;
+                            devLog(`[TOOL] Logo caricato su Drive!`, "success");
+                        }
+                    } catch(e) {
+                        devLog(`[TOOL] Errore upload Drive. Fallback locale.`, "warning");
                     }
-                } catch(e) {
-                    devLog(`[TOOL] Errore upload Drive. Fallback al database locale.`, "warning");
+                }
+
+                if(!finalImageUrl) {
+                     if(compressedImg.sizeKB > 500) {
+                             submitBtn.disabled = false; submitBtn.textContent = 'Salva';
+                             alert("L'immagine è troppo pesante per il salvataggio offline.");
+                             return;
+                     }
+                     finalImageUrl = compressedImg.dataUrl;
                 }
             }
 
-            if(!finalImageUrl) {
-                 if(compressedImg.sizeKB > 500) {
-                         submitBtn.disabled = false; submitBtn.textContent = 'Salva Strumento';
-                         alert("L'immagine è troppo pesante per il salvataggio offline.");
-                         return;
-                 }
-                 finalImageUrl = compressedImg.dataUrl;
+            if (id) {
+                let tool = toolsData.find(t => t.id === id);
+                if (tool) {
+                    tool.title = title;
+                    tool.description = description;
+                    tool.link = link;
+                    if (finalImageUrl) tool.image = finalImageUrl;
+                }
+            } else {
+                toolsData.push({
+                    id: Date.now().toString(),
+                    title, description, link, image: finalImageUrl
+                });
             }
 
-            const newTool = {
-                id: Date.now().toString(),
-                title, description, link, image: finalImageUrl
-            };
-
-            toolsData.push(newTool);
             renderTools();
             closeModal('addToolModal', 'toolForm');
             selectedToolFile = null;
+            document.getElementById('inputToolFile').required = true;
             
             submitBtn.disabled = false; 
             submitBtn.textContent = 'Salva Strumento';
@@ -2837,12 +2937,6 @@
         //  RENDER FORMAZIONE (CON DRAG E DROP)
         // =============================================
         const noTrainingResults = document.getElementById('noTrainingResults');
-
-        function getYouTubeID(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : null;
-        }
 
         function renderTraining() {
             trainingGrid.innerHTML = '';
@@ -2885,9 +2979,41 @@
                 });
                 // --------------------------------
 
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-20';
+
+                const editBtn = document.createElement('button');
+                editBtn.innerHTML = '✏️';
+                editBtn.className = 'bg-blue-600/90 hover:bg-blue-500 text-white text-xs w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform';
+                editBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    requirePin(`Vuoi modificare la risorsa "${training.title}"?`, () => {
+                        document.getElementById('inputTrainingId').value = training.id;
+                        document.getElementById('inputTrainingTitle').value = training.title;
+                        document.getElementById('inputTrainingLink').value = training.link;
+                        
+                        if (training.ytId) {
+                            document.querySelector('input[name="trainingType"][value="youtube"]').checked = true;
+                        } else {
+                            document.querySelector('input[name="trainingType"][value="custom"]').checked = true;
+                            document.getElementById('trainingPreview').src = training.thumbnail;
+                            document.getElementById('trainingPreview').classList.remove('hidden');
+                            document.getElementById('trainingDropHint').classList.add('hidden');
+                        }
+                        
+                        toggleTrainingType();
+
+                        document.getElementById('trainingModalTitle').textContent = 'Modifica Risorsa';
+                        document.getElementById('btnSubmitTraining').textContent = 'Salva Modifiche';
+                        
+                        document.getElementById('addTrainingModal').classList.remove('hidden');
+                        document.getElementById('addTrainingModal').classList.add('flex');
+                    });
+                };
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
-                deleteBtn.className = 'absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center justify-center shadow-lg transform hover:scale-110';
+                deleteBtn.className = 'bg-red-600/90 hover:bg-red-500 text-white text-xs w-8 h-8 rounded-full flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare il video di formazione "${training.title}"?`, async () => {
@@ -2897,18 +3023,27 @@
                     });
                 };
 
+                actionsContainer.appendChild(editBtn);
+                actionsContainer.appendChild(deleteBtn);
+
+                let thumbSrc = training.thumbnail;
+                if (training.ytId) {
+                    thumbSrc = `https://img.youtube.com/vi/${training.ytId}/maxresdefault.jpg`;
+                }
+
                 card.innerHTML = `
                     <div class="relative aspect-video bg-[#111]" onclick="window.open('${training.link}', '_blank')">
-                        <img src="https://img.youtube.com/vi/${training.ytId}/maxresdefault.jpg" onerror="this.src='https://img.youtube.com/vi/${training.ytId}/hqdefault.jpg'" class="w-full h-full object-cover pointer-events-none">
+                        <img src="${thumbSrc}" onerror="this.src='${training.thumbnail || ''}'; if(this.src==='') this.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop'" class="w-full h-full object-cover pointer-events-none">
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                             <span class="text-5xl drop-shadow-lg">▶️</span>
                         </div>
+                        ${!training.ytId ? '<div class="absolute top-2 left-2 bg-purple-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow">Link Esterno</div>' : ''}
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-center">
                         <h3 class="font-bold text-white text-sm line-clamp-2 leading-tight group-hover:text-purple-400 transition-colors">${training.title}</h3>
                     </div>
                 `;
-                card.appendChild(deleteBtn);
+                card.appendChild(actionsContainer);
                 trainingGrid.appendChild(card);
             });
         }
@@ -2916,28 +3051,61 @@
         document.getElementById('trainingForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type=submit]');
+            const id = document.getElementById('inputTrainingId').value;
+            const type = document.querySelector('input[name="trainingType"]:checked').value;
             const title = document.getElementById('inputTrainingTitle').value.trim();
             const link = document.getElementById('inputTrainingLink').value.trim();
-            const ytId = getYouTubeID(link);
+            
+            let ytId = null;
+            let thumbnailUrl = "";
 
-            if (!ytId) { alert("Link YouTube non valido. Assicurati che sia un video pubblico."); return; }
+            if (type === 'youtube') {
+                ytId = getYouTubeID(link);
+                if (!ytId) { alert("Link YouTube non valido. Assicurati che sia un video pubblico."); return; }
+            } else {
+                if (!id && !selectedTrainingFile) { alert("Inserisci un'immagine per la risorsa."); return; }
+                
+                if (selectedTrainingFile) {
+                    submitBtn.disabled = true; submitBtn.textContent = '🔄 Ottimizzazione...';
+                    const ext = selectedTrainingFile.name.split('.').pop().toLowerCase();
+                    const compressedImg = await compressImage(selectedTrainingFile, 800, 0.8, 'image/webp');
+                    
+                    if (SCRIPT_URL) {
+                        try {
+                            const res = await callScriptAction({ action: 'uploadEHFile', base64: compressedImg.base64, mimeType: 'image/webp', fileName: `training_${Date.now()}.${ext}` });
+                            if(res.fileId) thumbnailUrl = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w800`;
+                        } catch(e) {}
+                    }
+                    if(!thumbnailUrl) thumbnailUrl = compressedImg.dataUrl;
+                }
+            }
 
             submitBtn.disabled = true; submitBtn.textContent = 'Salvataggio...';
 
-            const newTraining = {
-                id: Date.now().toString(),
-                title, link, ytId
-            };
+            if (id) {
+                let item = trainingData.find(t => t.id === id);
+                if (item) {
+                    item.title = title;
+                    item.link = link;
+                    item.ytId = ytId;
+                    if(thumbnailUrl) item.thumbnail = thumbnailUrl;
+                }
+            } else {
+                trainingData.push({
+                    id: Date.now().toString(),
+                    title, link, ytId, thumbnail: thumbnailUrl
+                });
+            }
 
-            trainingData.push(newTraining);
             renderTraining();
             closeModal('addTrainingModal', 'trainingForm');
+            selectedTrainingFile = null;
             submitBtn.disabled = false; submitBtn.textContent = 'Salva Video';
             autoSaveToCloud();
         });
 
         // =============================================
-        //  RENDER EDITORS HUB (SFX & MUSIC + AUDIO PLAYER FIXATO)
+        //  RENDER EDITORS HUB (SFX, MUSIC & ICONS)
         // =============================================
         const noEHResults = document.getElementById('noEHResults');
         let selectedEHFile = null;
@@ -2956,24 +3124,12 @@
             renderEditorsHub();
         }
 
-        function simulateOpenLocalFolder() {
-            alert("Il file si trova nella cartella 'Download' o 'Musica' del tuo PC.\n\nNota: i browser web non possono aprire direttamente l'Esplora Risorse (Windows) o il Finder (Mac) per motivi di sicurezza.");
-        }
-        
-        function getDirectDownloadLink(fileId, originalLink) {
-            if (fileId) return `https://drive.google.com/uc?export=download&id=${fileId}`;
-            if (originalLink && originalLink.includes('/d/')) {
-                const match = originalLink.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                if (match) return `https://drive.google.com/uc?export=download&id=${match[1]}`;
-            }
-            return originalLink;
-        }
-
         function updateAudioUI() {
             document.querySelectorAll('.eh-play-trigger').forEach(trigger => {
                 const id = trigger.dataset.id;
                 const mainIcon = trigger.querySelector('.eh-icon-main');
                 const playIcon = trigger.querySelector('.eh-play-icon');
+                if(!mainIcon || !playIcon) return;
                 
                 if (id === currentlyPlayingEHId && !globalAudioPlayer.paused) {
                     mainIcon.className = 'eh-icon-main hidden';
@@ -2987,11 +3143,7 @@
             });
         }
 
-        // Eventi globali per la traccia audio
-        globalAudioPlayer.addEventListener('ended', () => {
-            currentlyPlayingEHId = null;
-            updateAudioUI();
-        });
+        globalAudioPlayer.addEventListener('ended', () => { currentlyPlayingEHId = null; updateAudioUI(); });
         globalAudioPlayer.addEventListener('pause', updateAudioUI);
         globalAudioPlayer.addEventListener('play', updateAudioUI);
 
@@ -3011,6 +3163,7 @@
 
             filteredEH.forEach(item => {
                 const isDownloaded = downloadedEHFiles.includes(item.id);
+                const isIcon = item.category === 'icons';
                 const icon = item.category === 'sfx' ? '🔊' : '🎵';
                 
                 const card = document.createElement('div');
@@ -3018,7 +3171,7 @@
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '🗑️';
-                deleteBtn.className = 'absolute top-3 right-3 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-sm';
+                deleteBtn.className = 'absolute top-3 right-3 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10 text-sm bg-black/50 w-6 h-6 rounded-full flex items-center justify-center';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     requirePin(`Vuoi eliminare il file "${item.title}" dall'Editors Hub?`, async () => {
@@ -3029,103 +3182,83 @@
                     });
                 };
 
-                let actionHtml = '';
-                if (isDownloaded) {
-                    actionHtml = `
-                        <div class="flex flex-col w-full">
-                            <div class="flex items-center justify-center gap-2 w-full py-1.5 bg-green-900/30 border border-green-700/50 text-green-400 rounded text-sm font-semibold cursor-default">
-                                ✅ Già Scaricato
-                            </div>
-                            <div class="flex items-center justify-between mt-2 px-1">
-                                <button onclick="simulateOpenLocalFolder()" class="text-[11px] text-gray-400 hover:text-white flex items-center gap-1 transition-colors">
-                                    📁 Apri cartella
-                                </button>
-                                <button class="text-[11px] text-[#3ea6ff] hover:text-[#65b8ff] flex items-center gap-1 transition-colors font-bold download-eh-btn">
-                                    ⬇️ Di nuovo
-                                </button>
-                            </div>
+                let actionHtml = `
+                    <button class="w-full py-2 bg-[#3ea6ff] hover:bg-[#65b8ff] text-black rounded text-sm font-bold transition-colors flex justify-center items-center gap-2 download-eh-btn">
+                        ⬇️ Scarica File
+                    </button>
+                `;
+
+                if (isIcon) {
+                    card.innerHTML = `
+                        <div class="w-full h-32 mb-3 bg-[#111] rounded-lg overflow-hidden flex items-center justify-center border border-[#333]">
+                            <img src="${item.link}" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div class="flex flex-col pr-6 mb-3">
+                            <h3 class="font-bold text-white text-sm leading-tight line-clamp-1" title="${item.title}">${item.title}</h3>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5">Immagine / Icona</span>
+                        </div>
+                        <div class="mt-auto flex w-full">
+                            ${actionHtml}
                         </div>
                     `;
                 } else {
-                    actionHtml = `
-                        <button class="w-full py-2 bg-[#3ea6ff] hover:bg-[#65b8ff] text-black rounded text-sm font-bold transition-colors flex justify-center items-center gap-2 download-eh-btn">
-                            ⬇️ Scarica File
-                        </button>
+                    const isPlaying = currentlyPlayingEHId === item.id && !globalAudioPlayer.paused;
+                    const mainIconClass = isPlaying ? 'hidden' : 'group-hover/audio:hidden';
+                    const playIconClass = isPlaying ? 'block' : 'hidden group-hover/audio:block';
+                    const playIconText = isPlaying ? '⏸️' : '▶️';
+
+                    card.innerHTML = `
+                        <div class="flex items-start gap-3 mb-4">
+                            <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" data-id="${item.id}" title="Clicca per ascoltare l'anteprima">
+                                <span class="eh-icon-main ${mainIconClass}">${icon}</span>
+                                <span class="eh-play-icon ${playIconClass} text-[#3ea6ff] text-sm">${playIconText}</span>
+                            </div>
+                            <div class="flex flex-col pr-6 flex-1">
+                                <h3 class="font-bold text-white text-sm leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
+                                <span class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">${item.category === 'sfx' ? 'Sound Effect' : 'Audio Track'}</span>
+                            </div>
+                        </div>
+                        <div class="mt-auto pt-2 flex w-full">
+                            ${actionHtml}
+                        </div>
                     `;
-                }
-
-                const isPlaying = currentlyPlayingEHId === item.id && !globalAudioPlayer.paused;
-                const mainIconClass = isPlaying ? 'hidden' : 'group-hover/audio:hidden';
-                const playIconClass = isPlaying ? 'block' : 'hidden group-hover/audio:block';
-                const playIconText = isPlaying ? '⏸️' : '▶️';
-
-                card.innerHTML = `
-                    <div class="flex items-start gap-3 mb-4">
-                        <div class="relative w-10 h-10 rounded-lg bg-[#272727] flex items-center justify-center text-xl shrink-0 border border-[#404040] group/audio cursor-pointer eh-play-trigger" data-id="${item.id}" title="Clicca per ascoltare l'anteprima">
-                            <span class="eh-icon-main ${mainIconClass}">${icon}</span>
-                            <span class="eh-play-icon ${playIconClass} text-[#3ea6ff] text-sm">${playIconText}</span>
-                        </div>
-                        <div class="flex flex-col pr-6 flex-1">
-                            <h3 class="font-bold text-white text-sm leading-tight line-clamp-2" title="${item.title}">${item.title}</h3>
-                            <span class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">${item.category === 'sfx' ? 'Sound Effect' : 'Audio Track'}</span>
-                        </div>
-                    </div>
-                    <div class="mt-auto pt-2 flex w-full">
-                        ${actionHtml}
-                    </div>
-                `;
-                
-                // Logica Audio Fixata
-                const playTrigger = card.querySelector('.eh-play-trigger');
-                playTrigger.onclick = (e) => {
-                    e.stopPropagation();
                     
-                    if (currentlyPlayingEHId === item.id) {
-                        if (globalAudioPlayer.paused) {
-                            globalAudioPlayer.play().catch(err => {
-                                devLog(`[AUDIO] Impossibile riprodurre. Provo ad aprire il file.`, "error");
-                                window.open(item.link || getDirectDownloadLink(item.fileId, item.link), '_blank');
-                            });
-                        } else {
-                            globalAudioPlayer.pause();
+                    setTimeout(() => {
+                        const playTrigger = card.querySelector('.eh-play-trigger');
+                        if(playTrigger) {
+                            playTrigger.onclick = (e) => {
+                                e.stopPropagation();
+                                if (currentlyPlayingEHId === item.id) {
+                                    if (globalAudioPlayer.paused) {
+                                        globalAudioPlayer.play().catch(err => window.open(item.link, '_blank'));
+                                    } else {
+                                        globalAudioPlayer.pause();
+                                    }
+                                } else {
+                                    if (currentlyPlayingEHId) updateAudioUI();
+                                    globalAudioPlayer.src = item.link;
+                                    globalAudioPlayer.play().catch(err => {
+                                        currentlyPlayingEHId = null; updateAudioUI(); window.open(item.link, '_blank');
+                                    });
+                                    currentlyPlayingEHId = item.id;
+                                }
+                            };
                         }
-                    } else {
-                        if (currentlyPlayingEHId) updateAudioUI();
-                        
-                        const audioUrl = getDirectDownloadLink(item.fileId, item.link);
-                        globalAudioPlayer.src = audioUrl;
-                        
-                        // FIX: Se l'audio dà errore (solitamente per blocco CORS da Google Drive), 
-                        // fermiamo il player e apriamo il link in una nuova scheda.
-                        globalAudioPlayer.play().catch(err => {
-                            devLog(`[AUDIO WARNING] Google Drive ha bloccato lo streaming. L'audio viene aperto in una nuova scheda per poterlo ascoltare.`, "warning");
-                            currentlyPlayingEHId = null;
-                            updateAudioUI();
-                            window.open(item.link || audioUrl, '_blank');
-                        });
-                        
-                        currentlyPlayingEHId = item.id;
-                    }
-                };
+                    }, 0);
+                }
 
                 card.appendChild(deleteBtn);
                 
-                const btn = card.querySelector('.download-eh-btn');
-                if(btn) {
-                    btn.onclick = () => {
-                        const dlLink = getDirectDownloadLink(item.fileId, item.link);
-                        const a = document.createElement('a');
-                        a.href = dlLink;
-                        a.download = '';
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-
-                        downloadedEHFiles.push(item.id);
-                        localStorage.setItem('creatorhub_eh_downloads', JSON.stringify(downloadedEHFiles));
-                        renderEditorsHub(); 
-                    };
-                }
+                setTimeout(() => {
+                    const btn = card.querySelector('.download-eh-btn');
+                    if(btn) {
+                        btn.onclick = () => {
+                            window.open(item.link, '_blank');
+                            downloadedEHFiles.push(item.id);
+                            localStorage.setItem('creatorhub_eh_downloads', JSON.stringify(downloadedEHFiles));
+                        };
+                    }
+                }, 0);
 
                 ehGrid.appendChild(card);
             });
@@ -3136,14 +3269,33 @@
             if (!file) return;
             selectedEHFile = file;
             document.getElementById('ehDropHint').classList.add('hidden');
-            document.getElementById('ehFileName').textContent = '📎 Selezionato: ' + file.name;
-            document.getElementById('ehFileName').classList.remove('hidden');
+            
+            const category = document.getElementById('inputEHCategory').value;
+            if(category === 'icons' && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('ehIconPreview').src = ev.target.result;
+                    document.getElementById('ehIconPreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('ehFileName').textContent = '📎 Selezionato: ' + file.name;
+                document.getElementById('ehFileName').classList.remove('hidden');
+            }
+        });
+        
+        document.getElementById('inputEHCategory').addEventListener('change', (e) => {
+            selectedEHFile = null;
+            document.getElementById('inputEHFile').value = '';
+            document.getElementById('ehDropHint').classList.remove('hidden');
+            document.getElementById('ehIconPreview').classList.add('hidden');
+            document.getElementById('ehFileName').classList.add('hidden');
         });
 
         document.getElementById('ehForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type=submit]');
-            if (!selectedEHFile) { alert("Carica o trascina un file audio!"); return; }
+            if (!selectedEHFile) { alert("Carica o trascina un file!"); return; }
 
             submitBtn.disabled = true; submitBtn.textContent = 'Caricamento su Drive...';
 
@@ -3154,22 +3306,35 @@
             let genericLink = "";
 
             try {
-                const base64 = await new Promise((resolve, reject) => { 
-                    const fr = new FileReader(); 
-                    fr.onload = ev => resolve(ev.target.result.split(',')[1]); 
-                    fr.onerror = reject;
-                    fr.readAsDataURL(selectedEHFile); 
-                });
-                
-                const ext = selectedEHFile.name.split('.').pop();
-                const mimeType = selectedEHFile.type || 'application/octet-stream';
-                const finalFileName = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.${ext}`;
+                let base64 = "";
+                let finalFileName = "";
+                let mimeType = selectedEHFile.type || 'application/octet-stream';
+                const ext = selectedEHFile.name.split('.').pop().toLowerCase();
+
+                if (category === 'icons' && mimeType.startsWith('image/')) {
+                    const compressed = await compressImage(selectedEHFile, 800, 0.8, 'image/webp');
+                    base64 = compressed.base64;
+                    mimeType = 'image/webp';
+                    finalFileName = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.webp`;
+                } else {
+                    base64 = await new Promise((resolve, reject) => { 
+                        const fr = new FileReader(); 
+                        fr.onload = ev => resolve(ev.target.result.split(',')[1]); 
+                        fr.onerror = reject;
+                        fr.readAsDataURL(selectedEHFile); 
+                    });
+                    finalFileName = `${title.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.${ext}`;
+                }
 
                 const res = await callScriptAction({ action: 'uploadEHFile', base64: base64, mimeType: mimeType, fileName: finalFileName });
 
                 if(res.fileId) {
                     uploadedFileId = res.fileId;
-                    genericLink = `https://drive.google.com/file/d/${res.fileId}/view`;
+                    if (category === 'icons') {
+                        genericLink = `https://drive.google.com/thumbnail?id=${res.fileId}&sz=w800`;
+                    } else {
+                        genericLink = `https://drive.google.com/file/d/${res.fileId}/view`;
+                    }
                 }
             } catch(e) {
                 submitBtn.disabled = false; submitBtn.textContent = 'Salva File';
@@ -3191,6 +3356,8 @@
         // =============================================
         //  RENDER STATISTICHE & TIMELINE
         // =============================================
+        document.getElementById('teamSortSelect').addEventListener('change', renderStats);
+
         function renderStats() {
             let total = videoIdeas.length;
             let n = 0, p = 0, c = 0;
@@ -3245,7 +3412,13 @@
                 return { name: member, completed, inProgress, total: assignedVideos.length };
             });
 
-            teamData.sort((a, b) => b.completed - a.completed || b.total - a.total);
+            const sortBy = document.getElementById('teamSortSelect').value;
+            teamData.sort((a, b) => {
+                if (sortBy === 'completed') return b.completed - a.completed;
+                if (sortBy === 'inProgress') return b.inProgress - a.inProgress;
+                if (sortBy === 'total') return b.total - a.total;
+                return 0;
+            });
 
             teamData.forEach(member => {
                 const tr = document.createElement('tr');
